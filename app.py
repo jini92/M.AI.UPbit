@@ -316,8 +316,9 @@ def main():
                 }
                 update_env_file(env_vars)
             else:
-                logging.warning("No .env file found.")
+                logging.warning("No .env file found.!!")
                 
+
             st.success("Environment variables updated successfully!")
 
     with st.container():
