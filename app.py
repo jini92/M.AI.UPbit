@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 import pyupbit
 import numpy as np
 from dotenv import dotenv_values
+from dotenv import load_dotenv, find_dotenv
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -254,6 +255,19 @@ def update_env_file(env_vars):
 def mask_value(value):
     return "*" * len(value)
 
+def load_env_variables():
+    if find_dotenv():
+        load_dotenv()
+        openai_key = os.getenv("OPENAI_API_KEY")
+        upbit_access_key = os.getenv("UPBIT_ACCESS_KEY")
+        upbit_secret_key = os.getenv("UPBIT_SECRET_KEY")
+        instructions_path = os.getenv("INSTRUCTIONS_PATH")
+    else:
+        openai_key = st.secrets.get("OPENAI_API_KEY", "")
+        upbit_access_key = st.secrets.get("UPBIT_ACCESS_KEY", "")
+        upbit_secret_key = st.secrets.get("UPBIT_SECRET_KEY", "")
+        instructions_path = ""
+    return openai_key, upbit_access_key, upbit_secret_key, instructions_path
 
 
 def main():
@@ -265,19 +279,45 @@ def main():
     with st.sidebar:
         st.subheader("Environment Variables")
 
-        openai_key = st.text_input("OpenAI API Key", value=mask_value(env_vars["OPENAI_API_KEY"]))
-        upbit_access_key = st.text_input("Upbit Access Key", value=mask_value(env_vars["UPBIT_ACCESS_KEY"]))
-        upbit_secret_key = st.text_input("Upbit Secret Key", value=mask_value(env_vars["UPBIT_SECRET_KEY"]), type="password")
-        # instructions_path = st.text_input("Instructions Path", value=env_vars["INSTRUCTIONS_PATH"])
+        # openai_key = st.text_input("OpenAI API Key", value=mask_value(env_vars["OPENAI_API_KEY"]))
+        # upbit_access_key = st.text_input("Upbit Access Key", value=mask_value(env_vars["UPBIT_ACCESS_KEY"]))
+        # upbit_secret_key = st.text_input("Upbit Secret Key", value=mask_value(env_vars["UPBIT_SECRET_KEY"]), type="password")
+        # # instructions_path = st.text_input("Instructions Path", value=env_vars["INSTRUCTIONS_PATH"])
+
+        # if st.button("Update Environment Variables"):
+        #     updated_env_vars = {
+        #         "OPENAI_API_KEY": openai_key,
+        #         "UPBIT_ACCESS_KEY": upbit_access_key,
+        #         "UPBIT_SECRET_KEY": upbit_secret_key,
+        #         # "INSTRUCTIONS_PATH": instructions_path
+        #     }
+        #     update_env_file(updated_env_vars)
+        #     st.success("Environment variables updated successfully!")
+
+        openai_key, upbit_access_key, upbit_secret_key, instructions_path = load_env_variables()
+
+        openai_key_input = st.text_input("OpenAI API Key", value=mask_value(openai_key))
+        upbit_access_key_input = st.text_input("Upbit Access Key", value=mask_value(upbit_access_key))
+        upbit_secret_key_input = st.text_input("Upbit Secret Key", value=mask_value(upbit_secret_key), type="password")
+        instructions_path_input = st.text_input("Instructions Path", value=mask_value(instructions_path))
 
         if st.button("Update Environment Variables"):
-            updated_env_vars = {
-                "OPENAI_API_KEY": openai_key,
-                "UPBIT_ACCESS_KEY": upbit_access_key,
-                "UPBIT_SECRET_KEY": upbit_secret_key,
-                # "INSTRUCTIONS_PATH": instructions_path
-            }
-            update_env_file(updated_env_vars)
+            openai_key = openai_key_input
+            upbit_access_key = upbit_access_key_input
+            upbit_secret_key = upbit_secret_key_input
+            instructions_path = instructions_path_input
+
+            if find_dotenv():
+                env_vars = {
+                    "OPENAI_API_KEY": openai_key,
+                    "UPBIT_ACCESS_KEY": upbit_access_key,
+                    "UPBIT_SECRET_KEY": upbit_secret_key,
+                    "INSTRUCTIONS_PATH": instructions_path
+                }
+                update_env_file(env_vars)
+            else:
+                logging.warning("No .env file found.")
+                
             st.success("Environment variables updated successfully!")
 
     with st.container():
