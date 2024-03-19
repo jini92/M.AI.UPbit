@@ -1,0 +1,14 @@
+flask
+flask_cors
+requests
+openai
+python-dotenv
+pyupbit
+pyjwt
+pandas
+pandas_ta
+schedule
+streamlit
+matplotlib
+plotly
+numpy
