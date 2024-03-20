@@ -269,57 +269,47 @@ def load_env_variables():
         instructions_path = ""
     return openai_key, upbit_access_key, upbit_secret_key, instructions_path
 
+def set_environment_variables():
+    st.sidebar.subheader("Environment Variables")
 
-def main():
+    openai_key, upbit_access_key, upbit_secret_key, instructions_path = load_env_variables()
 
+    openai_key_input = st.sidebar.text_input("OpenAI API Key", value=mask_value(openai_key))
+    upbit_access_key_input = st.sidebar.text_input("Upbit Access Key", value=mask_value(upbit_access_key))
+    upbit_secret_key_input = st.sidebar.text_input("Upbit Secret Key", value=mask_value(upbit_secret_key), type="password")
+    instructions_path_input = st.sidebar.text_input("Instructions Path", value=mask_value(instructions_path))
+
+    if st.sidebar.button("Update Environment Variables"):
+        openai_key = openai_key_input
+        upbit_access_key = upbit_access_key_input
+        upbit_secret_key = upbit_secret_key_input
+        instructions_path = instructions_path_input
+
+        if find_dotenv():
+            env_vars = {
+                "OPENAI_API_KEY": openai_key,
+                "UPBIT_ACCESS_KEY": upbit_access_key,
+                "UPBIT_SECRET_KEY": upbit_secret_key,
+                "INSTRUCTIONS_PATH": instructions_path
+            }
+            update_env_file(env_vars)
+        else:
+            logging.warning("No .env file found.!!")
+
+        st.sidebar.success("Environment variables updated successfully!")
+
+def select_symbols():
     st.title("AI Trader")
+    st.subheader("Market Search")
+    market_info = get_market_info()
+    coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
+    filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
+    selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
+    auto_trade = st.checkbox("Enable Auto Trading")
+    return selected_symbol, auto_trade
 
-    env_vars = dotenv_values(".env")
-
-    with st.sidebar:
-        st.subheader("Environment Variables")
-
-        # openai_key = st.text_input("OpenAI API Key", value=mask_value(env_vars["OPENAI_API_KEY"]))
-        # upbit_access_key = st.text_input("Upbit Access Key", value=mask_value(env_vars["UPBIT_ACCESS_KEY"]))
-        # upbit_secret_key = st.text_input("Upbit Secret Key", value=mask_value(env_vars["UPBIT_SECRET_KEY"]), type="password")
-        # # instructions_path = st.text_input("Instructions Path", value=env_vars["INSTRUCTIONS_PATH"])
-
-        # if st.button("Update Environment Variables"):
-        #     updated_env_vars = {
-        #         "OPENAI_API_KEY": openai_key,
-        #         "UPBIT_ACCESS_KEY": upbit_access_key,
-        #         "UPBIT_SECRET_KEY": upbit_secret_key,
-        #         # "INSTRUCTIONS_PATH": instructions_path
-        #     }
-        #     update_env_file(updated_env_vars)
-        #     st.success("Environment variables updated successfully!")
-
-        openai_key, upbit_access_key, upbit_secret_key, instructions_path = load_env_variables()
-
-        openai_key_input = st.text_input("OpenAI API Key", value=mask_value(openai_key))
-        upbit_access_key_input = st.text_input("Upbit Access Key", value=mask_value(upbit_access_key))
-        upbit_secret_key_input = st.text_input("Upbit Secret Key", value=mask_value(upbit_secret_key), type="password")
-        instructions_path_input = st.text_input("Instructions Path", value=mask_value(instructions_path))
-
-        if st.button("Update Environment Variables"):
-            openai_key = openai_key_input
-            upbit_access_key = upbit_access_key_input
-            upbit_secret_key = upbit_secret_key_input
-            instructions_path = instructions_path_input
-
-            if find_dotenv():
-                env_vars = {
-                    "OPENAI_API_KEY": openai_key,
-                    "UPBIT_ACCESS_KEY": upbit_access_key,
-                    "UPBIT_SECRET_KEY": upbit_secret_key,
-                    "INSTRUCTIONS_PATH": instructions_path
-                }
-                update_env_file(env_vars)
-            else:
-                logging.warning("No .env file found.!!")
-                
-
-            st.success("Environment variables updated successfully!")
+def main(symbol, auto_trade):
+    st.title(f"AI Trader - {symbol}")
 
     with st.container():
         st.markdown("""
@@ -331,31 +321,25 @@ def main():
         st.markdown("---")
 
     with st.container():
-        st.subheader("Market Search")
-        market_info = get_market_info()
-        coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
-        filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
-        symbol = st.selectbox("Select Ticker:", filtered_tickers)
-        analyze_button = st.button("Analyze")
-        st.markdown("---")
+        st.subheader("Market Analysis and Trading")
+        openai, upbit, instructions_path = load_env()
+        instructions = get_instructions(instructions_path)
+        daily_data, hourly_data = fetch_data(symbol)
+        data_json = prepare_data(daily_data, hourly_data)
+        current_status = get_current_status(upbit, symbol)
+        recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status)
 
-    if analyze_button:
-
-        with st.container():
-            st.subheader("Market Analysis and Trading")
-            openai, upbit, instructions_path = load_env()
-            instructions = get_instructions(instructions_path)
-            daily_data, hourly_data = fetch_data(symbol)
-            data_json = prepare_data(daily_data, hourly_data)
-            current_status = get_current_status(upbit, symbol)
-            recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status)
+        if auto_trade:
             make_decision_and_execute(upbit, symbol, recommendation)
-            # st.write("Current Status:", current_status)
-            st.write("Trading Advice:", recommendation)
-            st.write("Reasoning:", reason)
-            st.write("Technical Indicators:", technical_indicators)
-            st.markdown("---")
+            st.write("Auto Trading Enabled. Executed trading decision.")
+        else:
+            st.write("Auto Trading Disabled. Trading decision not executed.")
 
+        st.write("Trading Advice:", recommendation)
+        st.write("Reasoning:", reason)
+        st.write("Technical Indicators:", technical_indicators)
+        st.markdown("---")
+    
         with st.container():
             st.subheader("Market Data Visualization")
             st.write("Daily Data Chart")
@@ -417,4 +401,24 @@ def main():
        
 
 if __name__ == "__main__":
-    main()
+    import schedule
+    import time
+
+    set_environment_variables()
+    selected_symbol, auto_trade = select_symbols()
+
+    if selected_symbol:
+        if st.button("Start Trading"):
+            if auto_trade:
+                for symbol in selected_symbol:
+                    schedule.every().hour.at(":01").do(main, symbol=symbol, auto_trade=auto_trade)
+
+            # Run the Streamlit app for the first symbol
+            main(selected_symbol, auto_trade)
+
+            # Run the scheduled tasks if auto_trade is enabled
+            while auto_trade:
+                schedule.run_pending()
+                time.sleep(1)
+    else:
+        st.warning("No symbols selected. Please select at least one symbol to start trading.")
