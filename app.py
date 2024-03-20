@@ -443,7 +443,33 @@ def main(openai_key,
     
     st.title(f"AI Trader - {symbol}")
     
-    # openai_key, upbit_access_key, upbit_secret_key, instructions_path = set_environment_variables()
+    # 사용자 정의 CSS 추가
+    st.markdown("""
+        <style>
+            /* 기본 스타일 */
+            .sidebar .sidebar-content {
+                width: 300px;
+            }
+            
+            .reportview-container .main .block-container {
+                padding-top: 2rem;
+                padding-right: 2rem;
+                padding-left: 2rem;
+                padding-bottom: 2rem;
+            }
+            
+            /* 화면 너비가 600px 이하일 때 적용되는 스타일 */
+            @media screen and (max-width: 600px) {
+                .sidebar .sidebar-content {
+                    width: 100%;
+                }
+                
+                .reportview-container .main .block-container {
+                    padding: 1rem;
+                }
+            }
+        </style>
+    """, unsafe_allow_html=True)
     
     if not openai_key or not upbit_access_key or not upbit_secret_key:
         st.warning("openai_key: " + openai_key)
