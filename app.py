@@ -414,7 +414,26 @@ def set_environment_variables():
     logging.info(f"upbit_secret_key: {st.session_state.upbit_secret_key}")
     logging.info(f"instructions_path: {st.session_state.instructions_path}")
 
+    # 사이드바에 토스 QR 코드 추가
+    st.sidebar.subheader("토스로 펀드 받기")
+    st.sidebar.image("toss_funding.jpeg", use_column_width=True)
+
     return st.session_state.openai_key, st.session_state.upbit_access_key, st.session_state.upbit_secret_key, st.session_state.instructions_path
+
+# def select_symbols():
+#     st.title("AI Trader")
+#     st.subheader("Market Search")
+#     market_info = get_market_info()
+#     coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
+#     filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
+#     selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
+
+#     order_amount = st.number_input(f"Enter order amount ({selected_symbol.split('-')[0]})", min_value=0.0, format="%.8f")
+
+#     enable_trading = st.checkbox("Enable Trading")
+#     auto_trade = st.checkbox("Enable Auto Trading")
+
+#     return selected_symbol, order_amount, enable_trading, auto_trade
 
 def select_symbols():
     st.title("AI Trader")
@@ -429,7 +448,28 @@ def select_symbols():
     enable_trading = st.checkbox("Enable Trading")
     auto_trade = st.checkbox("Enable Auto Trading")
 
-    return selected_symbol, order_amount, enable_trading, auto_trade
+    # 스케줄 주기 선택
+    schedule_interval = None
+    schedule_value = None
+    if auto_trade:
+        schedule_interval = st.selectbox("스케줄 주기", ("분", "시간", "일", "주", "월", "년"))
+
+        # 주기 값 입력
+        if schedule_interval == "분":
+            schedule_value = st.number_input("분 간격", min_value=1, value=1, step=1)
+        elif schedule_interval == "시간":
+            schedule_value = st.number_input("시간 간격", min_value=1, value=1, step=1)
+        elif schedule_interval == "일":
+            schedule_value = st.number_input("일 간격", min_value=1, value=1, step=1)
+        elif schedule_interval == "주":
+            schedule_value = st.number_input("주 간격", min_value=1, value=1, step=1)
+        elif schedule_interval == "월":
+            schedule_value = st.number_input("월 간격", min_value=1, value=1, step=1)
+        elif schedule_interval == "년":
+            schedule_value = st.number_input("년 간격", min_value=1, value=1, step=1)
+
+    return selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value
+
 
 def main(openai_key, 
          upbit_access_key, 
@@ -470,10 +510,6 @@ def main(openai_key,
             }
         </style>
     """, unsafe_allow_html=True)
-    
-    # 사이드바에 토스 QR 코드 추가
-    st.sidebar.subheader("토스로 펀드 받기")
-    st.sidebar.image("toss_funding.jpeg", use_column_width=True)
 
     if not openai_key or not upbit_access_key or not upbit_secret_key:
         st.warning("openai_key: " + openai_key)
@@ -503,6 +539,11 @@ def main(openai_key,
         data_json = prepare_data(daily_data, hourly_data)
         current_status = get_current_status(upbit, symbol)
         recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status)
+        
+        # recommendation = "hold" # 임시
+        # reason = "hold" # 임시
+        # technical_indicators = "hold" # 임시
+
 
         if enable_trading:
             if auto_trade:
@@ -576,15 +617,13 @@ def main(openai_key,
             st.plotly_chart(tech_indicators_fig)
             st.markdown("---")
 
-       
-
+ 
 if __name__ == "__main__":
     import schedule
     import time
 
-    # set_environment_variables()
     openai_key, upbit_access_key, upbit_secret_key, instructions_path = set_environment_variables()
-    selected_symbol, order_amount, enable_trading, auto_trade = select_symbols()
+    selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value = select_symbols()
 
     # debugging set_environment_variables and select_symbols
     logging.info("\n")
@@ -597,23 +636,74 @@ if __name__ == "__main__":
     logging.info(f"order_amount: {order_amount}")
     logging.info(f"enable_trading: {enable_trading}")
     logging.info(f"auto_trade: {auto_trade}")
-
+    logging.info(f"schedule_interval: {schedule_interval}")
+    logging.info(f"schedule_value: {schedule_value}")
 
     if selected_symbol:
         if st.button("Start Trading"):
-            if auto_trade:
-                for symbol in selected_symbol:
-                    schedule.every().hour.at(":01").do(main, 
-                                                        openai_key=openai_key,
-                                                        upbit_access_key=upbit_access_key,
-                                                        upbit_secret_key=upbit_secret_key,
-                                                        instructions_path=instructions_path,
-                                                        symbol=symbol,
-                                                        order_amount=order_amount,
-                                                        enable_trading=enable_trading,
-                                                        auto_trade=auto_trade)
-
-            # Run the Streamlit app for the first symbol
+            if auto_trade and schedule_interval and schedule_value:
+                if schedule_interval == "분":
+                    schedule.every(schedule_value).minutes.do(main, 
+                                                              openai_key=openai_key,
+                                                              upbit_access_key=upbit_access_key,
+                                                              upbit_secret_key=upbit_secret_key,
+                                                              instructions_path=instructions_path,
+                                                              symbol=selected_symbol,
+                                                              order_amount=order_amount,
+                                                              enable_trading=enable_trading,
+                                                              auto_trade=auto_trade)
+                elif schedule_interval == "시간":
+                    schedule.every(schedule_value).hours.do(main, 
+                                                            openai_key=openai_key,
+                                                            upbit_access_key=upbit_access_key,
+                                                            upbit_secret_key=upbit_secret_key,
+                                                            instructions_path=instructions_path,
+                                                            symbol=selected_symbol,
+                                                            order_amount=order_amount,
+                                                            enable_trading=enable_trading,
+                                                            auto_trade=auto_trade)
+                elif schedule_interval == "일":
+                    schedule.every(schedule_value).days.do(main, 
+                                                           openai_key=openai_key,
+                                                           upbit_access_key=upbit_access_key,
+                                                           upbit_secret_key=upbit_secret_key,
+                                                           instructions_path=instructions_path,
+                                                           symbol=selected_symbol,
+                                                           order_amount=order_amount,
+                                                           enable_trading=enable_trading,
+                                                           auto_trade=auto_trade)
+                elif schedule_interval == "주":
+                    schedule.every(schedule_value).weeks.do(main, 
+                                                            openai_key=openai_key,
+                                                            upbit_access_key=upbit_access_key,
+                                                            upbit_secret_key=upbit_secret_key,
+                                                            instructions_path=instructions_path,
+                                                            symbol=selected_symbol,
+                                                            order_amount=order_amount,
+                                                            enable_trading=enable_trading,
+                                                            auto_trade=auto_trade)
+                elif schedule_interval == "월":
+                    schedule.every(schedule_value).months.do(main, 
+                                                             openai_key=openai_key,
+                                                             upbit_access_key=upbit_access_key,
+                                                             upbit_secret_key=upbit_secret_key,
+                                                             instructions_path=instructions_path,
+                                                             symbol=selected_symbol,
+                                                             order_amount=order_amount,
+                                                             enable_trading=enable_trading,
+                                                             auto_trade=auto_trade)
+                elif schedule_interval == "년":
+                    schedule.every(schedule_value).years.do(main, 
+                                                            openai_key=openai_key,
+                                                            upbit_access_key=upbit_access_key,
+                                                            upbit_secret_key=upbit_secret_key,
+                                                            instructions_path=instructions_path,
+                                                            symbol=selected_symbol,
+                                                            order_amount=order_amount,
+                                                            enable_trading=enable_trading,
+                                                            auto_trade=auto_trade)
+            
+            # Run the Streamlit app for the selected symbol
             main(openai_key=openai_key,
                  upbit_access_key=upbit_access_key,
                  upbit_secret_key=upbit_secret_key,
