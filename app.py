@@ -414,9 +414,9 @@ def set_environment_variables():
     logging.info(f"upbit_secret_key: {st.session_state.upbit_secret_key}")
     logging.info(f"instructions_path: {st.session_state.instructions_path}")
 
-    # 사이드바에 토스 QR 코드 추가
-    st.sidebar.subheader("토스로 펀드 받기")
-    st.sidebar.image("toss_funding.jpeg", use_column_width=True)
+    # # 사이드바에 토스 QR 코드 추가
+    # st.sidebar.subheader("토스로 펀드 받기")
+    # st.sidebar.image("toss_funding.jpeg", use_column_width=True)
 
     # 사이드바에 kakao QR 코드 추가
     st.sidebar.subheader("카카오페이로 펀드 받기")
