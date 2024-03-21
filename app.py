@@ -418,6 +418,10 @@ def set_environment_variables():
     st.sidebar.subheader("토스로 펀드 받기")
     st.sidebar.image("toss_funding.jpeg", use_column_width=True)
 
+    # 사이드바에 kakao QR 코드 추가
+    st.sidebar.subheader("카카오페이로 펀드 받기")
+    st.sidebar.image("kakao_funding.jpeg", use_column_width=True)
+
     return st.session_state.openai_key, st.session_state.upbit_access_key, st.session_state.upbit_secret_key, st.session_state.instructions_path
 
 # def select_symbols():
