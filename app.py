@@ -471,6 +471,10 @@ def main(openai_key,
         </style>
     """, unsafe_allow_html=True)
     
+    # 사이드바에 토스 QR 코드 추가
+    st.sidebar.subheader("토스로 펀드 받기")
+    st.sidebar.image("toss_funding.jpeg", use_column_width=True)
+
     if not openai_key or not upbit_access_key or not upbit_secret_key:
         st.warning("openai_key: " + openai_key)
         st.warning("upbit_access_key: " + upbit_access_key)
