@@ -420,7 +420,10 @@ def set_environment_variables():
 
     # 사이드바에 kakao QR 코드 추가
     st.sidebar.subheader("카카오페이로 펀드 받기")
+    kakaopay_funding_link = "https://qr.kakaopay.com/Ej797GOPG1c205798"
+    st.sidebar.markdown(f"[[개발펀딩]]({kakaopay_funding_link})")
     st.sidebar.image("kakao_funding.jpeg", use_column_width=True)
+    
 
     return st.session_state.openai_key, st.session_state.upbit_access_key, st.session_state.upbit_secret_key, st.session_state.instructions_path
 
