@@ -15,6 +15,7 @@ import numpy as np
 from dotenv import dotenv_values
 from dotenv import load_dotenv, find_dotenv
 import uuid
+from datetime import datetime, timedelta
 
 
 # 로깅 설정
@@ -68,8 +69,43 @@ def get_current_status(upbit, symbol):
         'coin_avg_buy_price': avg_buy_price
     })
 
-def fetch_data(symbol):
-    return pyupbit.get_ohlcv(symbol, "day", count=30), pyupbit.get_ohlcv(symbol, interval="minute60", count=24)
+def fetch_data(symbol, start_date=None, end_date=None):
+    """
+    Fetches historical price data for the specified symbol and date range.
+    start_date: default is 30 days ago from the current date
+    end_date: default is the current date
+    
+    Args:
+        symbol (str): The trading symbol (e.g., "KRW-BTC", "BTC-ETH", etc.).
+        start_date (datetime.date, optional): The start date of the data range.
+                                              Defaults to 30 days ago from the current date if not provided.
+        end_date (datetime.date, optional): The end date of the data range. 
+                                            Defaults to the current date if not provided.
+    
+    Returns:
+        tuple: A tuple containing the daily and hourly price data as pandas DataFrames.
+               Returns (None, None) if an error occurs.
+    
+    Raises:
+        Exception: If an error occurs while fetching the data.
+    
+    """
+    if end_date is None:
+        end_date = datetime.now().date()
+    
+    if start_date is None:
+        start_date = end_date - timedelta(days=30)
+    
+    try:
+        count_daily = (end_date - start_date).days + 1
+        count_hourly = count_daily * 24
+        
+        daily_data = pyupbit.get_ohlcv(symbol, "day", to=end_date.strftime("%Y-%m-%d"), count=count_daily)
+        hourly_data = pyupbit.get_ohlcv(symbol, interval="minute60", to=end_date.strftime("%Y-%m-%d"), count=count_hourly)
+        return daily_data, hourly_data
+    except Exception as e:
+        logging.error(f"Error fetching data: {e}")
+        return None, None
 
 def add_indicators(df):
     """
@@ -298,75 +334,6 @@ def load_env_variables():
 
     return openai_key, upbit_access_key, upbit_secret_key, instructions_path
 
-
-# def set_environment_variables():
-#     st.sidebar.subheader("Environment Variables")
-
-#     openai_key, upbit_access_key, upbit_secret_key, instructions_path = load_env_variables()
-
-#     openai_key_input = st.sidebar.text_input("OpenAI API Key", value=mask_value(openai_key))
-#     upbit_access_key_input = st.sidebar.text_input("Upbit Access Key", value=mask_value(upbit_access_key))
-#     upbit_secret_key_input = st.sidebar.text_input("Upbit Secret Key", value=mask_value(upbit_secret_key), type="password")
-#     instructions_path_input = st.sidebar.text_input("Instructions Path", value=mask_value(instructions_path))
-
-#     if st.sidebar.button("Update Environment Variables"):
-#         openai_key = openai_key_input
-#         upbit_access_key = upbit_access_key_input
-#         upbit_secret_key = upbit_secret_key_input
-#         instructions_path = instructions_path_input
-
-#         if find_dotenv():
-#             env_vars = {
-#                 "OPENAI_API_KEY": openai_key,
-#                 "UPBIT_ACCESS_KEY": upbit_access_key,
-#                 "UPBIT_SECRET_KEY": upbit_secret_key,
-#                 "INSTRUCTIONS_PATH": instructions_path
-#             }
-#             update_env_file(env_vars)
-#         else:
-#             logging.warning("No .env file found.!!")
-
-#         st.sidebar.success("Environment variables updated successfully!")
-
-# def set_environment_variables():
-#     st.sidebar.subheader("Environment Variables")
-
-#     openai_key, upbit_access_key, upbit_secret_key, instructions_path = load_env_variables()
-
-#     openai_key_input = st.sidebar.text_input("OpenAI API Key", value=mask_value(openai_key), type="password", key="openai_key_input_sidebar")
-#     upbit_access_key_input = st.sidebar.text_input("Upbit Access Key", value=mask_value(upbit_access_key), type="password", key="upbit_access_key_input_sidebar")
-#     upbit_secret_key_input = st.sidebar.text_input("Upbit Secret Key", value=mask_value(upbit_secret_key), type="password", key="upbit_secret_key_input_sidebar")
-#     instructions_path_input = st.sidebar.text_input("Instructions Path", value=mask_value(instructions_path), key="instructions_path_input_sidebar")
-
-#     if st.sidebar.button("Update Environment Variables"):
-#         openai_key = openai_key_input
-#         upbit_access_key = upbit_access_key_input
-#         upbit_secret_key = upbit_secret_key_input
-#         instructions_path = instructions_path_input
-
-#         if find_dotenv():
-#             env_vars = {
-#                 "OPENAI_API_KEY": openai_key,
-#                 "UPBIT_ACCESS_KEY": upbit_access_key,
-#                 "UPBIT_SECRET_KEY": upbit_secret_key,
-#                 "INSTRUCTIONS_PATH": instructions_path
-#             }
-#             update_env_file(env_vars)
-#         else:
-#             logging.warning("No .env file found.")
-
-#         st.sidebar.success("Environment variables updated successfully!")
-
-#     # Return the updated environment variables and data information
-#     logging.info("\n")
-#     logging.info("set_environment_variables()-return:")
-#     logging.info(f"openai_key: {openai_key}")
-#     logging.info(f"upbit_access_key: {upbit_access_key}")
-#     logging.info(f"upbit_secret_key: {upbit_secret_key}")
-#     logging.info(f"instructions_path: {instructions_path}")
-
-#     return openai_key, upbit_access_key, upbit_secret_key, instructions_path
-
 def set_environment_variables():
     st.sidebar.subheader("Environment Variables")
 
@@ -427,20 +394,6 @@ def set_environment_variables():
 
     return st.session_state.openai_key, st.session_state.upbit_access_key, st.session_state.upbit_secret_key, st.session_state.instructions_path
 
-# def select_symbols():
-#     st.title("AI Trader")
-#     st.subheader("Market Search")
-#     market_info = get_market_info()
-#     coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
-#     filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
-#     selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
-
-#     order_amount = st.number_input(f"Enter order amount ({selected_symbol.split('-')[0]})", min_value=0.0, format="%.8f")
-
-#     enable_trading = st.checkbox("Enable Trading")
-#     auto_trade = st.checkbox("Enable Auto Trading")
-
-#     return selected_symbol, order_amount, enable_trading, auto_trade
 
 def select_symbols():
     st.title("AI Trader")
@@ -451,6 +404,13 @@ def select_symbols():
     selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
 
     order_amount = st.number_input(f"Enter order amount ({selected_symbol.split('-')[0]})", min_value=0.0, format="%.8f")
+
+    # Add date range input controls
+    today = datetime.now().date()
+    one_month_ago = today - timedelta(days=30)
+    start_date = st.date_input("Start Date", value=one_month_ago, max_value=today)
+    end_date = st.date_input("End Date", value=today, max_value=today, min_value=start_date)
+
 
     enable_trading = st.checkbox("Enable Trading")
     auto_trade = st.checkbox("Enable Auto Trading")
@@ -475,7 +435,7 @@ def select_symbols():
         elif schedule_interval == "년":
             schedule_value = st.number_input("년 간격", min_value=1, value=1, step=1)
 
-    return selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value
+    return selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date
 
 
 def main(openai_key, 
@@ -485,8 +445,10 @@ def main(openai_key,
          symbol, 
          order_amount, 
          enable_trading, 
-         auto_trade
-         ):
+         auto_trade,
+         start_date=None,
+         end_date=None
+        ):
     
     st.title(f"AI Trader - {symbol}")
     
@@ -542,7 +504,8 @@ def main(openai_key,
         st.subheader("Market Analysis and Trading")
         # openai, upbit, instructions_path = load_env()
         # instructions = get_instructions(instructions_path)
-        daily_data, hourly_data = fetch_data(symbol)
+        # daily_data, hourly_data = fetch_data(symbol)
+        daily_data, hourly_data = fetch_data(symbol, start_date=start_date, end_date=end_date)
         data_json = prepare_data(daily_data, hourly_data)
         current_status = get_current_status(upbit, symbol)
         recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status)
@@ -630,7 +593,7 @@ if __name__ == "__main__":
     import time
 
     openai_key, upbit_access_key, upbit_secret_key, instructions_path = set_environment_variables()
-    selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value = select_symbols()
+    selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date = select_symbols()
 
     # debugging set_environment_variables and select_symbols
     logging.info("\n")
@@ -658,7 +621,9 @@ if __name__ == "__main__":
                                                               symbol=selected_symbol,
                                                               order_amount=order_amount,
                                                               enable_trading=enable_trading,
-                                                              auto_trade=auto_trade)
+                                                              auto_trade=auto_trade,
+                                                              start_date=start_date,
+                                                              end_date=end_date)
                 elif schedule_interval == "시간":
                     schedule.every(schedule_value).hours.do(main, 
                                                             openai_key=openai_key,
@@ -668,7 +633,9 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade)
+                                                            auto_trade=auto_trade,
+                                                            start_date=start_date,
+                                                            end_date=end_date)
                 elif schedule_interval == "일":
                     schedule.every(schedule_value).days.do(main, 
                                                            openai_key=openai_key,
@@ -678,7 +645,9 @@ if __name__ == "__main__":
                                                            symbol=selected_symbol,
                                                            order_amount=order_amount,
                                                            enable_trading=enable_trading,
-                                                           auto_trade=auto_trade)
+                                                           auto_trade=auto_trade,
+                                                           start_date=start_date,
+                                                           end_date=end_date)
                 elif schedule_interval == "주":
                     schedule.every(schedule_value).weeks.do(main, 
                                                             openai_key=openai_key,
@@ -688,7 +657,9 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade)
+                                                            auto_trade=auto_trade,
+                                                            start_date=start_date,
+                                                            end_date=end_date)
                 elif schedule_interval == "월":
                     schedule.every(schedule_value).months.do(main, 
                                                              openai_key=openai_key,
@@ -698,7 +669,9 @@ if __name__ == "__main__":
                                                              symbol=selected_symbol,
                                                              order_amount=order_amount,
                                                              enable_trading=enable_trading,
-                                                             auto_trade=auto_trade)
+                                                             auto_trade=auto_trade,
+                                                             start_date=start_date,
+                                                             end_date=end_date)
                 elif schedule_interval == "년":
                     schedule.every(schedule_value).years.do(main, 
                                                             openai_key=openai_key,
@@ -708,7 +681,9 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade)
+                                                            auto_trade=auto_trade,
+                                                            start_date=start_date,
+                                                            end_date=end_date)
             
             # Run the Streamlit app for the selected symbol
             main(openai_key=openai_key,
@@ -718,7 +693,9 @@ if __name__ == "__main__":
                  symbol=selected_symbol,
                  order_amount=order_amount,
                  enable_trading=enable_trading,
-                 auto_trade=auto_trade)
+                 auto_trade=auto_trade,
+                 start_date=start_date,
+                 end_date=end_date)
             
             # Run the scheduled tasks if auto_trade is enabled
             while auto_trade:
