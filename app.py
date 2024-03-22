@@ -16,6 +16,10 @@ from dotenv import dotenv_values
 from dotenv import load_dotenv, find_dotenv
 import uuid
 from datetime import datetime, timedelta
+from sklearn.preprocessing import MinMaxScaler
+from keras.models import Sequential
+from keras.layers import Dense, LSTM
+import plotly.graph_objects as go
 
 
 # 로깅 설정
@@ -437,6 +441,61 @@ def select_symbols():
 
     return selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date
 
+def prepare_lstm_data(data, lookback):
+    X, Y = [], []
+    for i in range(len(data) - lookback):
+        X.append(data[i:i + lookback])
+        Y.append(data[i + lookback])
+    return np.array(X), np.array(Y)
+
+def train_lstm(data, lookback):
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    data = scaler.fit_transform(data)
+
+    X, Y = prepare_lstm_data(data, lookback)
+    X = X.reshape((X.shape[0], X.shape[1], 1))
+
+    model = Sequential()
+    model.add(LSTM(50, return_sequences=True, input_shape=(X.shape[1], 1)))
+    model.add(LSTM(50))
+    model.add(Dense(1))
+
+    model.compile(loss='mean_squared_error', optimizer='adam')
+    model.fit(X, Y, epochs=100, batch_size=16, verbose=0)
+
+    return scaler, model
+
+def predict_prices(scaler, model, data, lookback, num_predictions):
+    X_test = data[-lookback:]
+    X_test = scaler.transform(X_test.reshape(-1, 1))
+    X_test = X_test.reshape((1, lookback, 1))
+
+    predictions = []
+    for _ in range(num_predictions):
+        prediction = model.predict(X_test)
+        predictions.append(scaler.inverse_transform(prediction)[0][0])
+        X_test = np.append(X_test[:, 1:, :], prediction.reshape((1, 1, 1)), axis=1)
+
+    return predictions
+
+def visualize_predictions(data, predictions):
+    actual_fig = go.Figure()
+    actual_fig.add_trace(go.Scatter(x=data.index, y=data['close'], mode='lines', name='Actual Price'))
+
+    last_timestamp = data.index[-1]
+    prediction_timestamps = pd.date_range(start=last_timestamp, periods=len(predictions) + 1, freq='H')[1:]
+    actual_fig.add_trace(go.Scatter(x=prediction_timestamps, y=predictions, mode='lines', name='Predicted Price'))
+
+    st.plotly_chart(actual_fig)
+
+def predict_and_visualize(data):
+    lookback = 24
+    num_predictions = 24
+
+    close_data = data['close'].values.reshape(-1, 1)
+    scaler, model = train_lstm(close_data, lookback)
+    predictions = predict_prices(scaler, model, close_data, lookback, num_predictions)
+    visualize_predictions(data, predictions)
 
 def main(openai_key, 
          upbit_access_key, 
@@ -585,6 +644,11 @@ def main(openai_key,
             # ... other technical indicators ...
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Lower_Band'], mode='lines', name='Lower Band'))
             st.plotly_chart(tech_indicators_fig)
+            st.markdown("---")
+
+            # 추가: LSTM 모델을 사용한 가격 예측 및 시각화
+            st.subheader("Price Prediction (LSTM)")
+            predict_and_visualize(hourly_data)
             st.markdown("---")
 
  

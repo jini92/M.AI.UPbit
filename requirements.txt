@@ -12,3 +12,6 @@ streamlit
 matplotlib
 plotly
 numpy
+tensorflow
+# tensorflow-gpu
+scikit-learn
