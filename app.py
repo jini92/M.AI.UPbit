@@ -179,7 +179,7 @@ def analyze_data_with_gpt4(client,
                            instructions, 
                            current_status, 
                            macd_signals, 
-                        #    technical_indicators, 
+                           technical_indicators, 
                            lstm_predictions):
     try:
         if not instructions:
@@ -192,7 +192,7 @@ def analyze_data_with_gpt4(client,
                 {"role": "user", "content": data_json},
                 {"role": "user", "content": current_status},
                 {"role": "user", "content": f"MACD Signals: {macd_signals}"},
-                # {"role": "user", "content": f"Technical Indicators: {technical_indicators}"},
+                {"role": "user", "content": f"Technical Indicators: {technical_indicators}"},
                 {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"}
             ],
             response_format={"type":"json_object"}
@@ -515,8 +515,8 @@ def predict_and_visualize(data):
         numpy.ndarray: An array of predicted prices.
 
     """
-    lookback = 24*30           # Number of previous hours to consider, (hours * days)
-    num_predictions = 24*2    # Number of hours to predict, (hours * days)
+    lookback = 24*30            # Number of previous hours to consider, (hours * days)
+    num_predictions = 24*2      # Number of hours to predict, (hours * days)
 
     close_data = data['close'].values.reshape(-1, 1)
     scaler, model = train_lstm(close_data, lookback)
@@ -749,7 +749,8 @@ def main(openai_key,
         macd_signals = daily_data['MACD_Signal'].tolist()
         technical_indicators = {
             'SMA_10': daily_data['SMA_10'].tolist(),
-            # ... 기타 technical indicators ...
+            'Upper_Band': daily_data['Upper_Band'].tolist(),
+            'Lower_Band': daily_data['Lower_Band'].tolist()
         }
         close_data = hourly_data['close'].values.reshape(-1, 1)
 
@@ -770,7 +771,7 @@ def main(openai_key,
                                                                               instructions, 
                                                                               current_status, 
                                                                               macd_signals, 
-                                                                            #   technical_indicators, 
+                                                                              technical_indicators, 
                                                                               lstm_predictions)
         
         if enable_trading:

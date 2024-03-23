@@ -276,3 +276,48 @@ Example: Recommendation to Buy
 
 Example: Recommendation to Hold
 (Response: {"decision": "hold", "reason": "The LSTM model suggests a period of consolidation, with no significant price movement expected in the short term. The Bollinger Bands are also tightening, indicating a potential breakout in the near future. However, the ADX indicator shows a weak trend, suggesting that the breakout direction is uncertain. It is advisable to wait for clearer trend confirmation before making a trade decision.", "technical_indicators": {"lstm_prediction": "consolidation", "bollinger_bands": "tightening", "adx": "weak trend"}})
+
+Example: Recommendation to Buy
+(Response: {"decision": "buy", "reason": "The LSTM model predicts a significant price increase over the next 24 hours, supported by the price breaking above the Upper Bollinger Band. This breakout suggests a strong bullish momentum. Additionally, the SMA_10 is trending upwards, confirming the positive market sentiment. These factors combined make a strong case for opening a long position.", "technical_indicators": {"lstm_prediction": "price increase", "Upper_Band": "price breakout", "SMA_10": "trending upwards"}})
+
+Example: Recommendation to Sell
+(Response: {"decision": "sell", "reason": "The asset's price has fallen below the Lower Bollinger Band, indicating a strong bearish move. This bearish sentiment is further supported by the LSTM model, which predicts a significant price drop in the coming hours. Moreover, the SMA_10 has started to curve downwards, suggesting a weakening trend. Selling now would be a prudent decision to minimize potential losses.", "technical_indicators": {"Lower_Band": "price breakdown", "lstm_prediction": "price drop", "SMA_10": "curving downwards"}})
+
+Example: Recommendation to Hold
+(Response: {"decision": "hold", "reason": "The current market conditions do not present a clear buy or sell signal. The price is trading within the Bollinger Bands, indicating a lack of strong directional momentum. The LSTM model also suggests a period of price consolidation, with no significant upward or downward movement expected. The SMA_10 is moving sideways, further confirming the neutral market sentiment. It is recommended to wait for clearer technical indicators before entering or exiting a position.", "technical_indicators": {"price_position": "within Bollinger Bands", "lstm_prediction": "price consolidation", "SMA_10": "moving sideways"}})
+
+Example: Recommendation to Buy
+(Response: {"decision": "buy", "reason": "The LSTM model forecasts a strong upward price movement, supported by the price bouncing off the Lower Bollinger Band. This bounce suggests a potential trend reversal and the start of an uptrend. Additionally, the SMA_10 has recently crossed above the price, confirming the bullish momentum. These indicators suggest a promising entry point for a long position.", "technical_indicators": {"lstm_prediction": "strong upward movement", "Lower_Band": "price bounce", "SMA_10": "crossed above price"}})
+
+Example: Recommendation to Sell
+(Response: {"decision": "sell", "reason": "The asset's price has reached the Upper Bollinger Band and is showing signs of a bearish reversal. The LSTM model also predicts a price correction in the short term, aligning with the overbought signal. Moreover, the SMA_10 is starting to flatten, indicating a loss of upward momentum. Selling at the current level could help protect profits and avoid potential losses.", "technical_indicators": {"price_position": "at Upper Bollinger Band", "lstm_prediction": "price correction", "SMA_10": "flattening"}})
+
+Example: Recommendation to Buy
+(Response: {"decision": "buy", "reason": "The LSTM model predicts a significant price increase over the next 12 hours, supported by the price breaking above the Upper Bollinger Band. This breakout suggests a strong bullish momentum. Additionally, the SMA_10 has recently crossed above the price, confirming the positive market sentiment. These factors combined make a strong case for opening a long position.", "technical_indicators": {"lstm_prediction": "price increase", "Upper_Band": "price breakout", "SMA_10": "crossed above price"}})
+
+Example: Recommendation to Hold
+(Response: {"decision": "hold", "reason": "While the LSTM model suggests a slight upward movement in the short term, the price is currently trading near the middle of the Bollinger Bands, indicating a neutral market sentiment. The SMA_10 is also moving sideways, suggesting a lack of strong directional momentum. It is advisable to wait for a clearer trend confirmation before making a trade decision.", "technical_indicators": {"lstm_prediction": "slight upward movement", "price_position": "middle of Bollinger Bands", "SMA_10": "moving sideways"}})
+
+Example: Recommendation to Sell
+(Response: {"decision": "sell", "reason": "The asset's price has reached the Upper Bollinger Band and is showing signs of a bearish reversal. The LSTM model also predicts a significant price drop in the coming days, aligning with the overbought signal. Moreover, the SMA_10 has started to curve downwards, indicating a weakening trend. Selling now would be a prudent decision to minimize potential losses.", "technical_indicators": {"price_position": "at Upper Bollinger Band", "lstm_prediction": "significant price drop", "SMA_10": "curving downwards"}})
+
+Example: Recommendation to Buy
+(Response: {"decision": "buy", "reason": "The LSTM model forecasts a strong upward price movement, supported by the price bouncing off the Lower Bollinger Band and closing above the SMA_10. This bounce and crossover suggest a potential trend reversal and the start of an uptrend. These indicators suggest a promising entry point for a long position.", "technical_indicators": {"lstm_prediction": "strong upward movement", "Lower_Band": "price bounce", "price_position": "closed above SMA_10"}})
+
+Example: Recommendation to Sell
+(Response: {"decision": "sell", "reason": "The asset's price has breached the Lower Bollinger Band, indicating a strong bearish move. This bearish sentiment is further supported by the LSTM model, which predicts a continued price decline in the short term. Moreover, the SMA_10 has crossed below the price, confirming the negative market sentiment. Selling at the current level could help mitigate risks.", "technical_indicators": {"Lower_Band": "price breach", "lstm_prediction": "continued price decline", "SMA_10": "crossed below price"}})
+
+Example: Recommendation to Hold
+(Response: {"decision": "hold", "reason": "The LSTM model suggests a period of sideways movement, with no clear trend in either direction. The price is currently trading within the Bollinger Bands, indicating a lack of strong directional momentum. The SMA_10 is also moving parallel to the price, further confirming the neutral market sentiment. It is recommended to wait for clearer signals before entering a trade.", "technical_indicators": {"lstm_prediction": "sideways movement", "price_position": "within Bollinger Bands", "SMA_10": "moving parallel to price"}})
+
+Example: Recommendation to Buy
+(Response: {"decision": "buy", "reason": "The LSTM model predicts a strong bullish trend in the coming hours, supported by the price consistently closing above the Upper Bollinger Band. This sustained breakout suggests a powerful upward momentum. Additionally, the SMA_10 is trending upwards, confirming the bullish sentiment. These factors combined make a compelling case for opening a long position.", "technical_indicators": {"lstm_prediction": "strong bullish trend", "Upper_Band": "consistent price closure above", "SMA_10": "trending upwards"}})
+
+Example: Recommendation to Sell
+(Response: {"decision": "sell", "reason": "The asset's price has formed a bearish pattern, with multiple closes below the Lower Bollinger Band. The LSTM model also forecasts a significant price drop in the next 24 hours, coinciding with this bearish signal. Moreover, the SMA_10 has started to decline sharply, suggesting a strong downward trend. Selling at the current level could help minimize potential losses.", "technical_indicators": {"price_pattern": "bearish with closes below Lower_Band", "lstm_prediction": "significant price drop", "SMA_10": "declining sharply"}})
+
+Example: Recommendation to Buy
+(Response: {"decision": "buy", "reason": "The LSTM model predicts a strong upward price movement, supported by the price bouncing off the Lower Bollinger Band and closing above the SMA_10. This bounce and crossover suggest a potential trend reversal and the start of an uptrend. Additionally, the SMA_10 has started to curve upwards, further confirming the bullish momentum. These indicators suggest a favorable opportunity to open a long position.", "technical_indicators": {"lstm_prediction": "strong upward movement", "Lower_Band": "price bounce", "price_position": "closed above SMA_10", "SMA_10": "curving upwards"}})
+
+Example: Recommendation to Hold
+(Response: {"decision": "hold", "reason": "The LSTM model suggests a period of consolidation, with no significant price movement expected in the short term. The price is currently trading near the middle of the Bollinger Bands, indicating a neutral market sentiment. However, the SMA_10 is showing signs of flattening, suggesting that a breakout could occur in the near future. It is advisable to wait for clearer trend confirmation before making a trade decision.", "technical_indicators": {"lstm_prediction": "consolidation", "price_position": "middle of Bollinger Bands", "SMA_10": "flattening"}})
