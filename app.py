@@ -33,32 +33,6 @@ def is_valid_json(json_string):
     except ValueError:
         return False
 
-# logic functions
-# def load_env():
-#     """
-#     Loads the environment variables required for the application.
-
-#     Returns:
-#         tuple: A tuple containing the OpenAI API key, Upbit access key, Upbit secret key, and instructions path.
-#     """
-#     global gOPENAI_KEY, gUPBIT_ACCESS_KEY, gUPBIT_SECRET_KEY, gINSTRUCTIONS_PATH
-
-#     if find_dotenv():
-#         load_dotenv()
-#         gOPENAI_KEY = os.getenv('OPENAI_API_KEY')
-#         gUPBIT_ACCESS_KEY = os.getenv('UPBIT_ACCESS_KEY')
-#         gUPBIT_SECRET_KEY = os.getenv('UPBIT_SECRET_KEY')
-#         gINSTRUCTIONS_PATH = os.getenv('INSTRUCTIONS_PATH')
-#     else:
-#         if not gOPENAI_KEY or not gUPBIT_ACCESS_KEY or not gUPBIT_SECRET_KEY:
-#             st.warning("Not all required environment variables are set. Please enter them in the sidebar.")
-#             logging.info(f"gOPENAI_KEY: {gOPENAI_KEY}")
-#             logging.info(f"gUPBIT_ACCESS_KEY: {gUPBIT_ACCESS_KEY}")
-#             logging.info(f"gUPBIT_SECRET_KEY: {gUPBIT_SECRET_KEY}")
-#             return None, None, None, None
-
-#     return gOPENAI_KEY, gUPBIT_ACCESS_KEY, gUPBIT_SECRET_KEY, gINSTRUCTIONS_PATH
-
 def get_current_status(upbit, symbol):
     orderbook = pyupbit.get_orderbook(ticker=symbol)
     current_time = orderbook['timestamp']
@@ -398,7 +372,6 @@ def set_environment_variables():
 
     return st.session_state.openai_key, st.session_state.upbit_access_key, st.session_state.upbit_secret_key, st.session_state.instructions_path
 
-
 def select_symbols():
     st.title("AI Trader")
     st.subheader("Market Search")
@@ -576,10 +549,12 @@ def main(openai_key,
 
         if enable_trading:
             if auto_trade:
-                make_decision_and_execute(upbit, symbol, recommendation, order_amount)
                 st.write("Auto Trading Enabled. Executed trading decision.")
             else:
                 st.write("Trading Enabled. Please review the analysis and execute trades manually.")
+            
+            # GPT-4 분석 결과에 따라 매매 결정
+            make_decision_and_execute(upbit, symbol, recommendation, order_amount)
         else:
             st.write("Trading Disabled. Analysis only.")
 
@@ -674,7 +649,10 @@ if __name__ == "__main__":
     logging.info(f"schedule_value: {schedule_value}")
 
     if selected_symbol:
-        if st.button("Start Trading"):
+        start_trading_button = st.button("Start Trading")
+        stop_trading_button = st.button("Stop Trading")
+
+        if start_trading_button:
             if auto_trade and schedule_interval and schedule_value:
                 if schedule_interval == "분":
                     schedule.every(schedule_value).minutes.do(main, 
@@ -763,7 +741,12 @@ if __name__ == "__main__":
             
             # Run the scheduled tasks if auto_trade is enabled
             while auto_trade:
+                if stop_trading_button:
+                    auto_trade = False
+                    break
                 schedule.run_pending()
                 time.sleep(1)
+        else:
+            st.warning("No Trading Button Checked. Please Check to start trading.")
     else:
         st.warning("No symbols selected. Please select at least one symbol to start trading.")
