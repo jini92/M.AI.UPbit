@@ -142,7 +142,45 @@ def get_instructions(file_path):
     except IOError as e:
         logging.error(f"An error occurred while reading the file: {e}")
 
-def analyze_data_with_gpt4(client, data_json, instructions, current_status):
+# def analyze_data_with_gpt4(client, data_json, instructions, current_status):
+#     try:
+#         if not instructions:
+#             logging.warning("No instructions found.")
+#             return None, None, None
+#         response = client.chat.completions.create(
+#             model="gpt-4-turbo-preview",
+#             messages=[
+#                 {"role": "system", "content": instructions},
+#                 {"role": "user", "content": data_json},
+#                 {"role": "user", "content": current_status}
+#             ],
+#             response_format={"type":"json_object"}
+#         )
+#         response_data = response.choices[0].message.content
+#         advice_and_indicators = json.loads(response_data)
+#         logging.info(f"Advice and indicators: {advice_and_indicators}")
+
+#         # Extracting recommendation, reason, and technical_indicators
+#         recommendation = advice_and_indicators.get('decision')
+#         reason = advice_and_indicators.get('reason')
+#         technical_indicators = advice_and_indicators.get('technical_indicators')
+
+#         logging.info(f"Decision: {recommendation}")
+#         logging.info(f"Reason: {reason}")
+#         logging.info(f"Technical indicators: {technical_indicators}")
+
+#         return recommendation, reason, technical_indicators
+#     except Exception as e:
+#         logging.error(f"Error in analyzing data with GPT-4: {e}")
+#         return None, None, None
+        
+def analyze_data_with_gpt4(client, 
+                           data_json, 
+                           instructions, 
+                           current_status, 
+                           macd_signals, 
+                        #    technical_indicators, 
+                           lstm_predictions):
     try:
         if not instructions:
             logging.warning("No instructions found.")
@@ -152,7 +190,10 @@ def analyze_data_with_gpt4(client, data_json, instructions, current_status):
             messages=[
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": data_json},
-                {"role": "user", "content": current_status}
+                {"role": "user", "content": current_status},
+                {"role": "user", "content": f"MACD Signals: {macd_signals}"},
+                # {"role": "user", "content": f"Technical Indicators: {technical_indicators}"},
+                {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"}
             ],
             response_format={"type":"json_object"}
         )
@@ -386,6 +427,8 @@ def select_symbols():
     today = datetime.now().date()
     one_month_ago = today - timedelta(days=30)
     start_date = st.date_input("Start Date", value=one_month_ago, max_value=today)
+    # one_year_ago = today - timedelta(days=365)
+    # start_date = st.date_input("Start Date", value=one_year_ago, max_value=today)
     end_date = st.date_input("End Date", value=today, max_value=today, min_value=start_date)
 
 
@@ -462,13 +505,182 @@ def visualize_predictions(data, predictions):
     st.plotly_chart(actual_fig)
 
 def predict_and_visualize(data):
-    lookback = 24
-    num_predictions = 24
+    """
+    Predicts future prices using LSTM model and visualizes the predictions.
+
+    Args:
+        data (pandas.DataFrame): The input data containing historical prices.
+
+    Returns:
+        numpy.ndarray: An array of predicted prices.
+
+    """
+    lookback = 24*30           # Number of previous hours to consider, (hours * days)
+    num_predictions = 24*2    # Number of hours to predict, (hours * days)
 
     close_data = data['close'].values.reshape(-1, 1)
     scaler, model = train_lstm(close_data, lookback)
     predictions = predict_prices(scaler, model, close_data, lookback, num_predictions)
     visualize_predictions(data, predictions)
+
+    return predictions
+
+# def main(openai_key, 
+#          upbit_access_key, 
+#          upbit_secret_key, 
+#          instructions_path, 
+#          symbol, 
+#          order_amount, 
+#          enable_trading, 
+#          auto_trade,
+#          start_date=None,
+#          end_date=None
+#         ):
+    
+#     st.title(f"AI Trader - {symbol}")
+    
+#     # 사용자 정의 CSS 추가
+#     st.markdown("""
+#         <style>
+#             /* 기본 스타일 */
+#             .sidebar .sidebar-content {
+#                 width: 300px;
+#             }
+            
+#             .reportview-container .main .block-container {
+#                 padding-top: 2rem;
+#                 padding-right: 2rem;
+#                 padding-left: 2rem;
+#                 padding-bottom: 2rem;
+#             }
+            
+#             /* 화면 너비가 600px 이하일 때 적용되는 스타일 */
+#             @media screen and (max-width: 600px) {
+#                 .sidebar .sidebar-content {
+#                     width: 100%;
+#                 }
+                
+#                 .reportview-container .main .block-container {
+#                     padding: 1rem;
+#                 }
+#             }
+#         </style>
+#     """, unsafe_allow_html=True)
+
+#     if not openai_key or not upbit_access_key or not upbit_secret_key:
+#         st.warning("openai_key: " + openai_key)
+#         st.warning("upbit_access_key: " + upbit_access_key)
+#         st.warning("upbit_secret_key: " + upbit_secret_key)
+#         st.warning("Not all required environment variables are set. Please enter them in the sidebar.")
+#         return
+    
+
+#     # 이동된 부분 제거
+#     # openai = OpenAI(api_key=openai_key)
+#     # upbit = pyupbit.Upbit(upbit_access_key, upbit_secret_key)
+#     # instructions = get_instructions(instructions_path)
+
+#     with st.container():
+#         st.markdown("""
+#             *This is a simple AI trader that uses OpenAI's GPT-4 to analyze market data and make trading decisions.*
+#             *The application uses the Upbit API to fetch market data and execute buy/sell orders.*
+#             *The GPT-4 model is used to analyze the market data and provide trading advice.*
+#         """)
+#         st.markdown("---")
+
+#     with st.container():
+#         st.subheader("Market Analysis and Trading")
+#         # openai, upbit, instructions_path = load_env()
+#         # instructions = get_instructions(instructions_path)
+#         # daily_data, hourly_data = fetch_data(symbol)
+#         daily_data, hourly_data = fetch_data(symbol, start_date=start_date, end_date=end_date)
+#         data_json = prepare_data(daily_data, hourly_data)
+#         current_status = get_current_status(upbit, symbol)
+#         recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status)
+        
+#         # recommendation = "hold" # 임시
+#         # reason = "hold" # 임시
+#         # technical_indicators = "hold" # 임시
+
+
+#         if enable_trading:
+#             if auto_trade:
+#                 st.write("Auto Trading Enabled. Executed trading decision.")
+#             else:
+#                 st.write("Trading Enabled. Please review the analysis and execute trades manually.")
+            
+#             # GPT-4 분석 결과에 따라 매매 결정
+#             make_decision_and_execute(upbit, symbol, recommendation, order_amount)
+#         else:
+#             st.write("Trading Disabled. Analysis only.")
+
+#         st.write("Trading Advice:", recommendation)
+#         st.write("Reasoning:", reason)
+#         st.write("Technical Indicators:", technical_indicators)
+#         st.markdown("---")
+    
+#         with st.container():
+#             st.subheader("Market Data Visualization")
+#             st.write("Daily Data Chart")
+#             daily_fig = go.Figure(data=[go.Candlestick(x=daily_data.index,
+#                                                     open=daily_data['open'],
+#                                                     high=daily_data['high'],
+#                                                     low=daily_data['low'],
+#                                                     close=daily_data['close'])])
+#             st.plotly_chart(daily_fig)
+#             st.markdown("---")
+
+#             st.subheader("MACD Signal (Daily)")
+#             macd_signal_fig = go.Figure()
+#             macd_signal_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['MACD'], mode='lines', name='MACD'))
+#             macd_signal_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Signal_Line'], mode='lines', name='Signal Line'))
+            
+#             # Add buy/sell signals
+#             buy_signals = daily_data[daily_data['MACD_Signal'] == 1]
+#             sell_signals = daily_data[daily_data['MACD_Signal'] == -1]
+#             macd_signal_fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
+#             macd_signal_fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals['MACD'], mode='markers', marker=dict(size=10, color='red'), name='Sell Signal'))
+            
+#             st.plotly_chart(macd_signal_fig)
+#             st.markdown("---")
+
+
+#             st.write("Hourly Data Chart")
+#             hourly_fig = go.Figure(data=[go.Candlestick(x=hourly_data.index,
+#                                                         open=hourly_data['open'],
+#                                                         high=hourly_data['high'],
+#                                                         low=hourly_data['low'],
+#                                                         close=hourly_data['close'])])
+#             st.plotly_chart(hourly_fig)
+#             st.markdown("---")
+
+#             st.subheader("MACD Signal (Hourly)")
+#             macd_signal_hourly_fig = go.Figure()
+#             macd_signal_hourly_fig.add_trace(go.Scatter(x=hourly_data.index, y=hourly_data['MACD'], mode='lines', name='MACD'))
+#             macd_signal_hourly_fig.add_trace(go.Scatter(x=hourly_data.index, y=hourly_data['Signal_Line'], mode='lines', name='Signal Line'))
+            
+#             # Add buy/sell signals
+#             buy_signals_hourly = hourly_data[hourly_data['MACD_Signal'] == 1]
+#             sell_signals_hourly = hourly_data[hourly_data['MACD_Signal'] == -1]
+#             macd_signal_hourly_fig.add_trace(go.Scatter(x=buy_signals_hourly.index, y=buy_signals_hourly['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
+#             macd_signal_hourly_fig.add_trace(go.Scatter(x=sell_signals_hourly.index, y=sell_signals_hourly['MACD'], mode='markers', marker=dict(size=10, color='red'), name='Sell Signal'))
+            
+#             st.plotly_chart(macd_signal_hourly_fig)
+#             st.markdown("---")
+
+            
+#             st.write("Technical Indicators Chart")
+#             tech_indicators_fig = go.Figure()
+#             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['SMA_10'], mode='lines', name='SMA 10'))
+#             # ... other technical indicators ...
+#             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Lower_Band'], mode='lines', name='Lower Band'))
+#             st.plotly_chart(tech_indicators_fig)
+#             st.markdown("---")
+
+#             # 추가: LSTM 모델을 사용한 가격 예측 및 시각화
+#             st.subheader("Price Prediction (LSTM)")
+#             predict_and_visualize(hourly_data)
+#             st.markdown("---")
 
 def main(openai_key, 
          upbit_access_key, 
@@ -519,11 +731,6 @@ def main(openai_key,
         st.warning("Not all required environment variables are set. Please enter them in the sidebar.")
         return
     
-    openai = OpenAI(api_key=openai_key)
-    upbit = pyupbit.Upbit(upbit_access_key, upbit_secret_key)
-    
-    instructions = get_instructions(instructions_path)
-
     with st.container():
         st.markdown("""
             *This is a simple AI trader that uses OpenAI's GPT-4 to analyze market data and make trading decisions.*
@@ -534,26 +741,44 @@ def main(openai_key,
 
     with st.container():
         st.subheader("Market Analysis and Trading")
-        # openai, upbit, instructions_path = load_env()
-        # instructions = get_instructions(instructions_path)
-        # daily_data, hourly_data = fetch_data(symbol)
         daily_data, hourly_data = fetch_data(symbol, start_date=start_date, end_date=end_date)
         data_json = prepare_data(daily_data, hourly_data)
         current_status = get_current_status(upbit, symbol)
-        recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status)
         
-        # recommendation = "hold" # 임시
-        # reason = "hold" # 임시
-        # technical_indicators = "hold" # 임시
+        # MACD signals, technical indicators, LSTM predictions 추출
+        macd_signals = daily_data['MACD_Signal'].tolist()
+        technical_indicators = {
+            'SMA_10': daily_data['SMA_10'].tolist(),
+            # ... 기타 technical indicators ...
+        }
+        close_data = hourly_data['close'].values.reshape(-1, 1)
 
 
+        # lookback = 24
+        # num_predictions = 24
+        # scaler, model = train_lstm(close_data, lookback)
+        # lstm_predictions = predict_prices(scaler, model, close_data, lookback, num_predictions)
+
+         # 추가: LSTM 모델을 사용한 가격 예측 및 시각화
+        st.subheader("Price Prediction (LSTM)")
+        lstm_predictions = predict_and_visualize(hourly_data)
+        st.markdown("---")
+        
+        # recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status, macd_signals, technical_indicators, lstm_predictions)
+        recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, 
+                                                                              data_json, 
+                                                                              instructions, 
+                                                                              current_status, 
+                                                                              macd_signals, 
+                                                                            #   technical_indicators, 
+                                                                              lstm_predictions)
+        
         if enable_trading:
             if auto_trade:
                 st.write("Auto Trading Enabled. Executed trading decision.")
             else:
                 st.write("Trading Enabled. Please review the analysis and execute trades manually.")
             
-            # GPT-4 분석 결과에 따라 매매 결정
             make_decision_and_execute(upbit, symbol, recommendation, order_amount)
         else:
             st.write("Trading Disabled. Analysis only.")
@@ -579,7 +804,6 @@ def main(openai_key,
             macd_signal_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['MACD'], mode='lines', name='MACD'))
             macd_signal_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Signal_Line'], mode='lines', name='Signal Line'))
             
-            # Add buy/sell signals
             buy_signals = daily_data[daily_data['MACD_Signal'] == 1]
             sell_signals = daily_data[daily_data['MACD_Signal'] == -1]
             macd_signal_fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
@@ -587,7 +811,6 @@ def main(openai_key,
             
             st.plotly_chart(macd_signal_fig)
             st.markdown("---")
-
 
             st.write("Hourly Data Chart")
             hourly_fig = go.Figure(data=[go.Candlestick(x=hourly_data.index,
@@ -603,7 +826,6 @@ def main(openai_key,
             macd_signal_hourly_fig.add_trace(go.Scatter(x=hourly_data.index, y=hourly_data['MACD'], mode='lines', name='MACD'))
             macd_signal_hourly_fig.add_trace(go.Scatter(x=hourly_data.index, y=hourly_data['Signal_Line'], mode='lines', name='Signal Line'))
             
-            # Add buy/sell signals
             buy_signals_hourly = hourly_data[hourly_data['MACD_Signal'] == 1]
             sell_signals_hourly = hourly_data[hourly_data['MACD_Signal'] == -1]
             macd_signal_hourly_fig.add_trace(go.Scatter(x=buy_signals_hourly.index, y=buy_signals_hourly['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
@@ -611,7 +833,6 @@ def main(openai_key,
             
             st.plotly_chart(macd_signal_hourly_fig)
             st.markdown("---")
-
             
             st.write("Technical Indicators Chart")
             tech_indicators_fig = go.Figure()
@@ -621,18 +842,21 @@ def main(openai_key,
             st.plotly_chart(tech_indicators_fig)
             st.markdown("---")
 
-            # 추가: LSTM 모델을 사용한 가격 예측 및 시각화
-            st.subheader("Price Prediction (LSTM)")
-            predict_and_visualize(hourly_data)
-            st.markdown("---")
+            # st.subheader("Price Prediction (LSTM)")
+            # visualize_predictions(hourly_data, lstm_predictions)
+            # st.markdown("---")
 
- 
 if __name__ == "__main__":
     import schedule
     import time
 
     openai_key, upbit_access_key, upbit_secret_key, instructions_path = set_environment_variables()
     selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date = select_symbols()
+
+    # main() 에서 이동된 부분
+    instructions = get_instructions(instructions_path)
+    openai = OpenAI(api_key=openai_key)
+    upbit = pyupbit.Upbit(upbit_access_key, upbit_secret_key)
 
     # debugging set_environment_variables and select_symbols
     logging.info("\n")
@@ -747,6 +971,7 @@ if __name__ == "__main__":
                 schedule.run_pending()
                 time.sleep(1)
         else:
-            st.warning("No Trading Button Checked. Please Check to start trading.")
+            st.warning("No Trading Button Checked. Just Anaysis only!!.")
+            st.warning("Please Check to start trading!!!!!")
     else:
         st.warning("No symbols selected. Please select at least one symbol to start trading.")
