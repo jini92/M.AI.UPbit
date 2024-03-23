@@ -840,6 +840,12 @@ def main(openai_key,
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['SMA_10'], mode='lines', name='SMA 10'))
             # ... other technical indicators ...
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Lower_Band'], mode='lines', name='Lower Band'))
+            tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Upper_Band'], mode='lines', name='Upper Band'))
+            tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['close'], mode='lines', name='Close Price'))
+            tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['MACD'], mode='lines', name='MACD'))  
+            tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Signal_Line'], mode='lines', name='Signal Line'))
+            # tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['close'], mode='lines', name='Price', yaxis='y2'))
+
             st.plotly_chart(tech_indicators_fig)
             st.markdown("---")
 
