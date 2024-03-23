@@ -21,9 +21,14 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import plotly.graph_objects as go
 
+import config
 
-# 로깅 설정
+# Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+if config.DEBUG:
+    # 디버깅 관련 코드
+    logging.basicConfig(level=logging.DEBUG)
+
 
 # debugging fuction
 def is_valid_json(json_string):
@@ -142,38 +147,6 @@ def get_instructions(file_path):
     except IOError as e:
         logging.error(f"An error occurred while reading the file: {e}")
 
-# def analyze_data_with_gpt4(client, data_json, instructions, current_status):
-#     try:
-#         if not instructions:
-#             logging.warning("No instructions found.")
-#             return None, None, None
-#         response = client.chat.completions.create(
-#             model="gpt-4-turbo-preview",
-#             messages=[
-#                 {"role": "system", "content": instructions},
-#                 {"role": "user", "content": data_json},
-#                 {"role": "user", "content": current_status}
-#             ],
-#             response_format={"type":"json_object"}
-#         )
-#         response_data = response.choices[0].message.content
-#         advice_and_indicators = json.loads(response_data)
-#         logging.info(f"Advice and indicators: {advice_and_indicators}")
-
-#         # Extracting recommendation, reason, and technical_indicators
-#         recommendation = advice_and_indicators.get('decision')
-#         reason = advice_and_indicators.get('reason')
-#         technical_indicators = advice_and_indicators.get('technical_indicators')
-
-#         logging.info(f"Decision: {recommendation}")
-#         logging.info(f"Reason: {reason}")
-#         logging.info(f"Technical indicators: {technical_indicators}")
-
-#         return recommendation, reason, technical_indicators
-#     except Exception as e:
-#         logging.error(f"Error in analyzing data with GPT-4: {e}")
-#         return None, None, None
-        
 def analyze_data_with_gpt4(client, 
                            data_json, 
                            instructions, 
@@ -354,6 +327,7 @@ def load_env_variables():
     return openai_key, upbit_access_key, upbit_secret_key, instructions_path
 
 def set_environment_variables():
+
     st.sidebar.subheader("Environment Variables")
 
     openai_key, upbit_access_key, upbit_secret_key, instructions_path = load_env_variables()
@@ -413,13 +387,17 @@ def set_environment_variables():
 
     return st.session_state.openai_key, st.session_state.upbit_access_key, st.session_state.upbit_secret_key, st.session_state.instructions_path
 
-def select_symbols():
-    st.title("AI Trader")
+def select_symbols(recommended_symbol=None):
+    # st.title("AI Trader")
     st.subheader("Market Search")
-    market_info = get_market_info()
-    coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
-    filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
-    selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
+
+    if recommended_symbol:
+        selected_symbol = recommended_symbol
+    else:
+        market_info = get_market_info()
+        coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
+        filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
+        selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
 
     order_amount = st.number_input(f"Enter order amount ({selected_symbol.split('-')[0]})", min_value=0.0, format="%.8f")
 
@@ -439,7 +417,8 @@ def select_symbols():
     schedule_interval = None
     schedule_value = None
     if auto_trade:
-        schedule_interval = st.selectbox("스케줄 주기", ("분", "시간", "일", "주", "월", "년"))
+        #schedule_interval = st.selectbox("스케줄 주기", ("분", "시간", "일", "주", "월", "년"))
+        schedule_interval = st.selectbox("스케줄 주기", ("시간", "일", "주", "월", "년", "분"))
 
         # 주기 값 입력
         if schedule_interval == "분":
@@ -499,7 +478,7 @@ def visualize_predictions(data, predictions):
     actual_fig.add_trace(go.Scatter(x=data.index, y=data['close'], mode='lines', name='Actual Price'))
 
     last_timestamp = data.index[-1]
-    prediction_timestamps = pd.date_range(start=last_timestamp, periods=len(predictions) + 1, freq='H')[1:]
+    prediction_timestamps = pd.date_range(start=last_timestamp, periods=len(predictions) + 1, freq='h')[1:]
     actual_fig.add_trace(go.Scatter(x=prediction_timestamps, y=predictions, mode='lines', name='Predicted Price'))
 
     st.plotly_chart(actual_fig)
@@ -525,162 +504,47 @@ def predict_and_visualize(data):
 
     return predictions
 
-# def main(openai_key, 
-#          upbit_access_key, 
-#          upbit_secret_key, 
-#          instructions_path, 
-#          symbol, 
-#          order_amount, 
-#          enable_trading, 
-#          auto_trade,
-#          start_date=None,
-#          end_date=None
-#         ):
-    
-#     st.title(f"AI Trader - {symbol}")
-    
-#     # 사용자 정의 CSS 추가
-#     st.markdown("""
-#         <style>
-#             /* 기본 스타일 */
-#             .sidebar .sidebar-content {
-#                 width: 300px;
-#             }
-            
-#             .reportview-container .main .block-container {
-#                 padding-top: 2rem;
-#                 padding-right: 2rem;
-#                 padding-left: 2rem;
-#                 padding-bottom: 2rem;
-#             }
-            
-#             /* 화면 너비가 600px 이하일 때 적용되는 스타일 */
-#             @media screen and (max-width: 600px) {
-#                 .sidebar .sidebar-content {
-#                     width: 100%;
-#                 }
-                
-#                 .reportview-container .main .block-container {
-#                     padding: 1rem;
-#                 }
-#             }
-#         </style>
-#     """, unsafe_allow_html=True)
+def recommend_symbols():
+    market_info = get_market_info()
+    end_date = datetime.now().date()
+    start_date = end_date - timedelta(days=365)
 
-#     if not openai_key or not upbit_access_key or not upbit_secret_key:
-#         st.warning("openai_key: " + openai_key)
-#         st.warning("upbit_access_key: " + upbit_access_key)
-#         st.warning("upbit_secret_key: " + upbit_secret_key)
-#         st.warning("Not all required environment variables are set. Please enter them in the sidebar.")
-#         return
-    
+    recommended_symbols = []
 
-#     # 이동된 부분 제거
-#     # openai = OpenAI(api_key=openai_key)
-#     # upbit = pyupbit.Upbit(upbit_access_key, upbit_secret_key)
-#     # instructions = get_instructions(instructions_path)
+    for symbol in market_info.values():
+        ohlcv_data = pyupbit.get_ohlcv(symbol, interval="day", count=365, to=end_date.strftime("%Y-%m-%d"))
+        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
 
-#     with st.container():
-#         st.markdown("""
-#             *This is a simple AI trader that uses OpenAI's GPT-4 to analyze market data and make trading decisions.*
-#             *The application uses the Upbit API to fetch market data and execute buy/sell orders.*
-#             *The GPT-4 model is used to analyze the market data and provide trading advice.*
-#         """)
-#         st.markdown("---")
+        df['ma7'] = df['close'].rolling(window=7).mean()
+        df['ma30'] = df['close'].rolling(window=30).mean()
+        df['ma90'] = df['close'].rolling(window=90).mean()
 
-#     with st.container():
-#         st.subheader("Market Analysis and Trading")
-#         # openai, upbit, instructions_path = load_env()
-#         # instructions = get_instructions(instructions_path)
-#         # daily_data, hourly_data = fetch_data(symbol)
-#         daily_data, hourly_data = fetch_data(symbol, start_date=start_date, end_date=end_date)
-#         data_json = prepare_data(daily_data, hourly_data)
-#         current_status = get_current_status(upbit, symbol)
-#         recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status)
-        
-#         # recommendation = "hold" # 임시
-#         # reason = "hold" # 임시
-#         # technical_indicators = "hold" # 임시
+        std = df['close'].rolling(window=20).std()
+        df['upper'] = df['ma30'] + (std * 2)
+        df['lower'] = df['ma30'] - (std * 2)
 
+        # 데이터프레임에 충분한 데이터가 있는지 확인합니다.
+        if len(df) < 90:
+            continue
 
-#         if enable_trading:
-#             if auto_trade:
-#                 st.write("Auto Trading Enabled. Executed trading decision.")
-#             else:
-#                 st.write("Trading Enabled. Please review the analysis and execute trades manually.")
-            
-#             # GPT-4 분석 결과에 따라 매매 결정
-#             make_decision_and_execute(upbit, symbol, recommendation, order_amount)
-#         else:
-#             st.write("Trading Disabled. Analysis only.")
+        # 마지막 행의 값을 가져옵니다.
+        ma7 = df['ma7'].iloc[-1]
+        ma30 = df['ma30'].iloc[-1]
+        ma90 = df['ma90'].iloc[-1]
 
-#         st.write("Trading Advice:", recommendation)
-#         st.write("Reasoning:", reason)
-#         st.write("Technical Indicators:", technical_indicators)
-#         st.markdown("---")
-    
-#         with st.container():
-#             st.subheader("Market Data Visualization")
-#             st.write("Daily Data Chart")
-#             daily_fig = go.Figure(data=[go.Candlestick(x=daily_data.index,
-#                                                     open=daily_data['open'],
-#                                                     high=daily_data['high'],
-#                                                     low=daily_data['low'],
-#                                                     close=daily_data['close'])])
-#             st.plotly_chart(daily_fig)
-#             st.markdown("---")
+        # NaN 값을 확인합니다.
+        if pd.isna(ma7) or pd.isna(ma30) or pd.isna(ma90):
+            continue
 
-#             st.subheader("MACD Signal (Daily)")
-#             macd_signal_fig = go.Figure()
-#             macd_signal_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['MACD'], mode='lines', name='MACD'))
-#             macd_signal_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Signal_Line'], mode='lines', name='Signal Line'))
-            
-#             # Add buy/sell signals
-#             buy_signals = daily_data[daily_data['MACD_Signal'] == 1]
-#             sell_signals = daily_data[daily_data['MACD_Signal'] == -1]
-#             macd_signal_fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
-#             macd_signal_fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals['MACD'], mode='markers', marker=dict(size=10, color='red'), name='Sell Signal'))
-            
-#             st.plotly_chart(macd_signal_fig)
-#             st.markdown("---")
+        if ma7 > ma30 > ma90:
+            if df['close'].iloc[-1] > df['upper'].iloc[-1]:
+                recommended_symbols.append(symbol)
 
+    recommended_symbols = list(set(recommended_symbols))[:5]
 
-#             st.write("Hourly Data Chart")
-#             hourly_fig = go.Figure(data=[go.Candlestick(x=hourly_data.index,
-#                                                         open=hourly_data['open'],
-#                                                         high=hourly_data['high'],
-#                                                         low=hourly_data['low'],
-#                                                         close=hourly_data['close'])])
-#             st.plotly_chart(hourly_fig)
-#             st.markdown("---")
+    return recommended_symbols
 
-#             st.subheader("MACD Signal (Hourly)")
-#             macd_signal_hourly_fig = go.Figure()
-#             macd_signal_hourly_fig.add_trace(go.Scatter(x=hourly_data.index, y=hourly_data['MACD'], mode='lines', name='MACD'))
-#             macd_signal_hourly_fig.add_trace(go.Scatter(x=hourly_data.index, y=hourly_data['Signal_Line'], mode='lines', name='Signal Line'))
-            
-#             # Add buy/sell signals
-#             buy_signals_hourly = hourly_data[hourly_data['MACD_Signal'] == 1]
-#             sell_signals_hourly = hourly_data[hourly_data['MACD_Signal'] == -1]
-#             macd_signal_hourly_fig.add_trace(go.Scatter(x=buy_signals_hourly.index, y=buy_signals_hourly['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
-#             macd_signal_hourly_fig.add_trace(go.Scatter(x=sell_signals_hourly.index, y=sell_signals_hourly['MACD'], mode='markers', marker=dict(size=10, color='red'), name='Sell Signal'))
-            
-#             st.plotly_chart(macd_signal_hourly_fig)
-#             st.markdown("---")
-
-            
-#             st.write("Technical Indicators Chart")
-#             tech_indicators_fig = go.Figure()
-#             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['SMA_10'], mode='lines', name='SMA 10'))
-#             # ... other technical indicators ...
-#             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Lower_Band'], mode='lines', name='Lower Band'))
-#             st.plotly_chart(tech_indicators_fig)
-#             st.markdown("---")
-
-#             # 추가: LSTM 모델을 사용한 가격 예측 및 시각화
-#             st.subheader("Price Prediction (LSTM)")
-#             predict_and_visualize(hourly_data)
-#             st.markdown("---")
 
 def main(openai_key, 
          upbit_access_key, 
@@ -838,7 +702,6 @@ def main(openai_key,
             st.write("Technical Indicators Chart")
             tech_indicators_fig = go.Figure()
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['SMA_10'], mode='lines', name='SMA 10'))
-            # ... other technical indicators ...
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Lower_Band'], mode='lines', name='Lower Band'))
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Upper_Band'], mode='lines', name='Upper Band'))
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['close'], mode='lines', name='Close Price'))
@@ -849,17 +712,37 @@ def main(openai_key,
             st.plotly_chart(tech_indicators_fig)
             st.markdown("---")
 
-            # st.subheader("Price Prediction (LSTM)")
-            # visualize_predictions(hourly_data, lstm_predictions)
-            # st.markdown("---")
-
 if __name__ == "__main__":
     import schedule
     import time
 
-    openai_key, upbit_access_key, upbit_secret_key, instructions_path = set_environment_variables()
-    selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date = select_symbols()
+    st.title("M.AI.UPbit Trader")
 
+    # Set environment variables and select symbols at Sidebar
+    openai_key, upbit_access_key, upbit_secret_key, instructions_path = set_environment_variables()
+
+    options = st.radio(
+        "Select an Symbol Selection Method:", 
+        ["select_symbol", "use_recommended_symbol"],
+        captions=["Use Select Symbol", "Use Recommended Symbol"]
+    )
+
+    if options == "use_recommended_symbol":
+        use_recommended_symbol = True
+    else:
+        use_recommended_symbol = False
+    
+
+
+    if use_recommended_symbol:
+        recommended_symbols = recommend_symbols()
+        recommended_symbol = st.selectbox("Select a symbol", recommended_symbols)
+        
+        selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date = select_symbols(recommended_symbol)
+    else: # select_symbol
+        selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date = select_symbols()
+
+        
     # main() 에서 이동된 부분
     instructions = get_instructions(instructions_path)
     openai = OpenAI(api_key=openai_key)
@@ -879,6 +762,8 @@ if __name__ == "__main__":
     logging.info(f"schedule_interval: {schedule_interval}")
     logging.info(f"schedule_value: {schedule_value}")
 
+    
+
     if selected_symbol:
         start_trading_button = st.button("Start Trading")
         stop_trading_button = st.button("Stop Trading")
@@ -887,16 +772,16 @@ if __name__ == "__main__":
             if auto_trade and schedule_interval and schedule_value:
                 if schedule_interval == "분":
                     schedule.every(schedule_value).minutes.do(main, 
-                                                              openai_key=openai_key,
-                                                              upbit_access_key=upbit_access_key,
-                                                              upbit_secret_key=upbit_secret_key,
-                                                              instructions_path=instructions_path,
-                                                              symbol=selected_symbol,
-                                                              order_amount=order_amount,
-                                                              enable_trading=enable_trading,
-                                                              auto_trade=auto_trade,
-                                                              start_date=start_date,
-                                                              end_date=end_date)
+                                                            openai_key=openai_key,
+                                                            upbit_access_key=upbit_access_key,
+                                                            upbit_secret_key=upbit_secret_key,
+                                                            instructions_path=instructions_path,
+                                                            symbol=selected_symbol,
+                                                            order_amount=order_amount,
+                                                            enable_trading=enable_trading,
+                                                            auto_trade=auto_trade,
+                                                            start_date=start_date,
+                                                            end_date=end_date)
                 elif schedule_interval == "시간":
                     schedule.every(schedule_value).hours.do(main, 
                                                             openai_key=openai_key,
@@ -911,16 +796,16 @@ if __name__ == "__main__":
                                                             end_date=end_date)
                 elif schedule_interval == "일":
                     schedule.every(schedule_value).days.do(main, 
-                                                           openai_key=openai_key,
-                                                           upbit_access_key=upbit_access_key,
-                                                           upbit_secret_key=upbit_secret_key,
-                                                           instructions_path=instructions_path,
-                                                           symbol=selected_symbol,
-                                                           order_amount=order_amount,
-                                                           enable_trading=enable_trading,
-                                                           auto_trade=auto_trade,
-                                                           start_date=start_date,
-                                                           end_date=end_date)
+                                                        openai_key=openai_key,
+                                                        upbit_access_key=upbit_access_key,
+                                                        upbit_secret_key=upbit_secret_key,
+                                                        instructions_path=instructions_path,
+                                                        symbol=selected_symbol,
+                                                        order_amount=order_amount,
+                                                        enable_trading=enable_trading,
+                                                        auto_trade=auto_trade,
+                                                        start_date=start_date,
+                                                        end_date=end_date)
                 elif schedule_interval == "주":
                     schedule.every(schedule_value).weeks.do(main, 
                                                             openai_key=openai_key,
@@ -935,16 +820,16 @@ if __name__ == "__main__":
                                                             end_date=end_date)
                 elif schedule_interval == "월":
                     schedule.every(schedule_value).months.do(main, 
-                                                             openai_key=openai_key,
-                                                             upbit_access_key=upbit_access_key,
-                                                             upbit_secret_key=upbit_secret_key,
-                                                             instructions_path=instructions_path,
-                                                             symbol=selected_symbol,
-                                                             order_amount=order_amount,
-                                                             enable_trading=enable_trading,
-                                                             auto_trade=auto_trade,
-                                                             start_date=start_date,
-                                                             end_date=end_date)
+                                                            openai_key=openai_key,
+                                                            upbit_access_key=upbit_access_key,
+                                                            upbit_secret_key=upbit_secret_key,
+                                                            instructions_path=instructions_path,
+                                                            symbol=selected_symbol,
+                                                            order_amount=order_amount,
+                                                            enable_trading=enable_trading,
+                                                            auto_trade=auto_trade,
+                                                            start_date=start_date,
+                                                            end_date=end_date)
                 elif schedule_interval == "년":
                     schedule.every(schedule_value).years.do(main, 
                                                             openai_key=openai_key,
@@ -960,15 +845,15 @@ if __name__ == "__main__":
             
             # Run the Streamlit app for the selected symbol
             main(openai_key=openai_key,
-                 upbit_access_key=upbit_access_key,
-                 upbit_secret_key=upbit_secret_key,
-                 instructions_path=instructions_path,
-                 symbol=selected_symbol,
-                 order_amount=order_amount,
-                 enable_trading=enable_trading,
-                 auto_trade=auto_trade,
-                 start_date=start_date,
-                 end_date=end_date)
+                upbit_access_key=upbit_access_key,
+                upbit_secret_key=upbit_secret_key,
+                instructions_path=instructions_path,
+                symbol=selected_symbol,
+                order_amount=order_amount,
+                enable_trading=enable_trading,
+                auto_trade=auto_trade,
+                start_date=start_date,
+                end_date=end_date)
             
             # Run the scheduled tasks if auto_trade is enabled
             while auto_trade:
