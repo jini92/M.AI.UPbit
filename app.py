@@ -157,6 +157,7 @@ def analyze_data_with_gpt4(client,
     try:
         if not instructions:
             logging.warning("No instructions found.")
+            st.warning("No instructions found.")
             return None, None, None
         response = client.chat.completions.create(
             model="gpt-4-turbo-preview",
