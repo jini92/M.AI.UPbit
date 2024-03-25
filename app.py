@@ -20,6 +20,7 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import plotly.graph_objects as go
+import sqlite3
 
 import config
 
@@ -172,8 +173,17 @@ def analyze_data_with_gpt4(client,
             response_format={"type":"json_object"}
         )
         response_data = response.choices[0].message.content
-        advice_and_indicators = json.loads(response_data)
-        logging.info(f"Advice and indicators: {advice_and_indicators}")
+
+        try:
+            advice_and_indicators = json.loads(response_data)
+            logging.info(f"Advice and indicators: {advice_and_indicators}")
+        except json.JSONDecodeError as e:
+            logging.error(f"Error decoding JSON: {e}")
+            logging.error(f"Response data: {response_data}")
+            return None, None, None
+
+        # advice_and_indicators = json.loads(response_data)
+        # logging.info(f"Advice and indicators: {advice_and_indicators}")
 
         # Extracting recommendation, reason, and technical_indicators
         recommendation = advice_and_indicators.get('decision')
@@ -187,7 +197,36 @@ def analyze_data_with_gpt4(client,
         return recommendation, reason, technical_indicators
     except Exception as e:
         logging.error(f"Error in analyzing data with GPT-4: {e}")
+        logging.error(f"Response data: {response_data}")
         return None, None, None
+    # except Exception as e:
+    #     logging.error(f"Error in analyzing data with GPT-4: {e}")
+    #     return None, None, None
+
+def save_trade_history(symbol, amount, trade_type, price):
+    conn = sqlite3.connect("trade_history.db")
+    cursor = conn.cursor()
+    
+    # trade_history 테이블이 없으면 생성
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS trade_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol TEXT,
+            amount REAL,
+            trade_type TEXT,
+            price REAL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # 거래 이력 저장
+    cursor.execute("""
+        INSERT INTO trade_history (symbol, amount, trade_type, price)
+        VALUES (?, ?, ?, ?)
+    """, (symbol, amount, trade_type, price))
+    
+    conn.commit()
+    conn.close()
 
 def execute_buy(upbit, symbol, order_amount):
     """
@@ -209,6 +248,10 @@ def execute_buy(upbit, symbol, order_amount):
     try:
         result = upbit.buy_market_order(symbol, order_amount)
         logging.info(f"Buy order successful: {result}")
+
+        # 구매 이력을 데이터베이스에 저장
+        save_trade_history(symbol, order_amount, "buy", result["price"])
+
     except Exception as e:
         logging.error(f"Failed to execute buy order: {e}")
 
@@ -232,6 +275,10 @@ def execute_sell(upbit, symbol, order_amount):
     try:
         result = upbit.sell_market_order(symbol, order_amount)
         logging.info(f"Sell order successful: {result}")
+
+        # 판매 이력을 데이터베이스에 저장
+        save_trade_history(symbol, order_amount, "sell", result["price"])
+
     except Exception as e:
         logging.error(f"Failed to execute sell order: {e}")
 
@@ -242,6 +289,17 @@ def execute_trade(upbit, symbol, recommendation, order_amount):
         execute_sell(upbit, symbol, order_amount)
     else:
         logging.info("No trade executed. Recommendation: hold.")
+
+def get_trade_history():
+    conn = sqlite3.connect("trade_history.db")
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM trade_history ORDER BY timestamp DESC")
+    trade_history = cursor.fetchall()
+    
+    conn.close()
+    
+    return trade_history
 
 def make_decision_and_execute(upbit, symbol, advice, order_amount):
     logging.info("Making decision and executing...")
@@ -412,12 +470,15 @@ def select_symbols(recommended_symbol=None):
 
 
     enable_trading = st.checkbox("Enable Trading")
-    auto_trade = st.checkbox("Enable Auto Trading")
+    if enable_trading:
+        enable_auto_trading = st.checkbox("Enable Auto Trading")
+    else:
+        enable_auto_trading = False
 
     # 스케줄 주기 선택
     schedule_interval = None
     schedule_value = None
-    if auto_trade:
+    if enable_auto_trading:
         #schedule_interval = st.selectbox("스케줄 주기", ("분", "시간", "일", "주", "월", "년"))
         schedule_interval = st.selectbox("스케줄 주기", ("시간", "일", "주", "월", "년", "분"))
 
@@ -435,7 +496,7 @@ def select_symbols(recommended_symbol=None):
         elif schedule_interval == "년":
             schedule_value = st.number_input("년 간격", min_value=1, value=1, step=1)
 
-    return selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date
+    return selected_symbol, order_amount, enable_trading, enable_auto_trading, schedule_interval, schedule_value, start_date, end_date
 
 def prepare_lstm_data(data, lookback):
     X, Y = [], []
@@ -547,6 +608,7 @@ def recommend_symbols():
     return recommended_symbols
 
 
+
 def main(openai_key, 
          upbit_access_key, 
          upbit_secret_key, 
@@ -554,7 +616,7 @@ def main(openai_key,
          symbol, 
          order_amount, 
          enable_trading, 
-         auto_trade,
+         enable_auto_trading,
          start_date=None,
          end_date=None
         ):
@@ -630,7 +692,8 @@ def main(openai_key,
         lstm_predictions = predict_and_visualize(hourly_data)
         st.markdown("---")
         
-        # recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, data_json, instructions, current_status, macd_signals, technical_indicators, lstm_predictions)
+        # GPT-4를 사용하여 데이터 분석 및 거래 결정
+        st.subheader("Data Analysis and Trading Decision with GPT-4")
         recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, 
                                                                               data_json, 
                                                                               instructions, 
@@ -640,12 +703,23 @@ def main(openai_key,
                                                                               lstm_predictions)
         
         if enable_trading:
-            if auto_trade:
+            if enable_auto_trading:
                 st.write("Auto Trading Enabled. Executed trading decision.")
             else:
                 st.write("Trading Enabled. Please review the analysis and execute trades manually.")
             
             make_decision_and_execute(upbit, symbol, recommendation, order_amount)
+
+            # 트레이딩 이력 표시
+            trade_history = get_trade_history()
+            
+            if trade_history:
+                st.subheader("Trade History")
+                trade_history_df = pd.DataFrame(trade_history, columns=["ID", "Symbol", "Amount", "Trade Type", "Price", "Timestamp"])
+                st.table(trade_history_df)
+            else:
+                    st.info("No trade history found.")
+
         else:
             st.write("Trading Disabled. Analysis only.")
 
@@ -739,9 +813,9 @@ if __name__ == "__main__":
         recommended_symbols = recommend_symbols()
         recommended_symbol = st.selectbox("Select a symbol", recommended_symbols)
         
-        selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date = select_symbols(recommended_symbol)
+        selected_symbol, order_amount, enable_trading, enable_auto_trading, schedule_interval, schedule_value, start_date, end_date = select_symbols(recommended_symbol)
     else: # select_symbol
-        selected_symbol, order_amount, enable_trading, auto_trade, schedule_interval, schedule_value, start_date, end_date = select_symbols()
+        selected_symbol, order_amount, enable_trading, enable_auto_trading, schedule_interval, schedule_value, start_date, end_date = select_symbols()
 
         
     # main() 에서 이동된 부분
@@ -759,7 +833,7 @@ if __name__ == "__main__":
     logging.info(f"selected_symbol: {selected_symbol}")
     logging.info(f"order_amount: {order_amount}")
     logging.info(f"enable_trading: {enable_trading}")
-    logging.info(f"auto_trade: {auto_trade}")
+    logging.info(f"enable_auto_trading: {enable_auto_trading}")
     logging.info(f"schedule_interval: {schedule_interval}")
     logging.info(f"schedule_value: {schedule_value}")
 
@@ -770,7 +844,7 @@ if __name__ == "__main__":
         stop_trading_button = st.button("Stop Trading")
 
         if start_trading_button:
-            if auto_trade and schedule_interval and schedule_value:
+            if enable_auto_trading and schedule_interval and schedule_value:
                 if schedule_interval == "분":
                     schedule.every(schedule_value).minutes.do(main, 
                                                             openai_key=openai_key,
@@ -780,7 +854,7 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade,
+                                                            enable_auto_trading=enable_auto_trading,
                                                             start_date=start_date,
                                                             end_date=end_date)
                 elif schedule_interval == "시간":
@@ -792,7 +866,7 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade,
+                                                            enable_auto_trading=enable_auto_trading,
                                                             start_date=start_date,
                                                             end_date=end_date)
                 elif schedule_interval == "일":
@@ -804,7 +878,7 @@ if __name__ == "__main__":
                                                         symbol=selected_symbol,
                                                         order_amount=order_amount,
                                                         enable_trading=enable_trading,
-                                                        auto_trade=auto_trade,
+                                                        enable_auto_trading=enable_auto_trading,
                                                         start_date=start_date,
                                                         end_date=end_date)
                 elif schedule_interval == "주":
@@ -816,7 +890,7 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade,
+                                                            enable_auto_trading=enable_auto_trading,
                                                             start_date=start_date,
                                                             end_date=end_date)
                 elif schedule_interval == "월":
@@ -828,7 +902,7 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade,
+                                                            enable_auto_trading=enable_auto_trading,
                                                             start_date=start_date,
                                                             end_date=end_date)
                 elif schedule_interval == "년":
@@ -840,7 +914,7 @@ if __name__ == "__main__":
                                                             symbol=selected_symbol,
                                                             order_amount=order_amount,
                                                             enable_trading=enable_trading,
-                                                            auto_trade=auto_trade,
+                                                            enable_auto_trading=enable_auto_trading,
                                                             start_date=start_date,
                                                             end_date=end_date)
             
@@ -852,19 +926,19 @@ if __name__ == "__main__":
                 symbol=selected_symbol,
                 order_amount=order_amount,
                 enable_trading=enable_trading,
-                auto_trade=auto_trade,
+                enable_auto_trading=enable_auto_trading,
                 start_date=start_date,
                 end_date=end_date)
             
-            # Run the scheduled tasks if auto_trade is enabled
-            while auto_trade:
+            # Run the scheduled tasks if enable_auto_trading is enabled
+            while enable_auto_trading:
                 if stop_trading_button:
-                    auto_trade = False
+                    enable_auto_trading = False
                     break
                 schedule.run_pending()
                 time.sleep(1)
         else:
-            st.warning("No Trading Button Checked. Just Anaysis only!!.")
-            st.warning("Please Check to start trading!!!!!")
+            st.warning("IF Trading Button Un-Checked, Just Anaysis only!!.")
+            st.warning("IF Trading Button    Checked, Start Trading!!.")
     else:
         st.warning("No symbols selected. Please select at least one symbol to start trading.")
