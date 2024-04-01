@@ -30,7 +30,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
-import logging
+
+import re
 
 import config
 
@@ -643,17 +644,17 @@ def get_article_content(url):
         logging.error(f"기사 내용을 가져오는 중 오류가 발생했습니다: {e}")
         return ""
 
+def extract_summary(summary):
+  # HTML 태그 제거
+  summary = re.sub('<[^<]+?>', '', summary)
+   
+  # 불필요한 내용 제거
+  summary = re.sub(r'\s-\s.*$', '', summary)
+  summary = re.sub(r'\s\s+', ' ', summary)
+   
+  return summary.strip()
+
 def get_coin_news(symbol, num_articles=5):
-    """
-    Google News RSS 피드를 사용하여 주어진 암호화폐 심볼과 관련된 뉴스 기사를 가져옵니다.
-
-    Args:
-        symbol (str): 암호화폐 심볼 (예: "bitcoin", "ethereum" 등)
-        num_articles (int): 가져올 기사의 수 (기본값: 5)
-
-    Returns:
-        str: 뉴스 기사의 제목과 내용을 포함한 문자열
-    """
     try:
         # Google News RSS 피드 URL
         rss_url = f"https://news.google.com/rss/search?q={symbol}+crypto&hl=en-US&gl=US&ceid=US:en"
@@ -665,11 +666,20 @@ def get_coin_news(symbol, num_articles=5):
         for i, entry in enumerate(feed.entries[:num_articles], start=1):
             title = entry.title
             link = entry.link
-            content = get_article_content(link)
-            news_text += f"Article {i}:\nTitle: {title}\nContent: {content}\n\n"
+            summary = entry.get("summary", "")
+            
+            summary = extract_summary(summary)
+            
+            news_text += f"Article {i}:\n"
+            news_text += f"\n"
+            news_text += f"Title: {title}\n"
+            news_text += f"\n"
+            news_text += f"Summary: {summary}\n\n"  # 요약 문장 내 줄바꿈 유지
+            # news_text += f"Link: {link}\n"
+            news_text += "\n" # 추가: 기사 간 줄바꿈
 
-        # debugging
-        logging.info(f"Scraped news text: {news_text}")
+        # 디버깅
+        logging.info(f"Scraped news text:\n{news_text}")
 
         return news_text
     except Exception as e:
@@ -677,15 +687,9 @@ def get_coin_news(symbol, num_articles=5):
         return ""
 
 def generate_report(symbol, news_text, analysis_result):
-    
-    # debugging
-    logging.info("\n")
-    logging.info("generate_report()-input:")
-    logging.info(f"symbol: {symbol}")
-    logging.info(f"analysis_result: {analysis_result}")
-
     try:
         logging.info("Generating trading report...")
+
 
         # get the analysis result values
         try:
@@ -720,58 +724,75 @@ def generate_report(symbol, news_text, analysis_result):
             take_profit = analysis_result['risk_management']['take_profit']
         except KeyError:
             take_profit = 'N/A'
+        
 
-        # PDF 파일 생성
+        # Create PDF
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         elements = []
 
-        # 제목 추가
+        # Add title
         styles = getSampleStyleSheet()
-        # title = Paragraph("Trading Report", styles["Heading1"])
-        title = Paragraph(f"Trading Report - {symbol}", styles["Heading1"])
+        title_style = styles["Heading1"]
+        title_style.fontSize = 24
+        title_style.leading = 30
+        title = Paragraph(f"Trading Report - {symbol}", title_style)
         elements.append(title)
+        elements.append(Spacer(1, 24))
 
-        # news_text 추가
-        news_text = f"""
-        <strong>News Articles:</strong><br/>
-        {news_text}
-        """
-        news_paragraph = Paragraph(news_text, styles["Normal"])
-        elements.append(news_paragraph)
+        # Add news articles
+
+        # news title
+        news_title_style = styles["Heading2"]
+        news_title_style.fontSize = 16
+        news_title_style.leading = 24
+        news_title = Paragraph(f"Coin News - {symbol}", news_title_style)
+        elements.append(news_title)
         elements.append(Spacer(1, 12))
 
-        # GPT-4 분석 내용 추가
-        gpt4_analysis_text = f"""
-        <strong>Recommendation:</strong> {recommendation}<br/>
-        <strong>Reason:</strong> {reason}<br/>
-        <strong>Key Indicators:</strong> {key_indicators}<br/>
-        <strong>Chart Patterns:</strong> {chart_patterns}<br/>
-        <strong>Market Sentiment:</strong> {market_sentiment}<br/>
-        <strong>Position Sizing:</strong> {position_sizing}<br/>
-        <strong>Stop Loss:</strong> {stop_loss}<br/>
-        <strong>Take Profit:</strong> {take_profit} 
-        """
-        gpt4_analysis_paragraph = Paragraph(gpt4_analysis_text, styles["Normal"])
-        elements.append(gpt4_analysis_paragraph)
-        elements.append(Spacer(1, 12))
 
-        # PDF 파일 생성
+        # news content
+        news_articles = news_text.split("\n\n")  # 기사별로 분리
+        for article in news_articles:
+            if article.strip():  # 빈 문자열 제외
+                article_paragraph = Paragraph(article, styles["Normal"])
+                elements.append(article_paragraph)
+                elements.append(Spacer(1, 12))  # 기사 간 간격 추가
+        
+        elements.append(Spacer(1, 24))  # 뉴스와 분석 결과 사이 간격 추가
+
+        # Add GPT-4 analysis
+        analysis_style = styles["Normal"]
+        analysis_style.fontSize = 12
+        analysis_style.leading = 20
+
+        analysis_text = f"""
+        <b>Recommendation:</b> {recommendation}<br/>
+        <b>Reason:</b> {reason}<br/>
+        <b>Key Indicators:</b> {key_indicators}<br/>
+        <b>Chart Patterns:</b> {chart_patterns}<br/>
+        <b>Market Sentiment:</b> {market_sentiment}<br/>
+        <b>Position Sizing:</b> {position_sizing}<br/>
+        <b>Stop Loss:</b> {stop_loss}<br/>
+        <b>Take Profit:</b> {take_profit}
+        """
+        analysis_paragraph = Paragraph(analysis_text, analysis_style)
+        elements.append(analysis_paragraph)
+
+        # Build and save the PDF
         doc.build(elements)
         logging.info("Trading report generated successfully.")
-        
-        # 파일 다운로드
+
+        # Download the file
         st.download_button(
             label="Download Report",
             data=buffer.getvalue(),
-            file_name="trading_report.pdf",
+            file_name=f"trading_report_{symbol}.pdf",
             mime="application/pdf",
         )
         logging.info("Trading report downloaded.")
     except Exception as e:
-        logging.error(f"Error generating trading report: {e}")    
-
-
+        logging.error(f"Error generating trading report: {e}")
 
 def main(openai_key, 
          upbit_access_key, 
