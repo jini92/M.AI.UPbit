@@ -25,6 +25,13 @@ import feedparser
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
+import io
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
+import logging
+
 import config
 
 # Set up logging
@@ -159,61 +166,55 @@ def analyze_data_with_gpt4(client,
                            technical_indicators, 
                            lstm_predictions,
                            news_text=None):
+ 
+    if not instructions:
+        logging.warning("No instructions found.")
+        st.warning("No instructions found.")
+        return None
+    response = client.chat.completions.create(
+        model="gpt-4-turbo-preview",
+        messages=[
+            {"role": "system", "content": instructions},
+            {"role": "user", "content": data_json},
+            {"role": "user", "content": current_status},
+            {"role": "user", "content": f"MACD Signals: {macd_signals}"},
+            {"role": "user", "content": f"Technical Indicators: {technical_indicators}"},
+            {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"},
+            {"role": "user", "content": f"News Articles:\n{news_text}"}  # Add news articles to the messages
+        ],
+        temperature=0.2,    # Lower temperature for more deterministic responses
+        top_p=0.2,          # Lower top_p for more deterministic responses
+        seed=1234,          # Seed for reproducibility
+        response_format={"type":"json_object"}  # Return response as JSON object
+    )
+    response_data = response.choices[0].message.content
+
     try:
-        if not instructions:
-            logging.warning("No instructions found.")
-            st.warning("No instructions found.")
-            return None
-        response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
-            messages=[
-                {"role": "system", "content": instructions},
-                {"role": "user", "content": data_json},
-                {"role": "user", "content": current_status},
-                {"role": "user", "content": f"MACD Signals: {macd_signals}"},
-                {"role": "user", "content": f"Technical Indicators: {technical_indicators}"},
-                {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"},
-                {"role": "user", "content": f"News Articles:\n{news_text}"}  # Add news articles to the messages
-            ],
-            temperature=0.2,    # Lower temperature for more deterministic responses
-            top_p=0.2,          # Lower top_p for more deterministic responses
-            seed=1234,          # Seed for reproducibility
-            response_format={"type":"json_object"}  # Return response as JSON object
-        )
-        response_data = response.choices[0].message.content
-
-        try:
-            advice_and_indicators = json.loads(response_data)
-            logging.info(f"Advice and indicators: {advice_and_indicators}")
-        except json.JSONDecodeError as e:
-            logging.error(f"Error decoding JSON: {e}")
-            logging.error(f"Response data: {response_data}")
-            return None
-
-        analysis_result = {
-            'recommendation': advice_and_indicators.get('decision'),
-            'reason': advice_and_indicators.get('reason'),
-            'technical_analysis': {
-                'key_indicators': advice_and_indicators.get('technical_analysis', {}).get('key_indicators'),
-                'chart_patterns': advice_and_indicators.get('technical_analysis', {}).get('chart_patterns')
-            },
-            'market_sentiment': advice_and_indicators.get('market_sentiment'),
-            'risk_management': {
-                'position_sizing': advice_and_indicators.get('risk_management', {}).get('position_sizing'),
-                'stop_loss': advice_and_indicators.get('risk_management', {}).get('stop_loss'),
-                'take_profit': advice_and_indicators.get('risk_management', {}).get('take_profit')
-            }
-        }
-
-        logging.info(f"Analysis Result: {analysis_result}")
-
-        return analysis_result
-
-    except Exception as e:
-        logging.error(f"Error in analyzing data with GPT-4: {e}")
+        advice_and_indicators = json.loads(response_data)
+        logging.info(f"Advice and indicators: {advice_and_indicators}")
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON: {e}")
         logging.error(f"Response data: {response_data}")
         return None
 
+    analysis_result = {
+        'recommendation': advice_and_indicators.get('decision'),
+        'reason': advice_and_indicators.get('reason'),
+        'technical_analysis': {
+            'key_indicators': advice_and_indicators.get('technical_analysis', {}).get('key_indicators'),
+            'chart_patterns': advice_and_indicators.get('technical_analysis', {}).get('chart_patterns')
+        },
+        'market_sentiment': advice_and_indicators.get('market_sentiment'),
+        'risk_management': {
+            'position_sizing': advice_and_indicators.get('risk_management', {}).get('position_sizing'),
+            'stop_loss': advice_and_indicators.get('risk_management', {}).get('stop_loss'),
+            'take_profit': advice_and_indicators.get('risk_management', {}).get('take_profit')
+        }
+    }
+
+    logging.info(f"Analysis Result: {analysis_result}")
+
+    return analysis_result
 
 def save_trade_history(symbol, amount, trade_type, price):
     conn = sqlite3.connect("trade_history.db")
@@ -665,7 +666,6 @@ def get_coin_news(symbol, num_articles=5):
             title = entry.title
             link = entry.link
             content = get_article_content(link)
-
             news_text += f"Article {i}:\nTitle: {title}\nContent: {content}\n\n"
 
         # debugging
@@ -675,6 +675,103 @@ def get_coin_news(symbol, num_articles=5):
     except Exception as e:
         logging.error(f"뉴스를 가져오는 중 오류가 발생했습니다: {e}")
         return ""
+
+def generate_report(symbol, news_text, analysis_result):
+    
+    # debugging
+    logging.info("\n")
+    logging.info("generate_report()-input:")
+    logging.info(f"symbol: {symbol}")
+    logging.info(f"analysis_result: {analysis_result}")
+
+    try:
+        logging.info("Generating trading report...")
+
+        # get the analysis result values
+        try:
+            recommendation = analysis_result['recommendation']
+        except KeyError:
+            recommendation = 'N/A'
+        try:
+            reason = analysis_result['reason']
+        except KeyError:
+            reason = 'N/A'
+        try:
+            key_indicators = analysis_result['technical_analysis']['key_indicators']
+        except KeyError:
+            key_indicators = 'N/A'
+        try:
+            chart_patterns = analysis_result['technical_analysis']['chart_patterns']
+        except KeyError:
+            chart_patterns = 'N/A'
+        try:
+            market_sentiment = analysis_result['market_sentiment']
+        except KeyError:
+            market_sentiment = 'N/A'
+        try:
+            position_sizing = analysis_result['risk_management']['position_sizing']
+        except KeyError:
+            position_sizing = 'N/A'
+        try:
+            stop_loss = analysis_result['risk_management']['stop_loss']
+        except KeyError:
+            stop_loss = 'N/A'
+        try:
+            take_profit = analysis_result['risk_management']['take_profit']
+        except KeyError:
+            take_profit = 'N/A'
+
+        # PDF 파일 생성
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        # 제목 추가
+        styles = getSampleStyleSheet()
+        # title = Paragraph("Trading Report", styles["Heading1"])
+        title = Paragraph(f"Trading Report - {symbol}", styles["Heading1"])
+        elements.append(title)
+
+        # news_text 추가
+        news_text = f"""
+        <strong>News Articles:</strong><br/>
+        {news_text}
+        """
+        news_paragraph = Paragraph(news_text, styles["Normal"])
+        elements.append(news_paragraph)
+        elements.append(Spacer(1, 12))
+
+        # GPT-4 분석 내용 추가
+        gpt4_analysis_text = f"""
+        <strong>Recommendation:</strong> {recommendation}<br/>
+        <strong>Reason:</strong> {reason}<br/>
+        <strong>Key Indicators:</strong> {key_indicators}<br/>
+        <strong>Chart Patterns:</strong> {chart_patterns}<br/>
+        <strong>Market Sentiment:</strong> {market_sentiment}<br/>
+        <strong>Position Sizing:</strong> {position_sizing}<br/>
+        <strong>Stop Loss:</strong> {stop_loss}<br/>
+        <strong>Take Profit:</strong> {take_profit} 
+        """
+        gpt4_analysis_paragraph = Paragraph(gpt4_analysis_text, styles["Normal"])
+        elements.append(gpt4_analysis_paragraph)
+        elements.append(Spacer(1, 12))
+
+        # PDF 파일 생성
+        doc.build(elements)
+        logging.info("Trading report generated successfully.")
+        
+        # 파일 다운로드
+        st.download_button(
+            label="Download Report",
+            data=buffer.getvalue(),
+            file_name="trading_report.pdf",
+            mime="application/pdf",
+        )
+        logging.info("Trading report downloaded.")
+    except Exception as e:
+        logging.error(f"Error generating trading report: {e}")    
+
+
 
 def main(openai_key, 
          upbit_access_key, 
@@ -763,14 +860,31 @@ def main(openai_key,
         # GPT-4를 사용하여 데이터 분석 및 거래 결정
         st.subheader("Data Analysis and Trading Decision with GPT-4")
 
-        analysis_result = analyze_data_with_gpt4(openai, 
-                                         data_json, 
-                                         instructions, 
-                                         current_status, 
-                                         macd_signals, 
-                                         technical_indicators, 
-                                         lstm_predictions,
-                                         news_text)
+        # analysis_result initialized
+        analysis_result = {
+            'recommendation': 'hold',
+            'reason': 'No trading advice generated.',
+            'technical_analysis': {
+                'key_indicators': 'None',
+                'chart_patterns': 'None'
+            },
+            'market_sentiment': 'Neutral',
+            'risk_management': {
+                'position_sizing': 'None',
+                'stop_loss': 'None',
+                'take_profit': 'None'
+            }
+        }
+        analysis_result = analyze_data_with_gpt4(
+                                                openai, 
+                                                data_json, 
+                                                instructions, 
+                                                current_status, 
+                                                macd_signals, 
+                                                technical_indicators, 
+                                                lstm_predictions,
+                                                news_text
+                                            )
 
         recommendation = analysis_result['recommendation']
         reason = analysis_result['reason']
@@ -893,9 +1007,16 @@ def main(openai_key,
             st.plotly_chart(tech_indicators_fig, config=dict(displayModeBar=True, modeBarButtonsToAdd=['toImage', 'sendDataToCloud']))
             st.markdown("---")
 
+        return news_text, analysis_result
+
+
 if __name__ == "__main__":
     import schedule
     import time
+
+    # init analysis_result and chart_paths
+    gpt4_analysis = {}
+    chart_paths = []
 
     st.title("M.AI.UPbit Trader")
 
@@ -913,8 +1034,6 @@ if __name__ == "__main__":
     else:
         use_recommended_symbol = False
     
-
-
     if use_recommended_symbol:
         recommended_symbols = recommend_symbols()
         recommended_symbol = st.selectbox("Select a symbol", recommended_symbols)
@@ -1024,17 +1143,34 @@ if __name__ == "__main__":
                                                             start_date=start_date,
                                                             end_date=end_date)
             
-            # Run the Streamlit app for the selected symbol
-            main(openai_key=openai_key,
-                upbit_access_key=upbit_access_key,
-                upbit_secret_key=upbit_secret_key,
-                instructions_path=instructions_path,
-                symbol=selected_symbol,
-                order_amount=order_amount,
-                enable_trading=enable_trading,
-                enable_auto_trading=enable_auto_trading,
-                start_date=start_date,
-                end_date=end_date)
+            else:
+                
+                news_text, analysis_result = main(
+                                        openai_key=openai_key,
+                                        upbit_access_key=upbit_access_key,
+                                        upbit_secret_key=upbit_secret_key,
+                                        instructions_path=instructions_path,
+                                        symbol=selected_symbol,
+                                        order_amount=order_amount,
+                                        enable_trading=enable_trading,
+                                        enable_auto_trading=enable_auto_trading,
+                                        start_date=start_date,
+                                        end_date=end_date
+                                    )
+                
+                # debug
+                logging.info("\n")
+                logging.info("analysis_result:")
+                logging.info(analysis_result)
+
+                gpt4_analysis = analysis_result
+                logging.info("\n")
+                logging.info("gpt4_analysis:")
+                logging.info(gpt4_analysis)
+
+                # Generate trading report
+                generate_report(selected_symbol, news_text, gpt4_analysis)
+                # generate_report(selected_symbol, gpt4_analysis, chart_paths)
             
             # Run the scheduled tasks if enable_auto_trading is enabled
             while enable_auto_trading:
@@ -1048,3 +1184,4 @@ if __name__ == "__main__":
             st.warning("Go Start Trading Button!!.")
     else:
         st.warning("No symbols selected. Please select at least one symbol to start trading.")
+        st.stop()
