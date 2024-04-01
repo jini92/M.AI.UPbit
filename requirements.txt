@@ -15,3 +15,6 @@ numpy
 tensorflow
 # tensorflow-gpu
 scikit-learn
+beautifulsoup4
+lxml
+feedparser

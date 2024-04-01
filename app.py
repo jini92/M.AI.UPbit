@@ -21,6 +21,9 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import plotly.graph_objects as go
 import sqlite3
+import feedparser
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 
 import config
 
@@ -154,12 +157,13 @@ def analyze_data_with_gpt4(client,
                            current_status, 
                            macd_signals, 
                            technical_indicators, 
-                           lstm_predictions):
+                           lstm_predictions,
+                           news_text=None):
     try:
         if not instructions:
             logging.warning("No instructions found.")
             st.warning("No instructions found.")
-            return None, None, None
+            return None
         response = client.chat.completions.create(
             model="gpt-4-turbo-preview",
             messages=[
@@ -168,9 +172,13 @@ def analyze_data_with_gpt4(client,
                 {"role": "user", "content": current_status},
                 {"role": "user", "content": f"MACD Signals: {macd_signals}"},
                 {"role": "user", "content": f"Technical Indicators: {technical_indicators}"},
-                {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"}
+                {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"},
+                {"role": "user", "content": f"News Articles:\n{news_text}"}  # Add news articles to the messages
             ],
-            response_format={"type":"json_object"}
+            temperature=0.2,    # Lower temperature for more deterministic responses
+            top_p=0.2,          # Lower top_p for more deterministic responses
+            seed=1234,          # Seed for reproducibility
+            response_format={"type":"json_object"}  # Return response as JSON object
         )
         response_data = response.choices[0].message.content
 
@@ -180,28 +188,32 @@ def analyze_data_with_gpt4(client,
         except json.JSONDecodeError as e:
             logging.error(f"Error decoding JSON: {e}")
             logging.error(f"Response data: {response_data}")
-            return None, None, None
+            return None
 
-        # advice_and_indicators = json.loads(response_data)
-        # logging.info(f"Advice and indicators: {advice_and_indicators}")
+        analysis_result = {
+            'recommendation': advice_and_indicators.get('decision'),
+            'reason': advice_and_indicators.get('reason'),
+            'technical_analysis': {
+                'key_indicators': advice_and_indicators.get('technical_analysis', {}).get('key_indicators'),
+                'chart_patterns': advice_and_indicators.get('technical_analysis', {}).get('chart_patterns')
+            },
+            'market_sentiment': advice_and_indicators.get('market_sentiment'),
+            'risk_management': {
+                'position_sizing': advice_and_indicators.get('risk_management', {}).get('position_sizing'),
+                'stop_loss': advice_and_indicators.get('risk_management', {}).get('stop_loss'),
+                'take_profit': advice_and_indicators.get('risk_management', {}).get('take_profit')
+            }
+        }
 
-        # Extracting recommendation, reason, and technical_indicators
-        recommendation = advice_and_indicators.get('decision')
-        reason = advice_and_indicators.get('reason')
-        technical_indicators = advice_and_indicators.get('technical_indicators')
+        logging.info(f"Analysis Result: {analysis_result}")
 
-        logging.info(f"Decision: {recommendation}")
-        logging.info(f"Reason: {reason}")
-        logging.info(f"Technical indicators: {technical_indicators}")
+        return analysis_result
 
-        return recommendation, reason, technical_indicators
     except Exception as e:
         logging.error(f"Error in analyzing data with GPT-4: {e}")
         logging.error(f"Response data: {response_data}")
-        return None, None, None
-    # except Exception as e:
-    #     logging.error(f"Error in analyzing data with GPT-4: {e}")
-    #     return None, None, None
+        return None
+
 
 def save_trade_history(symbol, amount, trade_type, price):
     conn = sqlite3.connect("trade_history.db")
@@ -607,7 +619,62 @@ def recommend_symbols():
 
     return recommended_symbols
 
+def get_article_content(url):
+    """
+    주어진 URL에서 기사 내용을 추출합니다.
 
+    Args:
+        url (str): 기사 URL
+
+    Returns:
+        str: 기사 내용
+    """
+    try:
+        html = urlopen(url).read()
+        soup = BeautifulSoup(html, features="html.parser")
+
+        article_content = ""
+        for paragraph in soup.find_all('p'):
+            article_content += paragraph.get_text() + "\n"
+
+        return article_content
+    except Exception as e:
+        logging.error(f"기사 내용을 가져오는 중 오류가 발생했습니다: {e}")
+        return ""
+
+def get_coin_news(symbol, num_articles=5):
+    """
+    Google News RSS 피드를 사용하여 주어진 암호화폐 심볼과 관련된 뉴스 기사를 가져옵니다.
+
+    Args:
+        symbol (str): 암호화폐 심볼 (예: "bitcoin", "ethereum" 등)
+        num_articles (int): 가져올 기사의 수 (기본값: 5)
+
+    Returns:
+        str: 뉴스 기사의 제목과 내용을 포함한 문자열
+    """
+    try:
+        # Google News RSS 피드 URL
+        rss_url = f"https://news.google.com/rss/search?q={symbol}+crypto&hl=en-US&gl=US&ceid=US:en"
+
+        # 피드 파싱
+        feed = feedparser.parse(rss_url)
+
+        news_text = ""
+        for i, entry in enumerate(feed.entries[:num_articles], start=1):
+            title = entry.title
+            link = entry.link
+            content = get_article_content(link)
+
+            news_text += f"Article {i}:\nTitle: {title}\nContent: {content}\n\n"
+
+        # debugging
+        logging.info(f"Scraped news text: {news_text}")
+
+        return news_text
+    except Exception as e:
+        logging.error(f"뉴스를 가져오는 중 오류가 발생했습니다: {e}")
+        return ""
 
 def main(openai_key, 
          upbit_access_key, 
@@ -681,12 +748,13 @@ def main(openai_key,
         }
         close_data = hourly_data['close'].values.reshape(-1, 1)
 
-
-        # lookback = 24
-        # num_predictions = 24
-        # scaler, model = train_lstm(close_data, lookback)
-        # lstm_predictions = predict_prices(scaler, model, close_data, lookback, num_predictions)
-
+        # Coin news
+        st.subheader("Coin News")
+        news_text = get_coin_news(symbol.split("-")[1])
+        st.write(news_text)
+        st.markdown("---")
+    
+        
          # 추가: LSTM 모델을 사용한 가격 예측 및 시각화
         st.subheader("Price Prediction (LSTM)")
         lstm_predictions = predict_and_visualize(hourly_data)
@@ -694,13 +762,33 @@ def main(openai_key,
         
         # GPT-4를 사용하여 데이터 분석 및 거래 결정
         st.subheader("Data Analysis and Trading Decision with GPT-4")
-        recommendation, reason, technical_indicators = analyze_data_with_gpt4(openai, 
-                                                                              data_json, 
-                                                                              instructions, 
-                                                                              current_status, 
-                                                                              macd_signals, 
-                                                                              technical_indicators, 
-                                                                              lstm_predictions)
+
+        analysis_result = analyze_data_with_gpt4(openai, 
+                                         data_json, 
+                                         instructions, 
+                                         current_status, 
+                                         macd_signals, 
+                                         technical_indicators, 
+                                         lstm_predictions,
+                                         news_text)
+
+        recommendation = analysis_result['recommendation']
+        reason = analysis_result['reason']
+        key_indicators = analysis_result['technical_analysis']['key_indicators']
+        chart_patterns = analysis_result['technical_analysis']['chart_patterns']
+        market_sentiment = analysis_result['market_sentiment']
+        position_sizing = analysis_result['risk_management']['position_sizing']
+        stop_loss = analysis_result['risk_management']['stop_loss']
+        take_profit = analysis_result['risk_management']['take_profit']
+
+        logging.info(f"Decision: {recommendation}")
+        logging.info(f"Reason: {reason}")
+        logging.info(f"Key Indicators: {key_indicators}")
+        logging.info(f"Chart Patterns: {chart_patterns}")
+        logging.info(f"Market Sentiment: {market_sentiment}")
+        logging.info(f"Position Sizing: {position_sizing}")
+        logging.info(f"Stop Loss: {stop_loss}")
+        logging.info(f"Take Profit: {take_profit}")
         
         if enable_trading:
             if enable_auto_trading:
@@ -723,9 +811,15 @@ def main(openai_key,
         else:
             st.write("Trading Disabled. Analysis only.")
 
-        st.write("Trading Advice:", recommendation)
-        st.write("Reasoning:", reason)
-        st.write("Technical Indicators:", technical_indicators)
+        st.write(f"AI Trader - {symbol}")
+        st.write(f"Trading Advice:", recommendation)
+        st.write(f"Reasoning:", reason)
+        st.write(f"Technical Indicators:", key_indicators)
+        st.write(f"Chart Patterns:", chart_patterns)
+        st.write(f"Market Sentiment:", market_sentiment)
+        st.write(f"Position Sizing:", position_sizing)
+        st.write(f"Stop Loss:", stop_loss)
+        st.write(f"Take Profit:", take_profit)
         st.markdown("---")
     
         with st.container():
@@ -736,7 +830,14 @@ def main(openai_key,
                                                     high=daily_data['high'],
                                                     low=daily_data['low'],
                                                     close=daily_data['close'])])
-            st.plotly_chart(daily_fig)
+            daily_fig.update_layout(
+                    title="Daily Data Chart",
+                    xaxis_title="Date",
+                    yaxis_title="Price",
+                    template="plotly_white"
+                )
+
+            st.plotly_chart(daily_fig, config=dict(displayModeBar=True, modeBarButtonsToAdd=['toImage', 'sendDataToCloud']))
             st.markdown("---")
 
             st.subheader("MACD Signal (Daily)")
@@ -749,7 +850,9 @@ def main(openai_key,
             macd_signal_fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
             macd_signal_fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals['MACD'], mode='markers', marker=dict(size=10, color='red'), name='Sell Signal'))
             
-            st.plotly_chart(macd_signal_fig)
+            # st.plotly_chart(macd_signal_fig)
+            st.plotly_chart(macd_signal_fig, config=dict(displayModeBar=True, modeBarButtonsToAdd=['toImage', 'sendDataToCloud']))
+
             st.markdown("---")
 
             st.write("Hourly Data Chart")
@@ -758,7 +861,8 @@ def main(openai_key,
                                                         high=hourly_data['high'],
                                                         low=hourly_data['low'],
                                                         close=hourly_data['close'])])
-            st.plotly_chart(hourly_fig)
+            # st.plotly_chart(hourly_fig)
+            st.plotly_chart(hourly_fig, config=dict(displayModeBar=True, modeBarButtonsToAdd=['toImage', 'sendDataToCloud']))
             st.markdown("---")
 
             st.subheader("MACD Signal (Hourly)")
@@ -771,7 +875,8 @@ def main(openai_key,
             macd_signal_hourly_fig.add_trace(go.Scatter(x=buy_signals_hourly.index, y=buy_signals_hourly['MACD'], mode='markers', marker=dict(size=10, color='green'), name='Buy Signal'))
             macd_signal_hourly_fig.add_trace(go.Scatter(x=sell_signals_hourly.index, y=sell_signals_hourly['MACD'], mode='markers', marker=dict(size=10, color='red'), name='Sell Signal'))
             
-            st.plotly_chart(macd_signal_hourly_fig)
+            # st.plotly_chart(macd_signal_hourly_fig)
+            st.plotly_chart(macd_signal_hourly_fig, config=dict(displayModeBar=True, modeBarButtonsToAdd=['toImage', 'sendDataToCloud']))
             st.markdown("---")
             
             st.write("Technical Indicators Chart")
@@ -784,7 +889,8 @@ def main(openai_key,
             tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['Signal_Line'], mode='lines', name='Signal Line'))
             # tech_indicators_fig.add_trace(go.Scatter(x=daily_data.index, y=daily_data['close'], mode='lines', name='Price', yaxis='y2'))
 
-            st.plotly_chart(tech_indicators_fig)
+            # st.plotly_chart(tech_indicators_fig)
+            st.plotly_chart(tech_indicators_fig, config=dict(displayModeBar=True, modeBarButtonsToAdd=['toImage', 'sendDataToCloud']))
             st.markdown("---")
 
 if __name__ == "__main__":
@@ -938,7 +1044,7 @@ if __name__ == "__main__":
                 schedule.run_pending()
                 time.sleep(1)
         else:
-            st.warning("IF Trading Button Un-Checked, Just Anaysis only!!.")
-            st.warning("IF Trading Button    Checked, Start Trading!!.")
+            st.warning("IF Enable_Trading Button Un-Checked, Just Anaysis only!!.")
+            st.warning("Go Start Trading Button!!.")
     else:
         st.warning("No symbols selected. Please select at least one symbol to start trading.")
