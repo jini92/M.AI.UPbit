@@ -197,9 +197,12 @@ def analyze_data_with_gpt4(client,
         logging.error(f"Error decoding JSON: {e}")
         logging.error(f"Response data: {response_data}")
         return None
-
+    
+    # Extract the analysis result from the response data
     analysis_result = {
         'recommendation': advice_and_indicators.get('decision'),
+        'buy_price': advice_and_indicators.get('buy_price'),
+        'sell_price': advice_and_indicators.get('sell_price'),
         'reason': advice_and_indicators.get('reason'),
         'technical_analysis': {
             'key_indicators': advice_and_indicators.get('technical_analysis', {}).get('key_indicators'),
@@ -697,6 +700,14 @@ def generate_report(symbol, news_text, analysis_result):
         except KeyError:
             recommendation = 'N/A'
         try:
+            buy_price = analysis_result['buy_price']
+        except KeyError:
+            buy_price = 'N/A'
+        try:
+            sell_price = analysis_result['sell_price']
+        except KeyError:
+            sell_price = 'N/A'
+        try:
             reason = analysis_result['reason']
         except KeyError:
             reason = 'N/A'
@@ -768,6 +779,8 @@ def generate_report(symbol, news_text, analysis_result):
 
         analysis_text = f"""
         <b>Recommendation:</b> {recommendation}<br/>
+        <b>Buy Price:</b> {buy_price}<br/>
+        <b>Sell Price:</b> {sell_price}<br/>
         <b>Reason:</b> {reason}<br/>
         <b>Key Indicators:</b> {key_indicators}<br/>
         <b>Chart Patterns:</b> {chart_patterns}<br/>
@@ -884,6 +897,8 @@ def main(openai_key,
         # analysis_result initialized
         analysis_result = {
             'recommendation': 'hold',
+            'buy_price': 'N/A',
+            'sell_price': 'N/A',
             'reason': 'No trading advice generated.',
             'technical_analysis': {
                 'key_indicators': 'None',
@@ -908,6 +923,8 @@ def main(openai_key,
                                             )
 
         recommendation = analysis_result['recommendation']
+        buy_price = analysis_result['buy_price']
+        sell_price = analysis_result['sell_price']
         reason = analysis_result['reason']
         key_indicators = analysis_result['technical_analysis']['key_indicators']
         chart_patterns = analysis_result['technical_analysis']['chart_patterns']
@@ -917,6 +934,8 @@ def main(openai_key,
         take_profit = analysis_result['risk_management']['take_profit']
 
         logging.info(f"Decision: {recommendation}")
+        logging.info(f"Buy Price: {buy_price}")
+        logging.info(f"Sell Price: {sell_price}")
         logging.info(f"Reason: {reason}")
         logging.info(f"Key Indicators: {key_indicators}")
         logging.info(f"Chart Patterns: {chart_patterns}")
@@ -948,6 +967,8 @@ def main(openai_key,
 
         st.write(f"AI Trader - {symbol}")
         st.write(f"Trading Advice:", recommendation)
+        st.write(f"Buy Price:", buy_price)
+        st.write(f"Sell Price:", sell_price)
         st.write(f"Reasoning:", reason)
         st.write(f"Technical Indicators:", key_indicators)
         st.write(f"Chart Patterns:", chart_patterns)
