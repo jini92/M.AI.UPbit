@@ -173,7 +173,8 @@ def analyze_data_with_gpt4(client,
         st.warning("No instructions found.")
         return None
     response = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        # model="gpt-4-turbo-preview",
+        model="gpt-4-turbo",
         messages=[
             {"role": "system", "content": instructions},
             {"role": "user", "content": data_json},
