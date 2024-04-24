@@ -95,8 +95,17 @@ def fetch_portfolio_data(upbit):
     return portfolio_dict
 
 
-def display_dashboard(portfolio_dict):
+def display_dashboard(portfolio_dict, recommended_symbols):
     st.title("Investment Portfolio Dashboard")
+    
+    st.subheader("Recommended Symbols")
+    if recommended_symbols:
+        for symbol, reason in recommended_symbols:
+            st.write(f"- {symbol}: {reason}")
+        # for symbol in recommended_symbols:
+        #     st.write(f"- {symbol}")
+    else:
+        st.write("No recommended symbols.")
     
     for market, portfolio_data in portfolio_dict.items():
         st.subheader(f"{market} Market")
@@ -543,19 +552,16 @@ def select_symbols(recommended_symbol=None):
 
     if recommended_symbol:
         selected_symbol = recommended_symbol
+        order_currency = selected_symbol[0].split('-')[0]
+        order_amount = st.number_input(f"Enter order amount ({order_currency})", min_value=0.0, format="%.8f")
     else:
         market_info = get_market_info()
         coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
         filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
         selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
-
-    # order_amount = st.number_input(f"Enter order amount ({selected_symbol.split('-')[0]})", min_value=0.0, format="%.8f")
-
-    if selected_symbol:
         order_currency = selected_symbol.split('-')[0]
         order_amount = st.number_input(f"Enter order amount ({order_currency})", min_value=0.0, format="%.8f")
-    else:
-        order_amount = 0.0
+
 
     # Add date range input controls
     today = datetime.now().date()
@@ -663,17 +669,51 @@ def predict_and_visualize(data):
 
     return predictions
 
-def recommend_symbols():
+def recommend_symbols_by_recent_performance(top_n=5, days=7):
     market_info = get_market_info()
     end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=365)
+    start_date = end_date - timedelta(days=days)
 
     recommended_symbols = []
 
     for symbol in market_info.values():
-        ohlcv_data = pyupbit.get_ohlcv(symbol, interval="day", count=365, to=end_date.strftime("%Y-%m-%d"))
-        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        try:
+            ohlcv_data = pyupbit.get_ohlcv(symbol, interval="day", count=days+1, to=end_date.strftime("%Y-%m-%d"))
+            
+            if ohlcv_data is None or len(ohlcv_data) < days + 1:
+                continue
+            
+            start_price = ohlcv_data.iloc[0]['close']
+            end_price = ohlcv_data.iloc[-1]['close']
+            returns = (end_price - start_price) / start_price * 100
+            
+            recommended_symbols.append((symbol, returns))
+        except Exception as e:
+            logging.error(f"Error processing {symbol}: {e}")
+            continue
+
+    recommended_symbols.sort(key=lambda x: x[1], reverse=True)
+    top_symbols = recommended_symbols[:top_n]
+
+    result = []
+    for symbol, returns in top_symbols:
+        reason = f"최근 {days}일 간 {returns:.2f}%의 수익률을 기록하였습니다."
+        result.append((symbol, reason))
+
+    return result
+
+def recommend_symbols(day_range=365):
+
+    market_info = get_market_info()
+    end_date = datetime.now().date()
+    start_date = end_date - timedelta(days=day_range)
+
+    recommended_symbols = []
+
+    for symbol in market_info.values():
+        ohlcv_data = pyupbit.get_ohlcv(symbol, interval="day", count=day_range, to=end_date.strftime("%Y-%m-%d"))
+        df = pd.DataFrame(ohlcv_data, columns=['open', 'high', 'low', 'close', 'volume', 'value'])
+        df.index.name = 'timestamp'
 
         df['ma7'] = df['close'].rolling(window=7).mean()
         df['ma30'] = df['close'].rolling(window=30).mean()
@@ -683,22 +723,20 @@ def recommend_symbols():
         df['upper'] = df['ma30'] + (std * 2)
         df['lower'] = df['ma30'] - (std * 2)
 
-        # 데이터프레임에 충분한 데이터가 있는지 확인합니다.
         if len(df) < 90:
             continue
 
-        # 마지막 행의 값을 가져옵니다.
         ma7 = df['ma7'].iloc[-1]
         ma30 = df['ma30'].iloc[-1]
         ma90 = df['ma90'].iloc[-1]
 
-        # NaN 값을 확인합니다.
         if pd.isna(ma7) or pd.isna(ma30) or pd.isna(ma90):
             continue
 
         if ma7 > ma30 > ma90:
             if df['close'].iloc[-1] > df['upper'].iloc[-1]:
-                recommended_symbols.append(symbol)
+                reason = "7일, 30일, 90일 이동평균선이 상승 배열을 이루고 있으며, 현재 가격이 볼린저밴드 상한선을 돌파했습니다."
+                recommended_symbols.append((symbol, reason))
 
     recommended_symbols = list(set(recommended_symbols))[:5]
 
@@ -1157,8 +1195,14 @@ if __name__ == "__main__":
     else:
         use_recommended_symbol = False
     
+   
+    recommended_symbols = []         # init recommended_symbols
     if use_recommended_symbol:
-        recommended_symbols = recommend_symbols()
+        # days_range = 365         # Number of days to consider for the recommendation
+        # recommended_symbols = recommend_symbols(days_range)
+        recommended_symbols = recommend_symbols_by_recent_performance()
+        #debugging
+        logging.info(f"Recommended symbols: {recommended_symbols}")
         recommended_symbol = st.selectbox("Select a symbol", recommended_symbols)
         
         selected_symbol, order_amount, enable_trading, enable_auto_trading, schedule_interval, schedule_value, start_date, end_date = select_symbols(recommended_symbol)
@@ -1204,7 +1248,7 @@ if __name__ == "__main__":
 
         st.title("Portfolio")
         portfolio_data = fetch_portfolio_data(upbit)
-        display_dashboard(portfolio_data)
+        display_dashboard(portfolio_data, recommended_symbols)  # 추천 종목 리스트 전달
 
     # 거래 탭
     with tabs[1]:
