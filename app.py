@@ -45,53 +45,75 @@ if config.DEBUG:
 
 
 
-# 포트폴리오 데이터 수집 및 처리 함수 추가
-def fetch_portfolio_data(symbols):
-    # 임의의 포트폴리오 데이터를 생성합니다. 
-    # 실제 구현 시에는 증권사 API, 데이터베이스 등에서 실제 데이터를 가져와야 합니다.
-    portfolio_data = []
-    for symbol in symbols:
-        asset_type = "Stock" if symbol.startswith("KRW") else "Crypto"
-        quantity = np.random.randint(1, 100)
-        current_price = np.random.uniform(1000, 100000)
-        avg_buy_price = current_price * np.random.uniform(0.8, 1.2)
-        value = quantity * current_price
-        pnl = value - (quantity * avg_buy_price)
-        portfolio_data.append({
+def fetch_portfolio_data(upbit):
+    balances = upbit.get_balances()
+    portfolio_data = {
+        'KRW': [],
+        'BTC': [],
+        'USDT': []
+    }
+
+    for balance in balances:
+        currency = balance['currency']
+        quantity = float(balance['balance'])
+        avg_buy_price = float(balance['avg_buy_price'])
+
+        # debugging
+        logging.info(f"currency: {currency}, quantity: {quantity}, avg_buy_price: {avg_buy_price}")
+
+        if currency == 'KRW':
+            symbol = 'KRW'
+            current_price = 1.0
+            market = 'KRW'
+        else:
+            for market in ['KRW', 'BTC', 'USDT']:
+                symbol = f"{market}-{currency}"
+                try:
+                    current_price = pyupbit.get_current_price(symbol)
+                    break
+                except:
+                    continue
+            else:
+                continue
+
+        value = quantity * current_price  # 'value' 열 계산
+        pnl = value - (quantity * avg_buy_price) # 'pnl' 열 계산
+        
+        asset_type = "Crypto" if currency != 'KRW' else "Cash"
+
+        portfolio_data[market].append({
             "asset_type": asset_type,
             "symbol": symbol,
             "quantity": quantity,
             "current_price": current_price,
             "avg_buy_price": avg_buy_price,
-            "value": value,
+            "value": value,  # 'value' 열 추가
             "pnl": pnl
         })
-    
-    portfolio_df = pd.DataFrame(portfolio_data)
-    return portfolio_df
 
-# 대시보드 표시 함수 추가
-def display_dashboard(portfolio_data):
+    portfolio_dict = {market: pd.DataFrame(data) for market, data in portfolio_data.items()}
+    return portfolio_dict
+
+
+def display_dashboard(portfolio_dict):
     st.title("Investment Portfolio Dashboard")
     
-    # Display portfolio overview
-    st.subheader("Portfolio Overview")
-    total_value = portfolio_data["value"].sum()
-    total_pnl = portfolio_data["pnl"].sum()
-    st.metric("Total Portfolio Value", f"{total_value:,.2f}")
-    st.metric("Total P&L", f"{total_pnl:,.2f}")
-    
-    # Display asset allocation
-    st.subheader("Asset Allocation")
-    asset_allocation = portfolio_data.groupby("asset_type")["value"].sum().reset_index()
-    fig = px.pie(asset_allocation, values="value", names="asset_type", title="Asset Allocation")
-    st.plotly_chart(fig)
-    
-    # Display performance by asset
-    st.subheader("Performance by Asset")
-    performance_by_asset = portfolio_data.groupby("symbol")[["value", "pnl"]].sum().reset_index()
-    fig = px.bar(performance_by_asset, x="symbol", y="pnl", color="value", title="Performance by Asset")
-    st.plotly_chart(fig)
+    for market, portfolio_data in portfolio_dict.items():
+        st.subheader(f"{market} Market")
+        
+        if len(portfolio_data) == 0:
+            st.write(f"No {market} assets in the portfolio.")
+            continue
+        
+        total_value = portfolio_data["value"].sum()
+        total_pnl = portfolio_data["pnl"].sum()
+        
+        st.metric(f"Total {market} Value", f"{total_value:,.2f} KRW")
+        st.metric(f"Total {market} P&L", f"{total_pnl:,.2f} KRW")
+        
+        st.write(portfolio_data[['asset_type', 'symbol', 'quantity', 'current_price', 'avg_buy_price', 'value', 'pnl']])
+        st.write("\n")
+
 
 # debugging fuction
 def is_valid_json(json_string):
@@ -1168,17 +1190,21 @@ if __name__ == "__main__":
 
     # 포트폴리오 탭
     with tabs[0]:
+        # st.title("Portfolio")
+
+        # # 포트폴리오 데이터 가져오기
+        # if selected_symbol:
+        #     portfolio_data = fetch_portfolio_data([selected_symbol])
+
+        #     # 대시보드 표시 
+        #     display_dashboard(portfolio_data)
+        # else:
+        #     st.warning("No symbols selected. Please select at least one symbol to display the portfolio.")
+        #     st.stop()
+
         st.title("Portfolio")
-
-        # 포트폴리오 데이터 가져오기
-        if selected_symbol:
-            portfolio_data = fetch_portfolio_data([selected_symbol])
-
-            # 대시보드 표시 
-            display_dashboard(portfolio_data)
-        else:
-            st.warning("No symbols selected. Please select at least one symbol to display the portfolio.")
-            st.stop()
+        portfolio_data = fetch_portfolio_data(upbit)
+        display_dashboard(portfolio_data)
 
     # 거래 탭
     with tabs[1]:
