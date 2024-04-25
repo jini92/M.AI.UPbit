@@ -53,11 +53,17 @@ def fetch_portfolio_data(upbit):
         'USDT': []
     }
 
+    # for balance in balances:
+    #     currency = balance['currency']
+    #     quantity = float(balance['balance'])
+    #     avg_buy_price = float(balance['avg_buy_price'])
     for balance in balances:
-        currency = balance['currency']
-        quantity = float(balance['balance'])
-        avg_buy_price = float(balance['avg_buy_price'])
-
+        if isinstance(balance, dict):
+            currency = balance['currency']
+            quantity = float(balance['balance'])
+            avg_buy_price = float(balance['avg_buy_price'])
+        else:
+            print(f"balance is not a dictionary: {balance}")
         # debugging
         logging.info(f"currency: {currency}, quantity: {quantity}, avg_buy_price: {avg_buy_price}")
 
