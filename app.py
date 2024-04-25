@@ -64,9 +64,7 @@ def fetch_portfolio_data(upbit):
             avg_buy_price = float(balance['avg_buy_price'])
         else:
             logging.info(f"balance is not a dictionary: {balance}")
-            currency = balance.currency
-            quantity = float(balance.balance)
-            avg_buy_price = float(balance.avg_buy_price)
+            logging.error(f"Unexpected balance type: {type(balance)}, balance: {balance}")
             # currency = quantity = avg_buy_price = None  # Assign default values
 
         # debugging
