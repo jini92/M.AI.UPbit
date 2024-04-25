@@ -63,8 +63,11 @@ def fetch_portfolio_data(upbit):
             quantity = float(balance['balance'])
             avg_buy_price = float(balance['avg_buy_price'])
         else:
-            print(f"balance is not a dictionary: {balance}")
-            currency = quantity = avg_buy_price = None  # Assign default values
+            logging.info(f"balance is not a dictionary: {balance}")
+            currency = balance.currency
+            quantity = float(balance.balance)
+            avg_buy_price = float(balance.avg_buy_price)
+            # currency = quantity = avg_buy_price = None  # Assign default values
 
         # debugging
         logging.info(f"currency: {currency}, quantity: {quantity}, avg_buy_price: {avg_buy_price}")
