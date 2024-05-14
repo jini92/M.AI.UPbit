@@ -267,7 +267,8 @@ def analyze_data_with_gpt4(client,
         return None
     response = client.chat.completions.create(
         # model="gpt-4-turbo-preview",
-        model="gpt-4-turbo",
+        # model="gpt-4-turbo",
+        model = "gpt-4o",
         messages=[
             {"role": "system", "content": instructions},
             {"role": "user", "content": data_json},
