@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "symbol": "KRW-BTC",
+    "amount": 50000.0,
+    "trade_type": "buy",
+    "price": 50000000.0,
+    "timestamp": "2026-02-25T08:13:14.381537"
+  },
+  {
+    "id": 2,
+    "symbol": "KRW-ETH",
+    "amount": 0.1,
+    "trade_type": "sell",
+    "price": 3000000.0,
+    "timestamp": "2026-02-25T08:13:14.386391"
+  }
+]

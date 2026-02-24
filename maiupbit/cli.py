@@ -108,7 +108,23 @@ def cmd_trade(args):
 
     if not args.confirm:
         price = exchange.get_current_price(args.symbol)
-        print(f"⚠️ {args.action.upper()} {args.amount} {args.symbol} @ ~{price:,.0f}")
+        # 소수점 이하 코인 가격 대응 (BTT 등)
+        if price < 1:
+            price_str = f"{price:.6f}"
+        elif price < 100:
+            price_str = f"{price:,.2f}"
+        else:
+            price_str = f"{price:,.0f}"
+
+        if args.action == "sell":
+            est_krw = args.amount * price
+            print(f"⚠️ SELL {args.amount:,.0f} {args.symbol} @ ~₩{price_str}")
+            print(f"   예상 수령액: ~₩{est_krw:,.2f}")
+        else:
+            est_qty = args.amount / price if price > 0 else 0
+            print(f"⚠️ BUY ₩{args.amount:,.0f} {args.symbol} @ ~₩{price_str}")
+            print(f"   예상 수량: ~{est_qty:,.0f}")
+
         print("실행하려면 --confirm 플래그를 추가하세요.")
         sys.exit(0)
 
