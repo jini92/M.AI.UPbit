@@ -2,7 +2,7 @@
 
 > **문서 번호**: D-001
 > **작성일**: 2026-02-25
-> **상태**: Draft → **v2.1 아키텍처 피벗 (Streamlit → OpenClaw + MAIBOTALKS)**
+> **상태**: ✅ Phase 5 완료, Phase 6 진행 중
 > **이전 버전**: POC (Streamlit 단일 파일)
 
 ---
@@ -337,39 +337,65 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 
 ## 6. 마일스톤
 
-### Phase 1: Core Engine (1주) — app.py → maiupbit/
+### Phase 1: POC 분석 ✅ (2026-02-25)
 
-- [ ] 프로젝트 구조 셋업 (pyproject.toml, Makefile)
-- [ ] `maiupbit/indicators/` — 기술 지표 추출 (trend, momentum, volatility, signals)
-- [ ] `maiupbit/exchange/upbit.py` — UPbit 래퍼 (시세 + 매매)
-- [ ] `maiupbit/models/lstm.py` — LSTM 분리 + 사전 학습 모드
-- [ ] `maiupbit/analysis/` — technical + sentiment + llm
-- [ ] `maiupbit/utils/` — data + report
-- [ ] `maiupbit/cli.py` — CLI 진입점
-- [ ] `tests/unit/` — 핵심 모듈 테스트 (70%+)
-- [ ] PyPI 첫 배포 준비
+- [x] app.py (800+ LOC) 전수 분석 → 22개 함수 v2.1 매핑
+- [x] PRD v2.0 작성 → v2.1 아키텍처 피벗 결정
+- **문서:** `A-001-POC-Analysis.md`
 
-### Phase 2: OpenClaw Integration (1주) — MAIBOT 연결
+### Phase 2: 엔진 모듈화 ✅ (2026-02-25)
 
-- [ ] `scripts/analyze.py` — 분석 실행 스크립트
-- [ ] `scripts/trade.py` — 매매 실행 (확인 로직 포함)
-- [ ] `scripts/portfolio.py` — 포트폴리오 조회
-- [ ] `scripts/monitor.py` — 시장 모니터링
-- [ ] `scripts/daily_report.py` — 일일 리포트
-- [ ] `scripts/train_model.py` — 모델 재학습
-- [ ] MAIBOT HEARTBEAT.md 업데이트 (시장 모니터링 추가)
-- [ ] MAIBOT memory/maiupbit.md 업데이트
-- [ ] MAIBOTALKS ↔ OpenClaw 트레이딩 명령 테스트
+- [x] 프로젝트 구조 셋업 (pyproject.toml, Makefile)
+- [x] `maiupbit/indicators/` — trend, momentum, volatility, signals
+- [x] `maiupbit/exchange/upbit.py` — UPbit 래퍼 (시세 + 매매)
+- [x] `maiupbit/models/lstm.py` — LSTM 분리 + 사전 학습 모드
+- [x] `maiupbit/analysis/` — technical + sentiment + llm
+- [x] `maiupbit/utils/` — data + report
+- [x] `maiupbit/cli.py` — CLI 진입점 (analyze, portfolio, trade, recommend)
+- [x] `tests/unit/` — 7 tests passing
+- [x] LICENSE (Apache-2.0)
+- **서브에이전트:** 3개 (Sonnet 4.6) 병렬 실행
+- **커밋:** `0cd20147`
 
-### Phase 3: Intelligence (1주) — 고도화
+### Phase 3: MAIBOT 통합 ✅ (2026-02-25)
 
-- [ ] Transformer 모델 추가
-- [ ] 앙상블 (LSTM + Transformer + LLM) 결합
-- [ ] 백테스팅 프레임워크
+- [x] `scripts/analyze.py` — 분석 실행 스크립트
+- [x] `scripts/trade.py` — 매매 실행 (확인 로직 포함)
+- [x] `scripts/portfolio.py` — 포트폴리오 조회
+- [x] `scripts/monitor.py` — 시장 모니터링
+- [x] `scripts/daily_report.py` — 일일 리포트
+- [x] `scripts/train_model.py` — 모델 재학습
+- [x] MAIBOT HEARTBEAT.md 업데이트 (05:30 모니터링 + 06:30 리포트)
+- [x] MAIBOT TOOLS.md 업데이트 (요청 패턴 매핑 + 안전 규칙)
+- [x] 풀 플로우 테스트 (analyze + monitor + trade 안전차단)
+- **커밋:** `9055ce785` (MAIBOT)
+
+### Phase 4: 테스트+문서+크론 ✅ (2026-02-25)
+
+- [x] OpenClaw 크론 등록 (시장 모니터링 + 일일 분석 리포트)
+- [x] 136 tests, coverage **79.5%** (목표 70% 초과)
+- [x] README.md PyPI 수준 리라이트
+- [x] CLAUDE.md v0.1.0 반영
+- **커밋:** `4ec78ef4`, `fd54cec9`
+
+### Phase 5: ML 고도화 + PyPI 배포 ✅ (2026-02-25)
+
+- [x] UPbit API 키 설정 + 포트폴리오 연동 확인
+- [x] PyTorch Transformer 모델 (Multi-Head Self-Attention)
+- [x] 앙상블 결합 (LSTM + Transformer)
+- [x] CLI train 서브커맨드 추가
+- [x] 148 passed, 3 skipped, coverage **83.78%**
+- [x] PyPI 정식 배포: https://pypi.org/project/maiupbit/0.1.0/
+- **커밋:** `d2b59d1f`, `e6e191bd`
+
+### Phase 6: 실전 운영 (진행 중)
+
+- [ ] Transformer 모델 실제 학습 (BTC 90일 데이터)
+- [ ] HEARTBEAT 주간 모델 재학습 크론 추가
 - [ ] 교육 노트북 5종
-- [ ] README.md 재작성 (OSS)
-- [ ] PyPI 정식 배포
+- [ ] llm.py coverage 향상 (39% → 70%+)
 - [ ] ClawHub 스킬 등록
+- [ ] README PyPI 배지 추가
 
 ---
 
@@ -414,5 +440,5 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 
 ---
 
-_Last updated: 2026-02-25 — v2.1 아키텍처 피벗 (OpenClaw + MAIBOTALKS)_
+_Last updated: 2026-02-25 — Phase 5 완료, Phase 6 진입_
 _Author: MAIBOT (MAI Universe)_
