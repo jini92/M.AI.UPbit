@@ -39,7 +39,7 @@ M.AI.UPbit/
 │   │   └── ensemble.py         # 앙상블 (Voting)
 │   ├── analysis/               # 분석 엔진
 │   │   ├── technical.py        # 기술 분석 + 종목 추천
-│   │   ├── llm.py              # GPT-4o 종합 분석
+│   │   ├── llm.py              # LLM 종합 분석 (OpenAI/Ollama 듀얼)
 │   │   └── sentiment.py        # 뉴스 감성 분석
 │   ├── exchange/               # 거래소 연동
 │   │   ├── base.py             # BaseExchange Protocol
@@ -130,8 +130,20 @@ make train      # LSTM 학습
 UPBIT_ACCESS_KEY=your_key
 UPBIT_SECRET_KEY=your_secret
 
-# LLM 분석 (선택)
-OPENAI_API_KEY=your_openai_key
+# LLM 분석 — OpenAI 또는 Ollama 선택
+LLM_PROVIDER=ollama              # "openai" (기본) 또는 "ollama"
+OPENAI_API_KEY=your_openai_key   # OpenAI 사용 시
+OLLAMA_BASE_URL=http://localhost:11434/v1  # Ollama 기본값
+OLLAMA_MODEL=qwen2.5:14b         # Ollama 모델 (권장: qwen2.5:14b, qwen3:32b)
+```
+
+### Ollama 설정 가이드
+
+```bash
+# Ollama 설치 후 모델 다운로드
+ollama pull qwen2.5:14b    # 12GB GPU (기본 추천)
+ollama pull qwen3:32b      # 24GB GPU (최고 성능)
+ollama pull exaone3.5:7.8b # 8GB GPU (한국어 특화)
 ```
 
 ---

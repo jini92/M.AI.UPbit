@@ -3,23 +3,28 @@
 maiupbit.analysis.llm
 ~~~~~~~~~~~~~~~~~~~~~~
 
-LLM(GPT-4o) 기반 종합 투자 분석 모듈.
+LLM 기반 종합 투자 분석 모듈 (OpenAI GPT-4o / Ollama 지원).
 
 시장 데이터, 기술 지표, LSTM 예측, 뉴스를 종합하여
-OpenAI GPT-4o 모델로부터 매수/매도/홀드 권고를 수신합니다.
+OpenAI-호환 Chat Completions API 로 매수/매도/홀드 권고를 수신합니다.
+Ollama 는 ``http://localhost:11434/v1`` 에서 OpenAI-호환 API 를 제공하므로
+동일한 ``openai`` 패키지로 두 프로바이더를 모두 지원합니다.
 
-사용 예::
+사용 예 (OpenAI)::
 
     analyzer = LLMAnalyzer(api_key="sk-...")
-    result = analyzer.analyze(
-        data_json=data_json_str,
-        current_status=current_status_str,
-        macd_signals=macd_signals_list,
-        technical_indicators=tech_dict,
-        lstm_predictions=lstm_preds,
-        news_text=news_str,
-    )
-    print(result["recommendation"])  # 'buy' | 'sell' | 'hold'
+    result = analyzer.analyze(...)
+
+사용 예 (Ollama)::
+
+    analyzer = LLMAnalyzer(provider="ollama")
+    result = analyzer.analyze(...)
+
+환경 변수::
+
+    LLM_PROVIDER      - "openai" (기본) 또는 "ollama"
+    OLLAMA_BASE_URL   - Ollama API URL (기본: http://localhost:11434/v1)
+    OLLAMA_MODEL      - Ollama 모델 이름 (기본: qwen2.5:14b)
 """
 
 from __future__ import annotations
@@ -27,7 +32,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Optional
+from typing import Literal, Optional
 
 from openai import OpenAI
 
@@ -101,31 +106,59 @@ Your trading recommendations MUST be returned as a JSON object:
 """
 
 
+_DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434/v1"
+_DEFAULT_OLLAMA_MODEL = "qwen2.5:14b"
+
+
 class LLMAnalyzer:
-    """LLM(GPT-4o) 기반 종합 투자 분석기.
+    """LLM 기반 종합 투자 분석기 (OpenAI / Ollama 지원).
 
     시장 데이터, 기술 지표, LSTM 예측, 뉴스를 종합하여
-    OpenAI Chat Completions API 로 매수/매도/홀드 투자 권고를 생성합니다.
+    OpenAI-호환 Chat Completions API 로 매수/매도/홀드 투자 권고를 생성합니다.
 
     Attributes:
-        client (OpenAI): OpenAI 클라이언트 인스턴스.
-        model (str): 사용할 OpenAI 모델 식별자.
+        provider: ``"openai"`` 또는 ``"ollama"``.
+        client: OpenAI-호환 클라이언트 인스턴스.
+        model: 사용할 모델 식별자.
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gpt-4o",
+        model: Optional[str] = None,
+        provider: Optional[Literal["openai", "ollama"]] = None,
+        base_url: Optional[str] = None,
     ) -> None:
         """LLMAnalyzer 초기화.
 
         Args:
-            api_key: OpenAI API 키.
-                None 이면 ``OPENAI_API_KEY`` 환경 변수를 사용합니다.
-            model: 사용할 OpenAI 모델. 기본값 ``"gpt-4o"``.
+            api_key: API 키. ``None`` 이면 프로바이더에 따라 자동 결정:
+                - openai: ``OPENAI_API_KEY`` 환경 변수
+                - ollama: ``"ollama"`` (필수이나 실제 사용되지 않음)
+            model: 모델 식별자. ``None`` 이면 프로바이더에 따라 자동 결정:
+                - openai: ``"gpt-4o"``
+                - ollama: ``OLLAMA_MODEL`` 환경 변수 또는 ``"qwen2.5:14b"``
+            provider: ``"openai"`` (기본) 또는 ``"ollama"``.
+                ``None`` 이면 ``LLM_PROVIDER`` 환경 변수 또는 ``"openai"``.
+            base_url: OpenAI-호환 API base URL.
+                ``None`` 이면 프로바이더에 따라 자동 결정:
+                - openai: OpenAI 기본값 (설정하지 않음)
+                - ollama: ``OLLAMA_BASE_URL`` 환경 변수 또는 ``"http://localhost:11434/v1"``
         """
-        self.client = OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
-        self.model = model
+        self.provider: str = provider or os.getenv("LLM_PROVIDER", "openai")
+
+        if self.provider == "ollama":
+            resolved_base_url = base_url or os.getenv("OLLAMA_BASE_URL", _DEFAULT_OLLAMA_BASE_URL)
+            resolved_api_key = api_key or "ollama"
+            self.model = model or os.getenv("OLLAMA_MODEL", _DEFAULT_OLLAMA_MODEL)
+            self.client = OpenAI(api_key=resolved_api_key, base_url=resolved_base_url)
+        else:
+            resolved_api_key = api_key or os.getenv("OPENAI_API_KEY")
+            self.model = model or "gpt-4o"
+            kwargs: dict = {"api_key": resolved_api_key}
+            if base_url:
+                kwargs["base_url"] = base_url
+            self.client = OpenAI(**kwargs)
 
     # ------------------------------------------------------------------
     # 내부 헬퍼
@@ -140,19 +173,31 @@ class LLMAnalyzer:
         return _DEFAULT_INSTRUCTIONS
 
     def _parse_response(self, raw: str) -> dict:
-        """GPT 응답 JSON 을 파싱하여 표준 결과 딕셔너리로 변환.
+        """LLM 응답 JSON 을 파싱하여 표준 결과 딕셔너리로 변환.
+
+        마크다운 코드 블록(````json ... ````)으로 감싸진 JSON 도 처리합니다.
+        (Ollama 모델이 흔히 이 형식으로 응답)
 
         Args:
-            raw: GPT 응답의 content 문자열 (JSON 형식).
+            raw: LLM 응답의 content 문자열 (JSON 형식).
 
         Returns:
             표준화된 분석 결과 딕셔너리.
             파싱 실패 시 'recommendation': 'hold' 인 기본값 반환.
         """
+        text = raw.strip()
+
+        # Strip markdown code blocks if present (common with Ollama models)
+        if text.startswith("```"):
+            first_newline = text.index("\n")
+            text = text[first_newline + 1:]
+            if text.endswith("```"):
+                text = text[:-3].strip()
+
         try:
-            data = json.loads(raw)
+            data = json.loads(text)
         except json.JSONDecodeError as exc:
-            logger.error("GPT 응답 JSON 파싱 실패: %s\n원본: %s", exc, raw[:500])
+            logger.error("LLM 응답 JSON 파싱 실패: %s\n원본: %s", exc, raw[:500])
             return self._default_result()
 
         result = {
@@ -213,7 +258,7 @@ class LLMAnalyzer:
         news_text: str = "",
         instructions: Optional[str] = None,
     ) -> dict:
-        """GPT-4o 로 종합 투자 분석 수행.
+        """LLM 으로 종합 투자 분석 수행 (OpenAI 또는 Ollama).
 
         Args:
             data_json: 일봉·시간봉 OHLCV + 기술 지표를 담은 JSON 문자열
@@ -264,23 +309,30 @@ class LLMAnalyzer:
         ]
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=0.2,
-                top_p=0.2,
-                seed=1234,
-                response_format={"type": "json_object"},
-            )
+            kwargs: dict = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": 0.2,
+                "top_p": 0.2,
+                "seed": 1234,
+            }
+            # OpenAI 와 Ollama 모두 response_format 을 지원.
+            # Ollama 는 format 파라미터를 통해 네이티브 JSON 출력을 제공하며,
+            # OpenAI-호환 API 에서도 response_format 이 정상 동작함.
+            # 마크다운 코드 블록 폴백은 _parse_response() 에서 안전망으로 유지.
+            kwargs["response_format"] = {"type": "json_object"}
+            response = self.client.chat.completions.create(**kwargs)
         except Exception as exc:  # noqa: BLE001
-            logger.error("OpenAI API 호출 실패: %s", exc)
+            logger.error("LLM API 호출 실패 (provider=%s): %s", self.provider, exc)
             return self._default_result()
 
         raw_content: str = response.choices[0].message.content or ""
         result = self._parse_response(raw_content)
 
         logger.info(
-            "LLMAnalyzer.analyze 완료 — recommendation=%s",
+            "LLMAnalyzer.analyze 완료 — provider=%s, model=%s, recommendation=%s",
+            self.provider,
+            self.model,
             result.get("recommendation"),
         )
         return result

@@ -1,6 +1,7 @@
-"""TechnicalAnalyzer 단위 테스트"""
+"""TechnicalAnalyzer / LLMAnalyzer 단위 테스트"""
 from __future__ import annotations
 
+import json
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -8,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from maiupbit.analysis.llm import LLMAnalyzer
 from maiupbit.analysis.technical import TechnicalAnalyzer, _safe_float
 
 
@@ -347,3 +349,136 @@ class TestSafeFloat:
 
     def test_zero(self) -> None:
         assert _safe_float(0) == pytest.approx(0.0)
+
+
+# ---------------------------------------------------------------------------
+# LLMAnalyzer
+# ---------------------------------------------------------------------------
+
+_SAMPLE_LLM_JSON = json.dumps({
+    "decision": "buy",
+    "buy_price": 50000,
+    "sell_price": 55000,
+    "reason": "Strong bullish signals",
+    "technical_analysis": {
+        "key_indicators": "RSI oversold",
+        "chart_patterns": "Double bottom",
+    },
+    "market_sentiment": "Positive",
+    "risk_management": {
+        "position_sizing": "10%",
+        "stop_loss": "48000",
+        "take_profit": "56000",
+    },
+})
+
+
+class TestLLMAnalyzer:
+    """LLMAnalyzer 단위 테스트 (OpenAI / Ollama 프로바이더)."""
+
+    # -- init / provider 설정 -------------------------------------------
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_init_default_openai(self, mock_openai_cls: MagicMock) -> None:
+        """기본 프로바이더는 openai, 모델은 gpt-4o."""
+        analyzer = LLMAnalyzer(api_key="sk-test")
+        assert analyzer.provider == "openai"
+        assert analyzer.model == "gpt-4o"
+        mock_openai_cls.assert_called_once_with(api_key="sk-test")
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_init_ollama_provider(self, mock_openai_cls: MagicMock) -> None:
+        """provider='ollama' 설정 시 base_url, api_key, model 자동 결정."""
+        analyzer = LLMAnalyzer(provider="ollama")
+        assert analyzer.provider == "ollama"
+        assert analyzer.model == "qwen2.5:14b"
+        mock_openai_cls.assert_called_once_with(
+            api_key="ollama",
+            base_url="http://localhost:11434/v1",
+        )
+
+    @patch.dict("os.environ", {
+        "LLM_PROVIDER": "ollama",
+        "OLLAMA_BASE_URL": "http://myhost:11434/v1",
+        "OLLAMA_MODEL": "llama3:8b",
+    })
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_init_from_env_vars(self, mock_openai_cls: MagicMock) -> None:
+        """환경 변수로 프로바이더, base_url, 모델 설정."""
+        analyzer = LLMAnalyzer()
+        assert analyzer.provider == "ollama"
+        assert analyzer.model == "llama3:8b"
+        mock_openai_cls.assert_called_once_with(
+            api_key="ollama",
+            base_url="http://myhost:11434/v1",
+        )
+
+    # -- _parse_response ------------------------------------------------
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_parse_response_valid_json(self, mock_openai_cls: MagicMock) -> None:
+        """표준 JSON 문자열 파싱."""
+        analyzer = LLMAnalyzer(api_key="sk-test")
+        result = analyzer._parse_response(_SAMPLE_LLM_JSON)
+        assert result["recommendation"] == "buy"
+        assert result["buy_price"] == 50000
+        assert result["sell_price"] == 55000
+        assert result["reason"] == "Strong bullish signals"
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_parse_response_markdown_codeblock(self, mock_openai_cls: MagicMock) -> None:
+        """마크다운 ```json ... ``` 코드 블록 내부 JSON 파싱."""
+        analyzer = LLMAnalyzer(api_key="sk-test")
+        wrapped = f"```json\n{_SAMPLE_LLM_JSON}\n```"
+        result = analyzer._parse_response(wrapped)
+        assert result["recommendation"] == "buy"
+        assert result["buy_price"] == 50000
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_parse_response_invalid_returns_default(self, mock_openai_cls: MagicMock) -> None:
+        """파싱 불가 문자열 → 기본 hold 결과 반환."""
+        analyzer = LLMAnalyzer(api_key="sk-test")
+        result = analyzer._parse_response("not valid json at all")
+        assert result["recommendation"] == "hold"
+        assert result["buy_price"] is None
+
+    # -- analyze --------------------------------------------------------
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_analyze_success_mock(self, mock_openai_cls: MagicMock) -> None:
+        """analyze() 가 올바른 구조의 결과를 반환."""
+        mock_client = MagicMock()
+        mock_openai_cls.return_value = mock_client
+        mock_choice = MagicMock()
+        mock_choice.message.content = _SAMPLE_LLM_JSON
+        mock_client.chat.completions.create.return_value = MagicMock(choices=[mock_choice])
+
+        analyzer = LLMAnalyzer(api_key="sk-test")
+        result = analyzer.analyze(
+            data_json="{}",
+            current_status="{}",
+            macd_signals=[],
+            technical_indicators={},
+            lstm_predictions=[],
+        )
+        assert result["recommendation"] == "buy"
+        assert result["reason"] == "Strong bullish signals"
+        mock_client.chat.completions.create.assert_called_once()
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_analyze_api_error_returns_default(self, mock_openai_cls: MagicMock) -> None:
+        """API 예외 발생 시 기본 hold 결과 반환."""
+        mock_client = MagicMock()
+        mock_openai_cls.return_value = mock_client
+        mock_client.chat.completions.create.side_effect = Exception("API Error")
+
+        analyzer = LLMAnalyzer(api_key="sk-test")
+        result = analyzer.analyze(
+            data_json="{}",
+            current_status="{}",
+            macd_signals=[],
+            technical_indicators={},
+            lstm_predictions=[],
+        )
+        assert result["recommendation"] == "hold"
+        assert result["buy_price"] is None

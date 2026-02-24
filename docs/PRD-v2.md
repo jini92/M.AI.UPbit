@@ -2,7 +2,7 @@
 
 > **문서 번호**: D-001
 > **작성일**: 2026-02-25
-> **상태**: ✅ Phase 7 완료 (퀀트 전략 통합)
+> **상태**: ✅ Phase 8 완료 (Ollama 통합)
 > **이전 버전**: POC (Streamlit 단일 파일)
 
 ---
@@ -405,14 +405,22 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 - [x] 테스트: 189 passed, 3 skipped, coverage 81%
 - [x] 신규 12파일, 수정 6파일
 
-### Phase 8: 실전 운영 + PyPI v0.2.0 (예정)
+### Phase 8: Ollama 통합 ✅ 완료
+
+- [x] LLMAnalyzer OpenAI/Ollama 듀얼 백엔드 리팩토링
+- [x] Ollama 모델 선정 리서치 (Qwen3-32B, Qwen2.5-14B, EXAONE 3.5-7.8B)
+- [x] LLM 테스트 8개 추가 → llm.py 커버리지 39% → 98%
+- [x] 환경변수 기반 프로바이더 전환 (LLM_PROVIDER, OLLAMA_BASE_URL, OLLAMA_MODEL)
+- [x] 마크다운 코드블록 JSON 파싱 폴백
+- [x] 테스트: 197 passed, 3 skipped, coverage 82%
+
+### Phase 9: 실전 운영 + PyPI v0.2.0 (예정)
 
 - [ ] 퀀트 전략 실전 백테스트 검증 (BTC/ETH 1년)
 - [ ] Transformer 모델 실제 학습 (BTC 90일 데이터)
 - [ ] HEARTBEAT 주간 모델 재학습 크론 추가
-- [ ] PyPI v0.2.0 배포 (퀀트 전략 포함)
+- [ ] PyPI v0.2.0 배포 (퀀트 전략 + Ollama 포함)
 - [ ] 교육 노트북 5종
-- [ ] llm.py coverage 향상 (39% → 70%+)
 - [ ] ClawHub 스킬 등록
 
 ---
@@ -458,5 +466,5 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 
 ---
 
-_Last updated: 2026-02-25 — Phase 7 완료 (퀀트 전략 통합)_
+_Last updated: 2026-02-25 — Phase 8 완료 (Ollama 통합)_
 _Author: MAIBOT (MAI Universe)_

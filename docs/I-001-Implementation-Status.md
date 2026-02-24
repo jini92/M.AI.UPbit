@@ -18,6 +18,7 @@
 | 5 | ML 고도화+PyPI | ✅ 완료 | 02-25 | Transformer, 148 tests, 83.78% cov, PyPI 배포 |
 | 6 | 실전 운영 | 🟡 대기 | 02-25~ | 모델 학습, 노트북, 운영 안정화 |
 | 7 | 퀀트 전략 | ✅ 완료 | 02-25 | 강환국 6대 전략, PortfolioBacktestEngine, 189 tests, 81% cov |
+| 8 | Ollama 통합 | ✅ 완료 | 02-25 | LLM 듀얼 백엔드 (OpenAI/Ollama), 197 tests, 82% cov |
 
 ---
 
@@ -116,7 +117,23 @@
 - **MAIBOT 연동**: `scripts/quant.py` 스크립트
 - **테스트**: 189 passed, 3 skipped → coverage **81%**
 - **신규 파일**: 12개, **수정 파일**: 6개
-- **커밋**: (pending)
+- **커밋**: `e13e4a90`
+
+### Phase 8: Ollama 통합 ✅
+
+- **LLMAnalyzer 듀얼 백엔드 리팩토링**:
+  - OpenAI GPT-4o (기존) + Ollama (신규) 모두 지원
+  - `provider` 파라미터: `"openai"` / `"ollama"` 선택
+  - Ollama는 OpenAI 호환 API (`localhost:11434/v1`) 활용 → `openai` 패키지 재사용
+  - 환경변수: `LLM_PROVIDER`, `OLLAMA_BASE_URL`, `OLLAMA_MODEL`
+  - 마크다운 코드블록 JSON 파싱 폴백 (Ollama 모델 호환)
+  - 하위 호환: 기존 OpenAI 사용자 코드 변경 불필요
+- **Ollama 모델 선정 리서치**:
+  - 1순위: `qwen3:32b` (24GB GPU, 119개 언어, JSON+금융 분석 최강)
+  - 2순위: `qwen2.5:14b` (12GB GPU, 기본값, 검증된 선택)
+  - 3순위: `exaone3.5:7.8b` (8GB GPU, LG AI Research 한국어 특화)
+- **테스트**: 8개 LLMAnalyzer 테스트 추가 → `analysis/llm.py` 커버리지 39% → 98%
+- **전체**: 197 passed, 3 skipped → coverage **82%**
 
 ---
 
@@ -151,7 +168,7 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 │   ├── analysis/                     # 분석 엔진
 │   │   ├── technical.py              # 기술적 분석 종합 (89% cov)
 │   │   ├── sentiment.py              # 뉴스/감성 분석 (100% cov)
-│   │   └── llm.py                    # LLM 종합 판단 (39% cov)
+│   │   └── llm.py                    # LLM 종합 판단 — OpenAI/Ollama 듀얼 (98% cov)
 │   ├── exchange/                     # 거래소 추상화
 │   │   ├── base.py                   # 거래소 인터페이스 (100% cov)
 │   │   └── upbit.py                  # UPbit API (92% cov)
@@ -171,7 +188,7 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 │   ├── train_model.py                # 모델 학습
 │   └── quant.py                      # 퀀트 전략 실행 (MAIBOT 연동)
 │
-├── tests/                            # pytest (192 collected, 189 passed, 3 skipped)
+├── tests/                            # pytest (200 collected, 197 passed, 3 skipped)
 │   ├── conftest.py                   # 공통 픽스처
 │   └── unit/
 │       ├── test_indicators.py        # 7 tests
@@ -179,7 +196,7 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 │       ├── test_strategies.py        # 32 tests (6대 전략 + 포트폴리오 + 조합)
 │       ├── test_exchange.py          # 22 tests
 │       ├── test_backtest.py          # 18 tests
-│       ├── test_analysis.py          # 29 tests
+│       ├── test_analysis.py          # 37 tests (technical + LLM)
 │       ├── test_cli.py               # 14 tests
 │       ├── test_sentiment.py         # 17 tests
 │       ├── test_utils.py             # 15 tests
@@ -199,7 +216,7 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 └── LICENSE                           # Apache-2.0
 ```
 
-### 3.2 테스트 커버리지 (2026-02-25, Phase 7 이후)
+### 3.2 테스트 커버리지 (2026-02-25, Phase 8 이후)
 
 | 모듈 | Stmts | Miss | Coverage | 비고 |
 |---|---|---|---|---|
@@ -219,9 +236,9 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 | `models/transformer.py` | 129 | 2 | **98%** | PyTorch |
 | `exchange/upbit.py` | 155 | 13 | **92%** | API 모킹 |
 | `cli.py` | 311 | 171 | **45%** | CLI (quant 핸들러 미커버) |
-| `analysis/llm.py` | 36 | 22 | **39%** | LLM 외부 의존 |
+| `analysis/llm.py` | 56 | 1 | **98%** | OpenAI/Ollama 듀얼 |
 | `models/lstm.py` | 64 | 57 | **11%** | TensorFlow 미설치 |
-| **TOTAL** | **1,702** | **323** | **81.02%** | ✅ 목표(70%) 초과 |
+| **TOTAL** | **1,720** | **302** | **82%** | ✅ 목표(70%) 초과 |
 
 ### 3.3 Git 히스토리 (v2.1 관련)
 
@@ -268,18 +285,17 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 
 ---
 
-## 5. Phase 7 완료 + 향후 계획
+## 5. Phase 8 완료 + 향후 계획
 
-### Phase 7 완료 항목 ✅
+### Phase 8 완료 항목 ✅
 
 | 항목 | 상태 |
 |---|---|
-| 강환국 6대 퀀트 전략 구현 | ✅ 완료 |
-| PortfolioBacktestEngine | ✅ 완료 |
-| 퀀트 지표 (ATR, noise_ratio, momentum_score) | ✅ 완료 |
-| CLI quant 서브커맨드 | ✅ 완료 |
-| MAIBOT 연동 스크립트 (quant.py) | ✅ 완료 |
-| 전략 단위 테스트 (41 tests) | ✅ 완료 |
+| LLMAnalyzer OpenAI/Ollama 듀얼 백엔드 | ✅ 완료 |
+| Ollama 모델 선정 리서치 (Qwen3-32B/Qwen2.5-14B/EXAONE 3.5) | ✅ 완료 |
+| LLM 테스트 8개 추가 (39% → 98% coverage) | ✅ 완료 |
+| 환경변수 기반 프로바이더 전환 | ✅ 완료 |
+| 마크다운 코드블록 JSON 파싱 폴백 | ✅ 완료 |
 
 ### 향후 계획
 
@@ -289,9 +305,8 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 | Transformer 모델 실제 학습 (BTC 90일) | 🔴 높음 | 미착수 |
 | HEARTBEAT 주간 모델 재학습 크론 | 🔴 높음 | 미착수 |
 | Jupyter 교육 노트북 5종 | 🟡 중간 | 미착수 |
-| llm.py coverage 향상 (39% → 70%+) | 🟡 중간 | 미착수 |
 | ClawHub 스킬 등록 | 🟡 중간 | 미착수 |
-| PyPI v0.2.0 배포 (퀀트 전략 포함) | 🟡 중간 | 미착수 |
+| PyPI v0.2.0 배포 (퀀트 전략 + Ollama 포함) | 🟡 중간 | 미착수 |
 
 ---
 
