@@ -119,7 +119,7 @@ class TestGetPortfolio:
     def test_returns_portfolio_with_api_keys(self, tmp_path: Path) -> None:
         mock_upbit = MagicMock()
         mock_upbit.get_balances.return_value = [
-            {"currency": "KRW", "balance": "500000", "avg_buy_price": "1"},
+            {"currency": "KRW", "balance": "500000", "avg_buy_price": "0"},
         ]
 
         with patch("maiupbit.exchange.upbit.pyupbit.Upbit", return_value=mock_upbit):
@@ -131,10 +131,11 @@ class TestGetPortfolio:
 
         result = ex.get_portfolio()
         assert isinstance(result, dict)
-        assert "KRW" in result
-        assert isinstance(result["KRW"], pd.DataFrame)
-        assert len(result["KRW"]) == 1
-        assert result["KRW"].iloc[0]["currency"] == "KRW"
+        assert "assets" in result
+        assert "total_value" in result
+        assert len(result["assets"]) == 1
+        assert result["assets"][0]["currency"] == "KRW"
+        assert result["total_value"] == 500000.0
 
     def test_portfolio_with_crypto_balance(self, tmp_path: Path) -> None:
         mock_upbit = MagicMock()
@@ -155,8 +156,10 @@ class TestGetPortfolio:
                 result = ex.get_portfolio()
 
         assert isinstance(result, dict)
-        # BTC 는 KRW 마켓에 분류됨
-        assert "KRW" in result
+        assert "assets" in result
+        assert len(result["assets"]) == 1
+        assert result["assets"][0]["symbol"] == "KRW-BTC"
+        assert result["total_value"] == 550000.0
 
 
 # ---------------------------------------------------------------------------

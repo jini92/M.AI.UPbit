@@ -169,7 +169,15 @@ class UPbitExchange(BaseExchange):
                 }
             )
 
-        return {mkt: pd.DataFrame(data) for mkt, data in portfolio_data.items()}
+        # 플랫 리스트 + 총 자산 합산
+        all_assets = []
+        total_value = 0.0
+        for mkt, items in portfolio_data.items():
+            for item in items:
+                all_assets.append(item)
+                total_value += item["value"]
+
+        return {"assets": all_assets, "total_value": total_value}
 
     def buy_market(self, symbol: str, amount: float) -> dict:
         """시장가 매수 주문을 실행합니다.
