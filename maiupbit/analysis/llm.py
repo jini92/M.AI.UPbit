@@ -39,70 +39,32 @@ from openai import OpenAI
 logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------
-# 기본 분석 프롬프트 (instructions.md 내용 내장)
+# 기본 분석 프롬프트 (v2 — Ollama/OpenAI 공통 최적화)
 # ------------------------------------------------------------------
 _DEFAULT_INSTRUCTIONS: str = """\
-# Upbit Digital Assets Investment Automation Instruction
+You are an expert cryptocurrency investment analyst for the UPbit exchange (Korea).
+You analyze market data, technical indicators, ML predictions, and news to produce a single JSON trading recommendation.
 
-## Role
-You serve as the Selected Coin Investment Analysis Engine, tasked with issuing hourly investment recommendations and predicting optimal buy/sell prices for the user-selected trading pair on the Upbit exchange. Your objective is to maximize returns through aggressive yet informed trading strategies while carefully managing risk.
+## Analysis Steps
+1. Read the OHLCV price data and identify the current trend (uptrend/downtrend/sideways).
+2. Evaluate technical indicators:
+   - RSI: <30 oversold (buy signal), >70 overbought (sell signal)
+   - MACD: golden cross = bullish, dead cross = bearish
+   - Bollinger Bands: price near lower band = buy opportunity, near upper band = caution
+   - Stochastic: <20 oversold, >80 overbought
+   - ATR: measures volatility level for position sizing
+   - Momentum Score: weighted multi-period momentum (positive = uptrend)
+3. Check ML model predictions (LSTM/Transformer) for price direction.
+4. Assess news sentiment (positive/negative/neutral).
+5. If signals conflict, prioritize capital preservation and recommend "hold".
 
-The selected trading pair can be any coin traded against KRW (Korean Won) or BTC (Bitcoin) on the Upbit platform, such as KRW-BTC, KRW-ETH, KRW-XRP, BTC-ETH, BTC-XRP, etc. Your analysis and recommendations should be adaptable to the specific characteristics and market conditions of the chosen trading pair.
+## Output Rules
+- Return ONLY a valid JSON object. No markdown, no explanation outside JSON.
+- The "reason" field MUST be written in Korean (한국어).
+- buy_price/sell_price should be realistic numbers based on the data, or null.
 
-## Data Overview
-### JSON Data 1: Market Analysis Data
-- **Purpose**: Provides comprehensive analytics on the selected coin trading pair to facilitate market trend analysis and guide investment decisions.
-- **Contents**:
-- `columns`: Lists essential data points including Market Prices (Open, High, Low, Close), Trading Volume, Value, and Technical Indicators (SMA_10, EMA_10, RSI_14, etc.).
-- `index`: Timestamps for data entries, labeled 'daily' or 'hourly'.
-- `data`: Numeric values for each column at specified timestamps, crucial for trend analysis.
-
-### JSON Data 2: Current Investment State
-- **Purpose**: Offers a real-time overview of your investment status for the selected coin.
-- **Contents**:
-    - `current_time`: Current time in milliseconds since the Unix epoch.
-    - `orderbook`: Current market depth details for the selected coin.
-    - `balance`: The amount of the selected coin currently held.
-    - `krw_balance`: The amount of Korean Won available for trading.
-    - `avg_buy_price`: The average price at which the held coin was purchased.
-
-### JSON Data 3: Technical Indicator Analysis
-- **Purpose**: Provides the results of analyzing technical indicators.
-- **Contents**: sma_10, ema_10, rsi_14, macd, macd_signal, macd_histogram, stoch_k, stoch_d, upper_band, middle_band, lower_band.
-
-## Task Instructions
-1. Analyze the provided historical price data (JSON Data 1) to identify key patterns, trends, and potential opportunities.
-2. Evaluate the current investment state (JSON Data 2) to understand the user's holdings, available funds, and average purchase price.
-3. Review the technical indicator analysis (JSON Data 3) to gauge market momentum, volatility, and potential buy/sell signals.
-4. Assess market sentiment by analyzing relevant news articles.
-5. Based on the comprehensive analysis, provide clear and actionable trading recommendations (buy, sell, or hold).
-6. Predict the optimal buy and sell prices based on historical data, current market conditions, technical indicators, and LSTM predictions.
-7. Offer guidance on position sizing and risk management.
-8. Provide a concise summary of the key reasons supporting your recommendations.
-9. If the analysis reveals conflicting signals, acknowledge limitations and prioritize capital preservation.
-10. Continuously monitor market conditions and adapt recommendations as needed.
-
-## Analysis Result Format
-Your trading recommendations MUST be returned as a JSON object:
-
-```json
-{
-  "decision": "buy/sell/hold",
-  "buy_price": <predicted optimal buy price or null>,
-  "sell_price": <predicted optimal sell price or null>,
-  "reason": "A concise summary of the key reasons and insights supporting your recommendation",
-  "technical_analysis": {
-    "key_indicators": "Most relevant technical indicators and their implications",
-    "chart_patterns": "Notable chart patterns and their potential significance"
-  },
-  "market_sentiment": "An assessment of current market sentiment",
-  "risk_management": {
-    "position_sizing": "Recommended position size",
-    "stop_loss": "Suggested stop-loss level",
-    "take_profit": "Recommended take-profit target"
-  }
-}
-```
+## JSON Schema
+{"decision":"buy|sell|hold","buy_price":number|null,"sell_price":number|null,"reason":"한국어로 핵심 근거 2-3문장","technical_analysis":{"key_indicators":"주요 지표 요약","trend":"uptrend|downtrend|sideways"},"market_sentiment":"positive|negative|neutral|unknown","risk_management":{"position_sizing":"투자 비중 제안 (예: 자본의 5%)","stop_loss":"손절 가격 또는 비율","take_profit":"익절 가격 또는 비율"}}
 """
 
 
@@ -200,26 +162,22 @@ class LLMAnalyzer:
             logger.error("LLM 응답 JSON 파싱 실패: %s\n원본: %s", exc, raw[:500])
             return self._default_result()
 
+        ta = data.get("technical_analysis", {})
+        rm = data.get("risk_management", {})
         result = {
             "recommendation": data.get("decision", "hold"),
             "buy_price": data.get("buy_price"),
             "sell_price": data.get("sell_price"),
             "reason": data.get("reason", ""),
             "technical_analysis": {
-                "key_indicators": data.get("technical_analysis", {}).get(
-                    "key_indicators", ""
-                ),
-                "chart_patterns": data.get("technical_analysis", {}).get(
-                    "chart_patterns", ""
-                ),
+                "key_indicators": ta.get("key_indicators", ""),
+                "trend": ta.get("trend", ta.get("chart_patterns", "")),
             },
             "market_sentiment": data.get("market_sentiment", ""),
             "risk_management": {
-                "position_sizing": data.get("risk_management", {}).get(
-                    "position_sizing", ""
-                ),
-                "stop_loss": data.get("risk_management", {}).get("stop_loss", ""),
-                "take_profit": data.get("risk_management", {}).get("take_profit", ""),
+                "position_sizing": rm.get("position_sizing", ""),
+                "stop_loss": rm.get("stop_loss", ""),
+                "take_profit": rm.get("take_profit", ""),
             },
         }
         return result
@@ -235,7 +193,7 @@ class LLMAnalyzer:
             "buy_price": None,
             "sell_price": None,
             "reason": "분석 결과를 가져오는 데 실패했습니다. 잠시 후 재시도하세요.",
-            "technical_analysis": {"key_indicators": "", "chart_patterns": ""},
+            "technical_analysis": {"key_indicators": "", "trend": ""},
             "market_sentiment": "",
             "risk_management": {
                 "position_sizing": "",
@@ -281,10 +239,10 @@ class LLMAnalyzer:
                     'recommendation': str,           # 'buy' | 'sell' | 'hold'
                     'buy_price': float | None,        # 권장 매수 가격
                     'sell_price': float | None,       # 권장 매도 가격
-                    'reason': str,                    # 결정 근거
+                    'reason': str,                    # 결정 근거 (한국어)
                     'technical_analysis': {
                         'key_indicators': str,
-                        'chart_patterns': str,
+                        'trend': str,                # 'uptrend' | 'downtrend' | 'sideways'
                     },
                     'market_sentiment': str,
                     'risk_management': {
@@ -301,21 +259,35 @@ class LLMAnalyzer:
         """
         system_prompt = instructions if instructions else self._get_default_instructions()
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": data_json},
-            {"role": "user", "content": current_status},
-            {"role": "user", "content": f"MACD Signals: {macd_signals}"},
-            {"role": "user", "content": f"Technical Indicators: {technical_indicators}"},
-            {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"},
-            {"role": "user", "content": f"News Articles:\n{news_text}"},
+        # 단일 구조화 메시지로 통합 (Ollama 14B 최적화: 분산 메시지 대비 정확도 향상)
+        parts = [
+            "## 시장 데이터 (OHLCV + 지표)",
+            data_json,
+            "",
+            "## 현재 투자 상태",
+            current_status,
+            "",
+            f"## 기술 지표 최신값\n{json.dumps(technical_indicators, ensure_ascii=False)}",
+            "",
+            f"## MACD 시그널\n{macd_signals}",
+            "",
+            f"## ML 예측 (LSTM/Transformer)\n{lstm_predictions}",
         ]
 
-        # Mnemo 지식 컨텍스트 주입 (비어있지 않을 때만)
+        if news_text:
+            parts.append(f"\n## 뉴스\n{news_text}")
+
         if knowledge_context:
-            messages.append(
-                {"role": "user", "content": f"Knowledge Context:\n{knowledge_context}"}
-            )
+            parts.append(f"\n## 참고 지식\n{knowledge_context}")
+
+        parts.append("\n위 데이터를 종합 분석하여 JSON으로 응답하세요.")
+
+        user_content = "\n".join(parts)
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content},
+        ]
 
         try:
             kwargs: dict = {

@@ -359,14 +359,14 @@ _SAMPLE_LLM_JSON = json.dumps({
     "decision": "buy",
     "buy_price": 50000,
     "sell_price": 55000,
-    "reason": "Strong bullish signals",
+    "reason": "RSI 과매도 구간 진입 + MACD 골든크로스 확인으로 매수 적기",
     "technical_analysis": {
         "key_indicators": "RSI oversold",
-        "chart_patterns": "Double bottom",
+        "trend": "uptrend",
     },
-    "market_sentiment": "Positive",
+    "market_sentiment": "positive",
     "risk_management": {
-        "position_sizing": "10%",
+        "position_sizing": "자본의 5%",
         "stop_loss": "48000",
         "take_profit": "56000",
     },
@@ -423,7 +423,8 @@ class TestLLMAnalyzer:
         assert result["recommendation"] == "buy"
         assert result["buy_price"] == 50000
         assert result["sell_price"] == 55000
-        assert result["reason"] == "Strong bullish signals"
+        assert "RSI" in result["reason"]
+        assert result["technical_analysis"]["trend"] == "uptrend"
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_parse_response_markdown_codeblock(self, mock_openai_cls: MagicMock) -> None:
@@ -441,6 +442,18 @@ class TestLLMAnalyzer:
         result = analyzer._parse_response("not valid json at all")
         assert result["recommendation"] == "hold"
         assert result["buy_price"] is None
+
+    @patch("maiupbit.analysis.llm.OpenAI")
+    def test_parse_response_legacy_chart_patterns(self, mock_openai_cls: MagicMock) -> None:
+        """기존 chart_patterns 필드를 trend로 매핑 (하위 호환)."""
+        legacy_json = json.dumps({
+            "decision": "hold",
+            "reason": "횡보 중",
+            "technical_analysis": {"key_indicators": "RSI 50", "chart_patterns": "sideways"},
+        })
+        analyzer = LLMAnalyzer(api_key="sk-test")
+        result = analyzer._parse_response(legacy_json)
+        assert result["technical_analysis"]["trend"] == "sideways"
 
     # -- analyze --------------------------------------------------------
 
@@ -462,7 +475,7 @@ class TestLLMAnalyzer:
             lstm_predictions=[],
         )
         assert result["recommendation"] == "buy"
-        assert result["reason"] == "Strong bullish signals"
+        assert "RSI" in result["reason"]
         mock_client.chat.completions.create.assert_called_once()
 
     @patch("maiupbit.analysis.llm.OpenAI")
