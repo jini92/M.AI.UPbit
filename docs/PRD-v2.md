@@ -156,77 +156,75 @@ OpenClaw:
 M.AI.UPbit/
 │
 ├── 📦 maiupbit/                     # OSS Core (pip install maiupbit)
-│   ├── __init__.py                  #   버전, 퍼블릭 API
-│   ├── indicators/                  #   기술 지표
-│   │   ├── __init__.py
+│   ├── __init__.py                  #   v0.1.0, public API exports
+│   ├── __main__.py                  #   python -m maiupbit 진입점
+│   ├── cli.py                       #   CLI (analyze, portfolio, trade, recommend, train, quant)
+│   ├── indicators/                  #   기술 지표 (100% coverage)
 │   │   ├── trend.py                 #   SMA, EMA, MACD
-│   │   ├── momentum.py              #   RSI, Stochastic
-│   │   ├── volatility.py            #   Bollinger Bands, ATR
-│   │   └── signals.py               #   시그널 생성 (buy/sell)
+│   │   ├── momentum.py              #   RSI, Stochastic, momentum_score, average_momentum_signal
+│   │   ├── volatility.py            #   Bollinger Bands, ATR, noise_ratio
+│   │   └── signals.py               #   매매 시그널 종합 (+ATR_14, Noise_20, Momentum_Score)
+│   ├── strategies/                  #   퀀트 전략 (강환국 프레임워크)
+│   │   ├── base.py                  #   QuantStrategy, PortfolioStrategy Protocol
+│   │   ├── volatility_breakout.py   #   변동성 돌파 (래리 윌리엄스)
+│   │   ├── momentum.py              #   듀얼 모멘텀 (절대+상대+평균)
+│   │   ├── multi_factor.py          #   다중팩터 랭킹
+│   │   ├── allocation.py            #   GTAA 동적 자산배분
+│   │   ├── seasonal.py              #   시즌/반감기 타이밍
+│   │   └── risk.py                  #   리스크 관리 (ATR, 켈리, MDD)
 │   ├── models/                      #   ML 모델
-│   │   ├── __init__.py
-│   │   ├── lstm.py                  #   LSTM 가격 예측
-│   │   ├── transformer.py           #   Transformer (Phase 2)
-│   │   └── ensemble.py              #   앙상블 결합
+│   │   ├── lstm.py                  #   TensorFlow LSTM 가격 예측
+│   │   ├── transformer.py           #   PyTorch Transformer (Multi-Head Attention)
+│   │   └── ensemble.py              #   앙상블 결합 (Voting)
 │   ├── analysis/                    #   분석 엔진
-│   │   ├── __init__.py
-│   │   ├── technical.py             #   기술적 분석 종합
-│   │   ├── sentiment.py             #   뉴스/소셜 감성
-│   │   └── llm.py                   #   LLM 종합 판단
+│   │   ├── technical.py             #   기술적 분석 종합 + 종목 추천
+│   │   ├── sentiment.py             #   뉴스/소셜 감성 분석
+│   │   └── llm.py                   #   LLM 종합 판단 (OpenAI/Ollama 듀얼)
 │   ├── exchange/                    #   거래소 추상화
-│   │   ├── __init__.py
-│   │   ├── base.py                  #   거래소 인터페이스
-│   │   └── upbit.py                 #   UPbit (시세 + 매매)
+│   │   ├── base.py                  #   BaseExchange Protocol
+│   │   └── upbit.py                 #   UPbit API (시세 + 매매)
 │   ├── backtest/                    #   백테스팅
-│   │   ├── __init__.py
-│   │   ├── engine.py
-│   │   ├── strategy.py
-│   │   └── metrics.py               #   Sharpe, MDD, Win Rate
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── data.py                  #   데이터 처리
-│   │   └── report.py                #   리포트 생성
-│   └── cli.py                       #   CLI 진입점
+│   │   ├── engine.py                #   Strategy Protocol + BacktestEngine
+│   │   └── portfolio_engine.py      #   PortfolioBacktestEngine (다중 자산)
+│   └── utils/                       #   유틸리티
+│       ├── data.py                  #   데이터 처리 파이프라인
+│       └── report.py                #   PDF 리포트 생성
 │
 ├── 🤖 scripts/                      # OpenClaw 실행 스크립트
 │   ├── analyze.py                   #   분석 실행 → JSON 출력
-│   ├── trade.py                     #   매매 실행 (확인 필수)
+│   ├── trade.py                     #   매매 실행 (--confirm 필수)
 │   ├── portfolio.py                 #   포트폴리오 조회
 │   ├── monitor.py                   #   시장 모니터링 (HEARTBEAT용)
 │   ├── train_model.py               #   모델 재학습
-│   └── daily_report.py              #   일일 분석 리포트 생성
+│   ├── daily_report.py              #   일일 분석 리포트 생성
+│   └── quant.py                     #   퀀트 전략 실행 (MAIBOT 연동)
 │
-├── 📓 notebooks/                    # 교육용 Jupyter (OSS)
-│   ├── 01_getting_started.ipynb
-│   ├── 02_technical_analysis.ipynb
-│   ├── 03_ml_prediction.ipynb
-│   ├── 04_backtesting.ipynb
-│   └── 05_building_strategy.ipynb
-│
-├── 🧪 tests/                        # pytest (70%+ coverage)
-│   ├── unit/
-│   │   ├── test_indicators.py
-│   │   ├── test_models.py
-│   │   ├── test_analysis.py
-│   │   └── test_exchange.py
-│   ├── integration/
-│   │   └── test_cli.py
-│   └── conftest.py
-│
-├── 📁 models/                       # 학습된 모델 아티팩트
-│   └── .gitkeep                     #   (git-lfs 또는 .gitignore)
+├── 🧪 tests/                        # pytest (200 collected, 82% coverage)
+│   ├── conftest.py                  #   공통 픽스처
+│   └── unit/
+│       ├── test_indicators.py       #   7 tests
+│       ├── test_quant_indicators.py #   9 tests (ATR, noise, momentum)
+│       ├── test_strategies.py       #   32 tests (6대 전략 + 포트폴리오)
+│       ├── test_exchange.py         #   22 tests
+│       ├── test_backtest.py         #   18 tests
+│       ├── test_analysis.py         #   37 tests (technical + LLM)
+│       ├── test_cli.py              #   14 tests
+│       ├── test_sentiment.py        #   17 tests
+│       ├── test_utils.py            #   15 tests
+│       └── test_models.py           #   12 tests (3 LSTM skipped)
 │
 ├── 📄 docs/
-│   ├── PRD-v2.md                    #   이 문서
-│   └── API.md                       #   CLI + Python API 문서
+│   ├── README.md                    #   문서 인덱스
+│   ├── PRD-v2.md                    #   D-001: 이 문서
+│   ├── A-001-POC-Analysis.md        #   A-001: POC 분석
+│   ├── I-001-Implementation-Status.md #  I-001: 구현 현황
+│   └── T-001-Test-Report.md         #   T-001: 테스트 리포트
 │
 ├── app.py                           #   ⬅️ POC 보존 (레거시, 참조용)
-├── instructions.md                  #   ⬅️ → maiupbit/analysis/llm.py로 이동
 ├── pyproject.toml                   #   Poetry (PyPI 배포)
 ├── Makefile                         #   개발 명령어
-├── .env.example                     #   환경변수 템플릿
-├── CLAUDE.md
-├── README.md
+├── CLAUDE.md                        #   에이전트 가이드
+├── README.md                        #   PyPI README
 └── LICENSE                          #   Apache 2.0
 ```
 
@@ -249,7 +247,7 @@ M.AI.UPbit/
 | **분석 엔진** | Python 3.12+ | ML/데이터 분석 최적 |
 | **기술 지표** | pandas + pandas_ta + 자체 구현 | 한국 거래소 특화 |
 | **ML** | PyTorch (LSTM + Transformer) | 사전 학습 + 추론 분리 |
-| **LLM** | Claude + GPT-4o + 로컬 Qwen | 멀티 LLM, 비용 최적화 |
+| **LLM** | OpenAI GPT-4o + Ollama (qwen2.5:14b 기본) | 듀얼 백엔드, 무료 로컬 분석 |
 | **거래소** | pyupbit + ccxt | UPbit 메인 + 확장 가능 |
 | **데이터** | SQLite + JSON | 단일 사용자, 심플 |
 | **알림** | OpenClaw 채널 (Discord/Telegram) | 기존 인프라 활용 |
@@ -436,7 +434,7 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 | `prepare_data()` | `maiupbit/utils/data.py` |
 | `train_lstm()` | `maiupbit/models/lstm.py` → `LSTMPredictor.train()` |
 | `predict_prices()` | `maiupbit/models/lstm.py` → `LSTMPredictor.predict()` |
-| `analyze_data_with_gpt4()` | `maiupbit/analysis/llm.py` → `LLMAnalyzer.analyze()` |
+| `analyze_data_with_gpt4()` | `maiupbit/analysis/llm.py` → `LLMAnalyzer.analyze()` (OpenAI/Ollama 듀얼) |
 | `get_coin_news()` | `maiupbit/analysis/sentiment.py` → `SentimentAnalyzer.get_news()` |
 | `fetch_portfolio_data()` | `maiupbit/exchange/upbit.py` → `UPbitExchange.get_portfolio()` |
 | `execute_buy/sell()` | `maiupbit/exchange/upbit.py` → `UPbitExchange.buy/sell()` |

@@ -38,12 +38,27 @@ def cmd_analyze(args):
         df['STOCHk'] = stoch_k
         df['STOCHd'] = stoch_d
 
+    # Mnemo 지식 컨텍스트 (graceful degradation)
+    knowledge_context = ""
+    try:
+        from maiupbit.analysis.knowledge import KnowledgeProvider
+        kp = KnowledgeProvider()
+        if kp.is_available():
+            knowledge_context = kp.enrich_llm_context(args.symbol, top_k=3, timeout=20)
+    except Exception:  # noqa: BLE001
+        pass  # Mnemo 없어도 기존 분석 진행
+
     # 기술 분석
     analyzer = TechnicalAnalyzer(exchange)
     result = analyzer.analyze(args.symbol, daily)
 
     # 현재가 추가
     result['current_price'] = exchange.get_current_price(args.symbol)
+
+    # Mnemo 지식 컨텍스트 포함 여부
+    if knowledge_context:
+        result['knowledge_enriched'] = True
+        result['knowledge_source'] = "Mnemo (MAISECONDBRAIN)"
 
     if args.format == 'json':
         print(json.dumps(result, ensure_ascii=False, indent=2, default=str))

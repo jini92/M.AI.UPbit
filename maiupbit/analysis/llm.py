@@ -257,6 +257,7 @@ class LLMAnalyzer:
         lstm_predictions: list,
         news_text: str = "",
         instructions: Optional[str] = None,
+        knowledge_context: str = "",
     ) -> dict:
         """LLM 으로 종합 투자 분석 수행 (OpenAI 또는 Ollama).
 
@@ -270,6 +271,8 @@ class LLMAnalyzer:
             lstm_predictions: LSTM 예측 가격 리스트.
             news_text: 관련 뉴스 텍스트. 기본값 빈 문자열.
             instructions: 시스템 프롬프트. None 이면 기본 프롬프트 사용.
+            knowledge_context: Mnemo 지식그래프 컨텍스트. 기본값 빈 문자열.
+                KnowledgeProvider.enrich_llm_context()로 생성.
 
         Returns:
             분석 결과 딕셔너리::
@@ -307,6 +310,12 @@ class LLMAnalyzer:
             {"role": "user", "content": f"LSTM Predictions: {lstm_predictions}"},
             {"role": "user", "content": f"News Articles:\n{news_text}"},
         ]
+
+        # Mnemo 지식 컨텍스트 주입 (비어있지 않을 때만)
+        if knowledge_context:
+            messages.append(
+                {"role": "user", "content": f"Knowledge Context:\n{knowledge_context}"}
+            )
 
         try:
             kwargs: dict = {

@@ -11,6 +11,19 @@ from maiupbit.exchange.upbit import UPbitExchange
 from maiupbit.analysis.technical import TechnicalAnalyzer
 
 
+def _get_knowledge_context(symbols: list[str]) -> str:
+    """Mnemo 지식 컨텍스트 조회 (graceful degradation)."""
+    try:
+        from maiupbit.analysis.knowledge import KnowledgeProvider
+        kp = KnowledgeProvider()
+        if not kp.is_available():
+            return ""
+        # 첫 번째 심볼 기준으로 검색
+        return kp.enrich_llm_context(symbols[0], top_k=3, timeout=20)
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def daily_report(symbols: list[str] = None) -> dict:
     """일일 분석 리포트 생성"""
     exchange = UPbitExchange(
@@ -48,11 +61,12 @@ def daily_report(symbols: list[str] = None) -> dict:
         except Exception:
             continue
 
-    # 추천 (전체 종목 스캔은 느리므로 비활성화 — Phase 2에서 최적화)
-    # try:
-    #     report['recommendations'] = analyzer.recommend_by_performance(top_n=3, days=7)
-    # except Exception:
-    #     pass
+    # Mnemo 지식 컨텍스트
+    knowledge = _get_knowledge_context(symbols or ['KRW-BTC'])
+    if knowledge:
+        report['knowledge_enriched'] = True
+        report['knowledge_source'] = "Mnemo (MAISECONDBRAIN)"
+        report['knowledge_context'] = knowledge[:500]  # 리포트용 요약
 
     return report
 

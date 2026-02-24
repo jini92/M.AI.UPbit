@@ -16,7 +16,7 @@
 | 3 | MAIBOT 통합 | ✅ 완료 | 02-25 | HEARTBEAT, TOOLS, scripts/ |
 | 4 | 테스트+문서+크론 | ✅ 완료 | 02-25 | 136 tests, 79.5% cov, README |
 | 5 | ML 고도화+PyPI | ✅ 완료 | 02-25 | Transformer, 148 tests, 83.78% cov, PyPI 배포 |
-| 6 | 실전 운영 | 🟡 대기 | 02-25~ | 모델 학습, 노트북, 운영 안정화 |
+| 6 | 실전 운영 | ⏩ Phase 9로 통합 | — | 모델 학습, 노트북 → Phase 9 로드맵으로 이관 |
 | 7 | 퀀트 전략 | ✅ 완료 | 02-25 | 강환국 6대 전략, PortfolioBacktestEngine, 189 tests, 81% cov |
 | 8 | Ollama 통합 | ✅ 완료 | 02-25 | LLM 듀얼 백엔드 (OpenAI/Ollama), 197 tests, 82% cov |
 
@@ -249,6 +249,9 @@ M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 | `fd54cec9` | test+docs: 136 tests (79.5% coverage) + PyPI README | Phase 4 |
 | `d2b59d1f` | fix: portfolio returns flat JSON instead of DataFrames | Phase 5 |
 | `e6e191bd` | feat: PyTorch Transformer price predictor + model tests | Phase 5 |
+| `e13e4a90` | feat: 강환국 퀀트 전략 6종 + PortfolioBacktestEngine | Phase 7 |
+| `5fde156d` | feat: LLMAnalyzer OpenAI/Ollama 듀얼 백엔드 | Phase 8 |
+| `dd5f104e` | docs: A-001/I-001/T-001 status documents + PRD milestones | Phase 8 |
 
 ---
 

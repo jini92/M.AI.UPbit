@@ -14,5 +14,6 @@ Modules:
 from .technical import TechnicalAnalyzer
 from .sentiment import SentimentAnalyzer
 from .llm import LLMAnalyzer
+from .knowledge import KnowledgeProvider
 
-__all__ = ["TechnicalAnalyzer", "SentimentAnalyzer", "LLMAnalyzer"]
+__all__ = ["TechnicalAnalyzer", "SentimentAnalyzer", "LLMAnalyzer", "KnowledgeProvider"]
