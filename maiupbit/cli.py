@@ -164,6 +164,44 @@ def main():
     p_recommend.add_argument('--format', choices=['json', 'text'], default='text')
     p_recommend.set_defaults(func=cmd_recommend)
 
+    # quant
+    p_quant = subparsers.add_parser('quant', help='퀀트 전략')
+    quant_sub = p_quant.add_subparsers(dest='quant_command', help='퀀트 전략 명령어')
+
+    p_q_mom = quant_sub.add_parser('momentum', help='듀얼 모멘텀 랭킹')
+    p_q_mom.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_mom.add_argument('--top', type=int, default=5)
+    p_q_mom.add_argument('--days', type=int, default=400)
+    p_q_mom.add_argument('--format', choices=['json', 'text'], default='text')
+
+    p_q_brk = quant_sub.add_parser('breakout', help='변동성 돌파')
+    p_q_brk.add_argument('symbol', help='종목 코드')
+    p_q_brk.add_argument('--k', type=float, default=0.5)
+    p_q_brk.add_argument('--days', type=int, default=60)
+    p_q_brk.add_argument('--format', choices=['json', 'text'], default='text')
+
+    p_q_fac = quant_sub.add_parser('factor', help='다중팩터 랭킹')
+    p_q_fac.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_fac.add_argument('--top', type=int, default=5)
+    p_q_fac.add_argument('--days', type=int, default=200)
+    p_q_fac.add_argument('--format', choices=['json', 'text'], default='text')
+
+    p_q_alloc = quant_sub.add_parser('allocate', help='GTAA 자산배분')
+    p_q_alloc.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_alloc.add_argument('--days', type=int, default=400)
+    p_q_alloc.add_argument('--format', choices=['json', 'text'], default='text')
+
+    p_q_season = quant_sub.add_parser('season', help='시즌 정보')
+    p_q_season.add_argument('--format', choices=['json', 'text'], default='text')
+
+    p_q_bt = quant_sub.add_parser('backtest', help='전략 백테스트')
+    p_q_bt.add_argument('strategy', choices=['momentum', 'breakout', 'factor', 'allocate'])
+    p_q_bt.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_bt.add_argument('--days', type=int, default=365)
+    p_q_bt.add_argument('--format', choices=['json', 'text'], default='text')
+
+    p_quant.set_defaults(func=cmd_quant)
+
     # train
     p_train = subparsers.add_parser('train', help='모델 학습')
     p_train.add_argument('symbol', nargs='?', default='KRW-BTC', help='종목 코드')
@@ -178,6 +216,157 @@ def main():
         sys.exit(0)
 
     args.func(args)
+
+
+def cmd_quant(args):
+    """퀀트 전략 실행"""
+    import time
+    from datetime import datetime
+
+    if not hasattr(args, 'quant_command') or not args.quant_command:
+        print("Usage: maiupbit quant {momentum|breakout|factor|allocate|season|backtest}")
+        sys.exit(0)
+
+    DEFAULT_SYMBOLS = [
+        "KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-ADA",
+        "KRW-DOGE", "KRW-AVAX", "KRW-DOT", "KRW-MATIC", "KRW-LINK",
+    ]
+
+    def fetch_multi(exchange, symbols, days):
+        data = {}
+        for s in symbols:
+            df = exchange.get_ohlcv(s, "day", count=days)
+            if df is not None and len(df) > 0:
+                data[s] = df
+            time.sleep(0.1)
+        return data
+
+    if args.quant_command == 'season':
+        from maiupbit.strategies.seasonal import SeasonalFilter
+        info = SeasonalFilter().get_season_info()
+        if args.format == 'json':
+            print(json.dumps(info, ensure_ascii=False, indent=2, default=str))
+        else:
+            print(f"=== 시즌 정보 ===")
+            print(f"  월: {info['month']}월 ({info['season']})")
+            print(f"  비중 배수: {info['multiplier']}")
+            print(f"  반감기 단계: {info['halving_phase']}")
+            if info['next_halving']:
+                print(f"  다음 반감기: {info['next_halving']} (D-{info['days_to_next_halving']})")
+        return
+
+    from maiupbit.exchange.upbit import UPbitExchange
+    exchange = UPbitExchange()
+
+    if args.quant_command == 'momentum':
+        from maiupbit.strategies.momentum import DualMomentumStrategy, DualMomentumConfig
+        symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
+        data = fetch_multi(exchange, symbols, args.days)
+        if not data:
+            print(json.dumps({"error": "데이터 조회 실패"}))
+            sys.exit(1)
+        strategy = DualMomentumStrategy(DualMomentumConfig(top_n=args.top))
+        rankings = strategy.rank_coins(data)
+        allocations = strategy.allocate(data)
+        if args.format == 'json':
+            print(json.dumps({"rankings": rankings, "allocations": allocations}, ensure_ascii=False, indent=2))
+        else:
+            print(f"=== 듀얼 모멘텀 랭킹 (Top {args.top}) ===")
+            for r in rankings[:args.top]:
+                print(f"  {r['rank']}. {r['symbol']}: score={r['score']:.6f}, signal={r['avg_signal']:.2f}")
+
+    elif args.quant_command == 'breakout':
+        from maiupbit.strategies.volatility_breakout import VolatilityBreakoutStrategy, VolatilityBreakoutConfig
+        data = exchange.get_ohlcv(args.symbol, "day", count=args.days)
+        if data is None:
+            print(json.dumps({"error": f"{args.symbol} 데이터 조회 실패"}))
+            sys.exit(1)
+        config = VolatilityBreakoutConfig(k=args.k)
+        strategy = VolatilityBreakoutStrategy(config)
+        sig = strategy.signal(data)
+        sig_text = {1: "매수", -1: "매도", 0: "관망"}.get(sig, "관망")
+        optimal = VolatilityBreakoutStrategy.find_optimal_k(data)
+        if args.format == 'json':
+            print(json.dumps({"symbol": args.symbol, "signal": sig, "signal_text": sig_text, "optimal_k": optimal}, ensure_ascii=False, indent=2, default=str))
+        else:
+            print(f"=== {args.symbol} 변동성 돌파 ===")
+            print(f"  시그널: {sig_text} (k={args.k})")
+            best_k = max(optimal, key=optimal.get) if optimal else args.k
+            print(f"  최적 k: {best_k}")
+
+    elif args.quant_command == 'factor':
+        from maiupbit.strategies.multi_factor import MultiFactorStrategy, MultiFactorConfig
+        symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
+        data = fetch_multi(exchange, symbols, args.days)
+        if not data:
+            print(json.dumps({"error": "데이터 조회 실패"}))
+            sys.exit(1)
+        strategy = MultiFactorStrategy(MultiFactorConfig(top_n=args.top))
+        rankings = strategy.rank_coins(data)
+        if args.format == 'json':
+            print(json.dumps({"rankings": rankings}, ensure_ascii=False, indent=2))
+        else:
+            print(f"=== 다중팩터 랭킹 (Top {args.top}) ===")
+            for r in rankings[:args.top]:
+                print(f"  {r['rank']}. {r['symbol']}: score={r['composite_score']:.4f}")
+
+    elif args.quant_command == 'allocate':
+        from maiupbit.strategies.allocation import GTAAStrategy
+        from maiupbit.strategies.seasonal import SeasonalFilter
+        from maiupbit.strategies.risk import RiskManager
+        symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
+        data = fetch_multi(exchange, symbols, args.days)
+        if not data:
+            print(json.dumps({"error": "데이터 조회 실패"}))
+            sys.exit(1)
+        alloc = GTAAStrategy().allocate(data)
+        alloc = SeasonalFilter().adjust_allocations(alloc, datetime.now())
+        alloc = RiskManager().apply_equal_weight_constraint(alloc)
+        cash = round(1.0 - sum(alloc.values()), 4)
+        if args.format == 'json':
+            print(json.dumps({"allocations": alloc, "cash_ratio": cash}, ensure_ascii=False, indent=2))
+        else:
+            print("=== GTAA 자산배분 ===")
+            for s, w in sorted(alloc.items(), key=lambda x: -x[1]):
+                print(f"  {s}: {w*100:.1f}%")
+            print(f"  현금: {cash*100:.1f}%")
+
+    elif args.quant_command == 'backtest':
+        from maiupbit.backtest.engine import BacktestEngine
+        from maiupbit.backtest.portfolio_engine import PortfolioBacktestEngine
+        symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS[:5]
+        data = fetch_multi(exchange, symbols, args.days)
+        if not data:
+            print(json.dumps({"error": "데이터 조회 실패"}))
+            sys.exit(1)
+
+        if args.strategy == 'breakout':
+            from maiupbit.strategies.volatility_breakout import VolatilityBreakoutStrategy
+            symbol = symbols[0]
+            engine = BacktestEngine(initial_capital=10_000_000)
+            result = engine.run(data[symbol], VolatilityBreakoutStrategy())
+        else:
+            if args.strategy == 'momentum':
+                from maiupbit.strategies.momentum import DualMomentumStrategy
+                strat = DualMomentumStrategy()
+            elif args.strategy == 'factor':
+                from maiupbit.strategies.multi_factor import MultiFactorStrategy
+                strat = MultiFactorStrategy()
+            else:
+                from maiupbit.strategies.allocation import GTAAStrategy
+                strat = GTAAStrategy()
+            engine = PortfolioBacktestEngine(initial_capital=10_000_000)
+            result = engine.run(data, strat, rebalance_days=7)
+
+        out = {k: v for k, v in result.items() if k not in ('equity_curve', 'allocation_history', 'trades')}
+        if args.format == 'json':
+            print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
+        else:
+            print(f"=== {args.strategy} 백테스트 결과 ===")
+            print(f"  수익률: {result['total_return']:.2f}%")
+            print(f"  샤프비율: {result['sharpe_ratio']:.2f}")
+            print(f"  MDD: {result['max_drawdown']:.2f}%")
+            print(f"  최종자산: {result['final_equity']:,.0f}")
 
 
 def cmd_train(args):

@@ -31,9 +31,9 @@ M.AI.UPbit/
 │   ├── cli.py                  # CLI (analyze, portfolio, trade, recommend)
 │   ├── indicators/             # 기술 지표
 │   │   ├── trend.py            # SMA, EMA, MACD
-│   │   ├── momentum.py         # RSI, Stochastic
-│   │   ├── volatility.py       # Bollinger Bands
-│   │   └── signals.py          # 시그널 생성 (bullish/bearish)
+│   │   ├── momentum.py         # RSI, Stochastic, momentum_score, average_momentum_signal
+│   │   ├── volatility.py       # Bollinger Bands, ATR, noise_ratio
+│   │   └── signals.py          # 시그널 종합 (+ATR_14, Noise_20, Momentum_Score)
 │   ├── models/                 # ML 모델
 │   │   ├── lstm.py             # LSTM 가격 예측
 │   │   └── ensemble.py         # 앙상블 (Voting)
@@ -44,8 +44,17 @@ M.AI.UPbit/
 │   ├── exchange/               # 거래소 연동
 │   │   ├── base.py             # BaseExchange Protocol
 │   │   └── upbit.py            # UPbit API (pyupbit 래핑)
+│   ├── strategies/             # 퀀트 전략 (강환국 프레임워크)
+│   │   ├── base.py             # QuantStrategy, PortfolioStrategy Protocol
+│   │   ├── volatility_breakout.py # 변동성 돌파
+│   │   ├── momentum.py         # 듀얼 모멘텀
+│   │   ├── multi_factor.py     # 다중팩터 랭킹
+│   │   ├── allocation.py       # GTAA 자산배분
+│   │   ├── seasonal.py         # 시즌/반감기 타이밍
+│   │   └── risk.py             # 리스크 관리
 │   ├── backtest/               # 백테스팅
-│   │   └── engine.py           # Strategy Protocol + BacktestEngine
+│   │   ├── engine.py           # Strategy Protocol + BacktestEngine
+│   │   └── portfolio_engine.py # PortfolioBacktestEngine
 │   └── utils/                  # 유틸리티
 │       ├── data.py             # 데이터 파이프라인
 │       └── report.py           # PDF 리포트 생성
@@ -55,11 +64,14 @@ M.AI.UPbit/
 │   ├── daily_report.py         # 일일 리포트
 │   ├── portfolio.py            # 포트폴리오 조회 (API 키 필요)
 │   ├── trade.py                # 매매 실행 (--confirm 필수)
-│   └── train_model.py          # LSTM 모델 학습
+│   ├── train_model.py          # LSTM 모델 학습
+│   └── quant.py                # 퀀트 전략 실행 (MAIBOT 연동)
 ├── tests/                      # 테스트
 │   ├── conftest.py
 │   └── unit/
-│       └── test_indicators.py  # 지표 단위 테스트 (7 tests)
+│       ├── test_indicators.py  # 지표 단위 테스트 (7 tests)
+│       ├── test_quant_indicators.py # 퀀트 지표 테스트 (9 tests)
+│       └── test_strategies.py  # 전략 + 포트폴리오 테스트 (32 tests)
 ├── app.py                      # ⚠️ 레거시 POC (참조용, 수정 금지)
 ├── pyproject.toml              # 패키지 설정
 ├── Makefile                    # 개발 명령어
@@ -87,6 +99,12 @@ ruff check maiupbit/ scripts/ tests/
 # CLI
 python -m maiupbit analyze KRW-BTC --format json
 python -m maiupbit recommend --method performance --top 5
+python -m maiupbit quant momentum --top 5 --format json
+python -m maiupbit quant breakout KRW-BTC --k 0.5
+python -m maiupbit quant factor --top 5
+python -m maiupbit quant allocate
+python -m maiupbit quant season
+python -m maiupbit quant backtest momentum --days 365
 ```
 
 ### Makefile 단축
@@ -149,6 +167,12 @@ OPENAI_API_KEY=your_openai_key
 | "포트폴리오 보여줘" | `python scripts/portfolio.py` |
 | "비트코인 5만원 사줘" | `python scripts/trade.py buy KRW-BTC 50000` (미리보기) |
 | "리포트 만들어줘" | `python scripts/daily_report.py` |
+| "모멘텀 좋은 코인 알려줘" | `python scripts/quant.py momentum` |
+| "비트코인 변동성 돌파 시그널" | `python scripts/quant.py breakout KRW-BTC` |
+| "퀀트 랭킹 보여줘" | `python scripts/quant.py factor` |
+| "자산배분 추천해줘" | `python scripts/quant.py allocate` |
+| "지금 시즌 어때?" | `python scripts/quant.py season` |
+| "모멘텀 전략 백테스트 해봐" | `python scripts/quant.py backtest momentum` |
 
 ---
 
@@ -157,8 +181,10 @@ OPENAI_API_KEY=your_openai_key
 - [x] Phase 1: POC 분석 + PRD v2.1
 - [x] Phase 2: maiupbit v0.1.0 모듈화 (41파일, 3,854 LOC)
 - [x] Phase 3: MAIBOT 연동 (HEARTBEAT + TOOLS + 크론)
-- [ ] Phase 4: 테스트 보강 (70%+ coverage) + README + PyPI
-- [ ] Phase 5: Transformer 모델, 앙상블 실전, Jupyter 교육
+- [x] Phase 4: 테스트 보강 (79.5% coverage) + README + PyPI
+- [x] Phase 5: Transformer 모델 + PyPI 배포
+- [x] Phase 7: 강환국 퀀트 전략 6종 + PortfolioBacktestEngine (189 tests, 81% cov)
+- [ ] Phase 8: 실전 백테스트 검증 + PyPI v0.2.0 + Jupyter 교육
 
 ---
 

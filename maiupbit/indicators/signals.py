@@ -9,7 +9,8 @@ import pandas as pd
 
 from maiupbit.indicators.trend import macd as calc_macd
 from maiupbit.indicators.momentum import rsi as calc_rsi, stochastic as calc_stochastic
-from maiupbit.indicators.volatility import bollinger_bands as calc_bollinger_bands
+from maiupbit.indicators.volatility import bollinger_bands as calc_bollinger_bands, atr as calc_atr, noise_ratio as calc_noise_ratio
+from maiupbit.indicators.momentum import momentum_score as calc_momentum_score
 
 
 def macd_signal(macd_series: pd.Series, signal_series: pd.Series) -> pd.Series:
@@ -80,6 +81,11 @@ def add_all_signals(df: pd.DataFrame) -> pd.DataFrame:
     df["Upper_Band"] = upper
     df["Middle_Band"] = middle
     df["Lower_Band"] = lower
+
+    # 퀀트 지표
+    df["ATR_14"] = calc_atr(high, low, close, length=14)
+    df["Noise_20"] = calc_noise_ratio(df["open"], high, low, close, length=20)
+    df["Momentum_Score"] = calc_momentum_score(close)
 
     # 시그널
     df["MACD_Signal"] = macd_signal(df["MACD"], df["Signal_Line"])

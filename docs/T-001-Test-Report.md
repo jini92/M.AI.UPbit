@@ -2,10 +2,10 @@
 
 > **문서 번호**: T-001
 > **작성일**: 2026-02-25
-> **최종 업데이트**: 2026-02-25
+> **최종 업데이트**: 2026-02-25 (Phase 7 퀀트 전략 추가)
 > **프레임워크**: pytest + coverage
 > **목표 커버리지**: 70%
-> **달성 커버리지**: 83.78%
+> **달성 커버리지**: 81.02%
 
 ---
 
@@ -13,13 +13,13 @@
 
 | 항목 | 수치 |
 |---|---|
-| 수집 테스트 | 151 |
-| 통과 | 148 |
+| 수집 테스트 | 192 |
+| 통과 | 189 |
 | 스킵 | 3 (LSTM — TensorFlow 미설치) |
 | 실패 | 0 |
-| 실행 시간 | 7.40s |
-| 총 커버리지 | **83.78%** |
-| 목표 대비 | ✅ +13.78%p 초과 |
+| 실행 시간 | 6.76s |
+| 총 커버리지 | **81.02%** |
+| 목표 대비 | ✅ +11.02%p 초과 |
 
 ## 2. 모듈별 커버리지 상세
 
@@ -30,15 +30,16 @@
 | `__init__.py` | 1 | 0 | 100% |
 | `analysis/__init__.py` | 4 | 0 | 100% |
 | `analysis/sentiment.py` | 75 | 0 | 100% |
-| `backtest/__init__.py` | 2 | 0 | 100% |
+| `backtest/__init__.py` | 3 | 0 | 100% |
 | `backtest/engine.py` | 34 | 0 | 100% |
 | `exchange/__init__.py` | 3 | 0 | 100% |
 | `exchange/base.py` | 15 | 0 | 100% |
 | `indicators/__init__.py` | 5 | 0 | 100% |
-| `indicators/momentum.py` | 19 | 0 | 100% |
-| `indicators/signals.py` | 31 | 0 | 100% |
+| `indicators/momentum.py` | 38 | 0 | 100% |
+| `indicators/signals.py` | 35 | 0 | 100% |
 | `indicators/trend.py` | 13 | 0 | 100% |
-| `indicators/volatility.py` | 8 | 0 | 100% |
+| `indicators/volatility.py` | 22 | 0 | 100% |
+| `strategies/__init__.py` | 8 | 0 | 100% |
 | `utils/__init__.py` | 3 | 0 | 100% |
 | `utils/report.py` | 59 | 0 | 100% |
 
@@ -46,6 +47,14 @@
 
 | 모듈 | Stmts | Miss | Coverage | 미커버 라인 |
 |---|---|---|---|---|
+| `strategies/multi_factor.py` | 66 | 1 | 98% | L99 |
+| `backtest/portfolio_engine.py` | 66 | 2 | 97% | L85, L107 |
+| `strategies/seasonal.py` | 56 | 2 | 96% | L80, L146 |
+| `strategies/allocation.py` | 42 | 3 | 93% | L60, L67, L83 |
+| `strategies/base.py` | 12 | 1 | 92% | L61 |
+| `strategies/momentum.py` | 52 | 4 | 92% | L59-61, L135 |
+| `strategies/risk.py` | 89 | 9 | 90% | L68-175 |
+| `strategies/volatility_breakout.py` | 71 | 7 | 90% | L65-133 |
 | `models/transformer.py` | 129 | 2 | 98% | L186, L361 |
 | `exchange/upbit.py` | 155 | 13 | 92% | L106-111, L127-128, L150-153, L363-364 |
 | `models/ensemble.py` | 39 | 4 | 90% | L124-126, L129 |
@@ -57,7 +66,7 @@
 
 | 모듈 | Stmts | Miss | Coverage | 원인 | 개선 계획 |
 |---|---|---|---|---|---|
-| `cli.py` | 157 | 47 | 70% | train 서브커맨드 미테스트 | Phase 6에서 보강 |
+| `cli.py` | 311 | 171 | 45% | quant/train 핸들러 미테스트 | CLI 통합 테스트 보강 |
 | `analysis/llm.py` | 36 | 22 | 39% | 외부 LLM API 의존 | mock LLM 응답 테스트 |
 | `models/lstm.py` | 64 | 57 | 11% | TensorFlow 미설치 | `@pytest.mark.skipif` 유지, CI에서 별도 실행 |
 | `__main__.py` | 3 | 3 | 0% | 진입점 (실행 테스트만 필요) | 통합 테스트에서 커버 |
@@ -66,6 +75,7 @@
 
 | 테스트 파일 | 테스트 수 | 커버 모듈 |
 |---|---|---|
+| `test_strategies.py` | 32 | strategies/*, backtest/portfolio_engine.py |
 | `test_analysis.py` | 29 | technical.py, llm.py |
 | `test_exchange.py` | 22 | upbit.py, base.py |
 | `test_backtest.py` | 18 | engine.py |
@@ -73,6 +83,7 @@
 | `test_utils.py` | 15 | data.py, report.py |
 | `test_cli.py` | 14 | cli.py |
 | `test_models.py` | 12 (3 skip) | transformer.py, lstm.py, ensemble.py |
+| `test_quant_indicators.py` | 9 | ATR, noise_ratio, momentum_score, add_all_signals |
 | `test_indicators.py` | 7 | trend.py, momentum.py, volatility.py, signals.py |
 
 ## 4. 스킵된 테스트

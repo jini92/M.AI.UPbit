@@ -2,7 +2,7 @@
 
 > **문서 번호**: D-001
 > **작성일**: 2026-02-25
-> **상태**: ✅ Phase 5 완료, Phase 6 진행 중
+> **상태**: ✅ Phase 7 완료 (퀀트 전략 통합)
 > **이전 버전**: POC (Streamlit 단일 파일)
 
 ---
@@ -388,14 +388,32 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 - [x] PyPI 정식 배포: https://pypi.org/project/maiupbit/0.1.0/
 - **커밋:** `d2b59d1f`, `e6e191bd`
 
-### Phase 6: 실전 운영 (진행 중)
+### Phase 7: 퀀트 전략 통합 ✅ (2026-02-25)
 
+- [x] 강환국 퀀트 투자 프레임워크 6대 전략 구현
+  - 변동성 돌파 (래리 윌리엄스 + 노이즈/MA 필터)
+  - 듀얼 모멘텀 (절대+상대+평균모멘텀)
+  - 다중팩터 랭킹 (모멘텀+퀄리티+변동성+성과)
+  - GTAA 동적 자산배분 (모멘텀+SMA 필터)
+  - 시즌/반감기 타이밍 (10-4월 강세, 5-9월 약세)
+  - 리스크 관리 (ATR 포지션사이징, 켈리 공식, MDD 디레버리징)
+- [x] QuantStrategy + PortfolioStrategy Protocol 프레임워크
+- [x] PortfolioBacktestEngine (다중 자산 리밸런싱 시뮬레이션)
+- [x] 퀀트 지표: ATR, noise_ratio, momentum_score, average_momentum_signal
+- [x] CLI `quant` 서브커맨드 6종
+- [x] MAIBOT 연동 스크립트 (`scripts/quant.py`)
+- [x] 테스트: 189 passed, 3 skipped, coverage 81%
+- [x] 신규 12파일, 수정 6파일
+
+### Phase 8: 실전 운영 + PyPI v0.2.0 (예정)
+
+- [ ] 퀀트 전략 실전 백테스트 검증 (BTC/ETH 1년)
 - [ ] Transformer 모델 실제 학습 (BTC 90일 데이터)
 - [ ] HEARTBEAT 주간 모델 재학습 크론 추가
+- [ ] PyPI v0.2.0 배포 (퀀트 전략 포함)
 - [ ] 교육 노트북 5종
 - [ ] llm.py coverage 향상 (39% → 70%+)
 - [ ] ClawHub 스킬 등록
-- [ ] README PyPI 배지 추가
 
 ---
 
@@ -440,5 +458,5 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 
 ---
 
-_Last updated: 2026-02-25 — Phase 5 완료, Phase 6 진입_
+_Last updated: 2026-02-25 — Phase 7 완료 (퀀트 전략 통합)_
 _Author: MAIBOT (MAI Universe)_

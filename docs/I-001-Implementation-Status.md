@@ -16,7 +16,8 @@
 | 3 | MAIBOT 통합 | ✅ 완료 | 02-25 | HEARTBEAT, TOOLS, scripts/ |
 | 4 | 테스트+문서+크론 | ✅ 완료 | 02-25 | 136 tests, 79.5% cov, README |
 | 5 | ML 고도화+PyPI | ✅ 완료 | 02-25 | Transformer, 148 tests, 83.78% cov, PyPI 배포 |
-| 6 | 실전 운영 | 🟡 진입 | 02-25~ | 모델 학습, 노트북, 운영 안정화 |
+| 6 | 실전 운영 | 🟡 대기 | 02-25~ | 모델 학습, 노트북, 운영 안정화 |
+| 7 | 퀀트 전략 | ✅ 완료 | 02-25 | 강환국 6대 전략, PortfolioBacktestEngine, 189 tests, 81% cov |
 
 ---
 
@@ -94,6 +95,29 @@
   - twine check 통과
 - **커밋:** `d2b59d1f`, `e6e191bd`
 
+### Phase 7: 퀀트 전략 통합 ✅
+
+- **강환국 퀀트 투자 프레임워크** 6대 전략 구현
+  - `strategies/volatility_breakout.py` — 변동성 돌파 (래리 윌리엄스 + 노이즈 필터)
+  - `strategies/momentum.py` — 듀얼 모멘텀 (절대+상대+평균모멘텀)
+  - `strategies/multi_factor.py` — 다중팩터 랭킹 (모멘텀+퀄리티+변동성+성과)
+  - `strategies/allocation.py` — GTAA 동적 자산배분 (모멘텀+SMA 필터)
+  - `strategies/seasonal.py` — 시즌/반감기 타이밍 (10-4월 강세, 5-9월 약세)
+  - `strategies/risk.py` — 리스크 관리 (ATR 포지션사이징, 켈리 공식, MDD 디레버리징)
+- **전략 프레임워크**:
+  - `QuantStrategy` Protocol — 단일 종목, 기존 BacktestEngine 호환
+  - `PortfolioStrategy` Protocol — 다중 자산, PortfolioBacktestEngine 호환
+  - Composable 필터: SeasonalFilter, RiskManager로 전략 조합 가능
+- **포트폴리오 백테스트 엔진**: `backtest/portfolio_engine.py`
+  - 다중 자산 리밸런싱 시뮬레이션
+  - Sharpe(365일 기준), MDD, 자산별 수익률 산출
+- **새 지표 함수**: ATR, noise_ratio, momentum_score, average_momentum_signal
+- **CLI**: `maiupbit quant {momentum|breakout|factor|allocate|season|backtest}`
+- **MAIBOT 연동**: `scripts/quant.py` 스크립트
+- **테스트**: 189 passed, 3 skipped → coverage **81%**
+- **신규 파일**: 12개, **수정 파일**: 6개
+- **커밋**: (pending)
+
 ---
 
 ## 3. 현재 코드베이스 (2026-02-25 기준)
@@ -101,17 +125,25 @@
 ### 3.1 파일 구조
 
 ```
-M.AI.UPbit/                          # 43 Python files, 1,048 LOC (maiupbit/)
+M.AI.UPbit/                          # 55+ Python files, 1,700+ LOC (maiupbit/)
 │
 ├── maiupbit/                         # OSS Core Package
 │   ├── __init__.py                   # v0.1.0, public API exports
 │   ├── __main__.py                   # python -m maiupbit 진입점
-│   ├── cli.py                        # Typer CLI (analyze, portfolio, trade, recommend, train)
+│   ├── cli.py                        # CLI (analyze, portfolio, trade, recommend, train, quant)
 │   ├── indicators/                   # 기술 지표 (100% coverage)
 │   │   ├── trend.py                  # SMA, EMA, MACD
-│   │   ├── momentum.py               # RSI, Stochastic
-│   │   ├── volatility.py             # Bollinger Bands, ATR
-│   │   └── signals.py                # 매매 시그널 종합
+│   │   ├── momentum.py               # RSI, Stochastic, momentum_score, average_momentum_signal
+│   │   ├── volatility.py             # Bollinger Bands, ATR, noise_ratio
+│   │   └── signals.py                # 매매 시그널 종합 (+ATR_14, Noise_20, Momentum_Score)
+│   ├── strategies/                   # 퀀트 전략 (강환국 프레임워크)
+│   │   ├── base.py                   # QuantStrategy, PortfolioStrategy Protocol
+│   │   ├── volatility_breakout.py    # 변동성 돌파 (90% cov)
+│   │   ├── momentum.py               # 듀얼 모멘텀 (92% cov)
+│   │   ├── multi_factor.py           # 다중팩터 랭킹 (98% cov)
+│   │   ├── allocation.py             # GTAA 자산배분 (93% cov)
+│   │   ├── seasonal.py               # 시즌/반감기 타이밍 (96% cov)
+│   │   └── risk.py                   # 리스크 관리 (90% cov)
 │   ├── models/                       # ML 모델
 │   │   ├── lstm.py                   # TensorFlow LSTM (11% cov — skip in CI)
 │   │   ├── transformer.py            # PyTorch Transformer (98% cov)
@@ -123,8 +155,9 @@ M.AI.UPbit/                          # 43 Python files, 1,048 LOC (maiupbit/)
 │   ├── exchange/                     # 거래소 추상화
 │   │   ├── base.py                   # 거래소 인터페이스 (100% cov)
 │   │   └── upbit.py                  # UPbit API (92% cov)
-│   ├── backtest/                     # 백테스팅 (100% cov)
-│   │   └── engine.py                 # Strategy Protocol + BacktestEngine
+│   ├── backtest/                     # 백테스팅
+│   │   ├── engine.py                 # Strategy Protocol + BacktestEngine (100% cov)
+│   │   └── portfolio_engine.py       # PortfolioBacktestEngine (97% cov)
 │   └── utils/                        # 유틸리티
 │       ├── data.py                   # 데이터 처리 (90% cov)
 │       └── report.py                 # PDF 리포트 (100% cov)
@@ -135,12 +168,15 @@ M.AI.UPbit/                          # 43 Python files, 1,048 LOC (maiupbit/)
 │   ├── portfolio.py                  # 포트폴리오 조회
 │   ├── monitor.py                    # 시장 모니터링 (HEARTBEAT용)
 │   ├── daily_report.py               # 일일 분석 리포트
-│   └── train_model.py                # 모델 학습
+│   ├── train_model.py                # 모델 학습
+│   └── quant.py                      # 퀀트 전략 실행 (MAIBOT 연동)
 │
-├── tests/                            # pytest (151 collected, 148 passed, 3 skipped)
+├── tests/                            # pytest (192 collected, 189 passed, 3 skipped)
 │   ├── conftest.py                   # 공통 픽스처
 │   └── unit/
 │       ├── test_indicators.py        # 7 tests
+│       ├── test_quant_indicators.py  # 9 tests (ATR, noise_ratio, momentum_score)
+│       ├── test_strategies.py        # 32 tests (6대 전략 + 포트폴리오 + 조합)
 │       ├── test_exchange.py          # 22 tests
 │       ├── test_backtest.py          # 18 tests
 │       ├── test_analysis.py          # 29 tests
@@ -163,25 +199,29 @@ M.AI.UPbit/                          # 43 Python files, 1,048 LOC (maiupbit/)
 └── LICENSE                           # Apache-2.0
 ```
 
-### 3.2 테스트 커버리지 (2026-02-25)
+### 3.2 테스트 커버리지 (2026-02-25, Phase 7 이후)
 
 | 모듈 | Stmts | Miss | Coverage | 비고 |
 |---|---|---|---|---|
-| `indicators/` | 76 | 0 | **100%** | 완벽 |
-| `backtest/` | 36 | 0 | **100%** | 완벽 |
+| `indicators/` | 113 | 0 | **100%** | 완벽 (+ATR, noise, momentum) |
+| `strategies/__init__.py` | 8 | 0 | **100%** | 패키지 임포트 |
+| `strategies/multi_factor.py` | 66 | 1 | **98%** | 다중팩터 |
+| `strategies/seasonal.py` | 56 | 2 | **96%** | 시즌 필터 |
+| `strategies/allocation.py` | 42 | 3 | **93%** | GTAA |
+| `strategies/base.py` | 12 | 1 | **92%** | Protocol |
+| `strategies/momentum.py` | 52 | 4 | **92%** | 듀얼 모멘텀 |
+| `strategies/risk.py` | 89 | 9 | **90%** | 리스크 관리 |
+| `strategies/volatility_breakout.py` | 71 | 7 | **90%** | 변동성 돌파 |
+| `backtest/` | 100 | 2 | **98%** | +PortfolioBacktestEngine |
 | `analysis/sentiment.py` | 75 | 0 | **100%** | 완벽 |
 | `utils/report.py` | 59 | 0 | **100%** | 완벽 |
 | `exchange/base.py` | 15 | 0 | **100%** | 완벽 |
 | `models/transformer.py` | 129 | 2 | **98%** | PyTorch |
 | `exchange/upbit.py` | 155 | 13 | **92%** | API 모킹 |
-| `models/ensemble.py` | 39 | 4 | **90%** | 앙상블 |
-| `utils/data.py` | 20 | 2 | **90%** | 데이터 |
-| `analysis/technical.py` | 163 | 18 | **89%** | 핵심 분석 |
-| `models/__init__.py` | 10 | 2 | **80%** | 임포트 |
-| `cli.py` | 157 | 47 | **70%** | CLI |
+| `cli.py` | 311 | 171 | **45%** | CLI (quant 핸들러 미커버) |
 | `analysis/llm.py` | 36 | 22 | **39%** | LLM 외부 의존 |
 | `models/lstm.py` | 64 | 57 | **11%** | TensorFlow 미설치 |
-| **TOTAL** | **1,048** | **170** | **83.78%** | ✅ 목표(70%) 초과 |
+| **TOTAL** | **1,702** | **323** | **81.02%** | ✅ 목표(70%) 초과 |
 
 ### 3.3 Git 히스토리 (v2.1 관련)
 
@@ -213,6 +253,12 @@ M.AI.UPbit/                          # 43 Python files, 1,048 LOC (maiupbit/)
 | "내 포트폴리오 보여줘" | `scripts/portfolio.py` |
 | "비트코인 5만원 사줘" | `scripts/trade.py buy KRW-BTC 50000` (미리보기 → 확인 → `--confirm`) |
 | "리포트 만들어줘" | `scripts/daily_report.py` |
+| "모멘텀 좋은 코인 알려줘" | `scripts/quant.py momentum` |
+| "비트코인 변동성 돌파 시그널" | `scripts/quant.py breakout KRW-BTC` |
+| "퀀트 랭킹 보여줘" | `scripts/quant.py factor` |
+| "자산배분 추천해줘" | `scripts/quant.py allocate` |
+| "지금 시즌 어때?" | `scripts/quant.py season` |
+| "모멘텀 전략 백테스트 해봐" | `scripts/quant.py backtest momentum` |
 
 ### 4.3 매매 안전 규칙
 
@@ -222,16 +268,30 @@ M.AI.UPbit/                          # 43 Python files, 1,048 LOC (maiupbit/)
 
 ---
 
-## 5. Phase 6 계획 (실전 운영)
+## 5. Phase 7 완료 + 향후 계획
+
+### Phase 7 완료 항목 ✅
+
+| 항목 | 상태 |
+|---|---|
+| 강환국 6대 퀀트 전략 구현 | ✅ 완료 |
+| PortfolioBacktestEngine | ✅ 완료 |
+| 퀀트 지표 (ATR, noise_ratio, momentum_score) | ✅ 완료 |
+| CLI quant 서브커맨드 | ✅ 완료 |
+| MAIBOT 연동 스크립트 (quant.py) | ✅ 완료 |
+| 전략 단위 테스트 (41 tests) | ✅ 완료 |
+
+### 향후 계획
 
 | 항목 | 우선순위 | 상태 |
 |---|---|---|
+| 퀀트 전략 실전 백테스트 검증 | 🔴 높음 | 미착수 |
 | Transformer 모델 실제 학습 (BTC 90일) | 🔴 높음 | 미착수 |
 | HEARTBEAT 주간 모델 재학습 크론 | 🔴 높음 | 미착수 |
 | Jupyter 교육 노트북 5종 | 🟡 중간 | 미착수 |
-| README PyPI 배지 추가 | 🟢 낮음 | 미착수 |
 | llm.py coverage 향상 (39% → 70%+) | 🟡 중간 | 미착수 |
 | ClawHub 스킬 등록 | 🟡 중간 | 미착수 |
+| PyPI v0.2.0 배포 (퀀트 전략 포함) | 🟡 중간 | 미착수 |
 
 ---
 
