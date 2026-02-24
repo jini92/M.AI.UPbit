@@ -39,8 +39,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ml = ["tensorflow>=2.15", "keras>=3.0"]
-dev = ["pytest>=7.0", "pytest-cov>=4.0", "ruff>=0.1"]
+lstm = ["tensorflow>=2.15", "keras>=3.0"]
+transformer = ["torch>=2.0"]
+ml = ["maiupbit[lstm,transformer]"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "pytest-mock>=3.10", "ruff>=0.1"]
 all = ["maiupbit[ml,dev]"]
 
 [project.scripts]
@@ -49,6 +51,8 @@ maiupbit = "maiupbit.cli:main"
 [project.urls]
 Homepage = "https://github.com/jini92/M.AI.UPbit"
 Repository = "https://github.com/jini92/M.AI.UPbit"
+Issues = "https://github.com/jini92/M.AI.UPbit/issues"
+Documentation = "https://github.com/jini92/M.AI.UPbit#readme"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

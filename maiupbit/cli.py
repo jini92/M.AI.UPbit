@@ -164,12 +164,66 @@ def main():
     p_recommend.add_argument('--format', choices=['json', 'text'], default='text')
     p_recommend.set_defaults(func=cmd_recommend)
 
+    # train
+    p_train = subparsers.add_parser('train', help='모델 학습')
+    p_train.add_argument('symbol', nargs='?', default='KRW-BTC', help='종목 코드')
+    p_train.add_argument('--model', choices=['transformer', 'lstm'], default='transformer', help='모델 타입')
+    p_train.add_argument('--days', type=int, default=90, help='학습 데이터 기간 (일)')
+    p_train.add_argument('--epochs', type=int, default=50, help='학습 에포크')
+    p_train.set_defaults(func=cmd_train)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
         sys.exit(0)
 
     args.func(args)
+
+
+def cmd_train(args):
+    """모델 학습"""
+    from maiupbit.exchange.upbit import UPbitExchange
+
+    exchange = UPbitExchange()
+    hourly = exchange.get_ohlcv(args.symbol, 'minute60', count=args.days * 24)
+
+    if hourly is None or len(hourly) == 0:
+        print(json.dumps({"error": f"Failed to fetch data for {args.symbol}"}))
+        sys.exit(1)
+
+    close_data = hourly['close'].values
+    model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
+    os.makedirs(model_dir, exist_ok=True)
+
+    if args.model == 'transformer':
+        try:
+            from maiupbit.models.transformer import TransformerPredictor
+            lookback = min(168, len(close_data) // 3)
+            predictor = TransformerPredictor(lookback=lookback)
+            result = predictor.train(close_data, epochs=args.epochs)
+            model_path = os.path.join(model_dir, f'{args.symbol.replace("-", "_").lower()}_transformer.pt')
+            predictor.save(model_path)
+        except ImportError:
+            print(json.dumps({"error": "torch not installed. Run: pip install maiupbit[transformer]"}))
+            sys.exit(1)
+    else:
+        try:
+            from maiupbit.models.lstm import LSTMPredictor
+            predictor = LSTMPredictor(lookback=720)
+            result = predictor.train(close_data, epochs=args.epochs)
+            model_path = os.path.join(model_dir, f'{args.symbol.replace("-", "_").lower()}_lstm.h5')
+            predictor.save(model_path)
+        except ImportError:
+            print(json.dumps({"error": "tensorflow not installed. Run: pip install maiupbit[lstm]"}))
+            sys.exit(1)
+
+    print(json.dumps({
+        "status": "success",
+        "symbol": args.symbol,
+        "model": args.model,
+        "path": model_path,
+        "result": result,
+    }, ensure_ascii=False, indent=2, default=str))
 
 
 if __name__ == '__main__':

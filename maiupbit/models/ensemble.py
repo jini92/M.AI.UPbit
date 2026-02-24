@@ -58,7 +58,28 @@ class EnsemblePredictor:
         """
         if not models:
             raise ValueError("models 목록이 비어있습니다. 하나 이상의 모델을 제공하세요.")
-        self.models: list[Any] = models
+        self.models: list[Any] = list(models)
+        self._model_names: list[str] = [f"model_{i}" for i in range(len(self.models))]
+
+    def add_model(self, name: str, model: Any) -> None:
+        """앙상블에 새 예측 모델을 추가.
+
+        predict() 메서드를 구현한 모델이라면 어떤 타입이든 추가할 수 있습니다.
+        TransformerPredictor, LSTMPredictor 등 모두 지원합니다.
+
+        Args:
+            name: 모델을 식별하는 고유 이름.
+                predict() 결과의 ``models`` 딕셔너리 키로 사용됩니다.
+            model: predict(data, num_predictions) 메서드를 가진 예측 모델 인스턴스.
+
+        Raises:
+            ValueError: 동일한 이름의 모델이 이미 존재하는 경우.
+        """
+        if name in self._model_names:
+            raise ValueError(f"'{name}' 이름의 모델이 이미 존재합니다.")
+        self.models.append(model)
+        self._model_names.append(name)
+        logger.info("EnsemblePredictor: 모델 '%s' 추가 (총 %d개)", name, len(self.models))
 
     def predict(
         self,
@@ -91,7 +112,7 @@ class EnsemblePredictor:
         errors: list[str] = []
 
         for idx, model in enumerate(self.models):
-            model_key = f"model_{idx}"
+            model_key = self._model_names[idx] if idx < len(self._model_names) else f"model_{idx}"
             try:
                 preds = model.predict(data, num_predictions=num_predictions)
                 all_predictions[model_key] = list(preds)
