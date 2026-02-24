@@ -1,0 +1,65 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "maiupbit"
+version = "0.1.0"
+description = "AI-powered digital asset analysis engine for Korean exchanges"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    {name = "jini92"}
+]
+keywords = ["crypto", "trading", "ai", "upbit", "analysis"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+dependencies = [
+    "pandas>=2.0",
+    "pandas-ta>=0.3.14b1",
+    "numpy>=1.24",
+    "pyupbit>=0.2.33",
+    "openai>=1.0",
+    "python-dotenv>=1.0",
+    "feedparser>=6.0",
+    "beautifulsoup4>=4.12",
+    "lxml>=4.9",
+    "reportlab>=4.0",
+    "scikit-learn>=1.3",
+]
+
+[project.optional-dependencies]
+ml = ["tensorflow>=2.15", "keras>=3.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "ruff>=0.1"]
+all = ["maiupbit[ml,dev]"]
+
+[project.scripts]
+maiupbit = "maiupbit.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/jini92/M.AI.UPbit"
+Repository = "https://github.com/jini92/M.AI.UPbit"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.coverage.run]
+source = ["maiupbit"]
+
+[tool.coverage.report]
+fail_under = 70

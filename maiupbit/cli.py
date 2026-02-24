@@ -1,0 +1,176 @@
+"""M.AI.UPbit CLI"""
+import argparse
+import json
+import sys
+import os
+from dotenv import load_dotenv
+
+
+def cmd_analyze(args):
+    """코인 분석 실행"""
+    from maiupbit.exchange.upbit import UPbitExchange
+    from maiupbit.analysis.technical import TechnicalAnalyzer
+    from maiupbit.indicators import trend, momentum, volatility, signals
+
+    exchange = UPbitExchange()
+    # 데이터 수집
+    daily = exchange.get_ohlcv(args.symbol, "day", count=args.days)
+    hourly = exchange.get_ohlcv(args.symbol, "minute60", count=args.days * 24)
+
+    if daily is None or hourly is None:
+        print(json.dumps({"error": f"Failed to fetch data for {args.symbol}"}))
+        sys.exit(1)
+
+    # 기술 지표 계산
+    for df in [daily, hourly]:
+        df['SMA_10'] = trend.sma(df['close'], 10)
+        df['EMA_10'] = trend.ema(df['close'], 10)
+        df['RSI_14'] = momentum.rsi(df['close'], 14)
+        macd_line, signal_line, histogram = trend.macd(df['close'])
+        df['MACD'] = macd_line
+        df['Signal_Line'] = signal_line
+        df['MACD_Histogram'] = histogram
+        upper, middle, lower = volatility.bollinger_bands(df['close'])
+        df['Upper_Band'] = upper
+        df['Middle_Band'] = middle
+        df['Lower_Band'] = lower
+        stoch_k, stoch_d = momentum.stochastic(df['high'], df['low'], df['close'])
+        df['STOCHk'] = stoch_k
+        df['STOCHd'] = stoch_d
+
+    # 기술 분석
+    analyzer = TechnicalAnalyzer(exchange)
+    result = analyzer.analyze(args.symbol, daily)
+
+    # 현재가 추가
+    result['current_price'] = exchange.get_current_price(args.symbol)
+
+    if args.format == 'json':
+        print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
+    else:
+        print(f"=== {args.symbol} 분석 결과 ===")
+        print(f"현재가: {result['current_price']:,.0f}")
+        print(f"추천: {result.get('recommendation', 'N/A')}")
+        print(f"RSI: {result.get('indicators', {}).get('rsi', 'N/A')}")
+        print(f"MACD 시그널: {result.get('signals', {}).get('macd', 'N/A')}")
+
+
+def cmd_portfolio(args):
+    """포트폴리오 조회"""
+    from maiupbit.exchange.upbit import UPbitExchange
+
+    access_key = os.getenv("UPBIT_ACCESS_KEY")
+    secret_key = os.getenv("UPBIT_SECRET_KEY")
+
+    if not access_key or not secret_key:
+        print(json.dumps({"error": "UPBIT_ACCESS_KEY and UPBIT_SECRET_KEY required"}))
+        sys.exit(1)
+
+    exchange = UPbitExchange(access_key=access_key, secret_key=secret_key)
+    portfolio = exchange.get_portfolio()
+
+    if args.format == 'json':
+        print(json.dumps(portfolio, ensure_ascii=False, indent=2, default=str))
+    else:
+        print("=== 포트폴리오 ===")
+        for asset in portfolio.get('assets', []):
+            print(f"  {asset['symbol']}: {asset['quantity']:.8f} ({asset['value']:,.0f} KRW)")
+        print(f"  총 자산: {portfolio.get('total_value', 0):,.0f} KRW")
+
+
+def cmd_trade(args):
+    """매매 실행"""
+    from maiupbit.exchange.upbit import UPbitExchange
+
+    access_key = os.getenv("UPBIT_ACCESS_KEY")
+    secret_key = os.getenv("UPBIT_SECRET_KEY")
+
+    if not access_key or not secret_key:
+        print(json.dumps({"error": "UPBIT_ACCESS_KEY and UPBIT_SECRET_KEY required"}))
+        sys.exit(1)
+
+    exchange = UPbitExchange(access_key=access_key, secret_key=secret_key)
+
+    if not args.confirm:
+        price = exchange.get_current_price(args.symbol)
+        print(f"⚠️ {args.action.upper()} {args.amount} {args.symbol} @ ~{price:,.0f}")
+        print("실행하려면 --confirm 플래그를 추가하세요.")
+        sys.exit(0)
+
+    if args.action == 'buy':
+        result = exchange.buy_market(args.symbol, args.amount)
+    elif args.action == 'sell':
+        result = exchange.sell_market(args.symbol, args.amount)
+    else:
+        print(json.dumps({"error": f"Unknown action: {args.action}"}))
+        sys.exit(1)
+
+    print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
+
+
+def cmd_recommend(args):
+    """종목 추천"""
+    from maiupbit.exchange.upbit import UPbitExchange
+    from maiupbit.analysis.technical import TechnicalAnalyzer
+
+    exchange = UPbitExchange()
+    analyzer = TechnicalAnalyzer(exchange)
+
+    if args.method == 'trend':
+        results = analyzer.recommend_by_trend(top_n=args.top)
+    else:
+        results = analyzer.recommend_by_performance(top_n=args.top, days=args.days)
+
+    if args.format == 'json':
+        print(json.dumps(results, ensure_ascii=False, indent=2, default=str))
+    else:
+        print(f"=== 추천 종목 (Top {args.top}) ===")
+        for i, r in enumerate(results, 1):
+            print(f"  {i}. {r['symbol']}: {r['reason']}")
+
+
+def main():
+    load_dotenv()
+
+    parser = argparse.ArgumentParser(prog='maiupbit', description='AI 디지털 자산 분석 엔진')
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # analyze
+    p_analyze = subparsers.add_parser('analyze', help='코인 분석')
+    p_analyze.add_argument('symbol', help='종목 코드 (예: KRW-BTC)')
+    p_analyze.add_argument('--days', type=int, default=30, help='분석 기간 (일)')
+    p_analyze.add_argument('--format', choices=['json', 'text'], default='text')
+    p_analyze.set_defaults(func=cmd_analyze)
+
+    # portfolio
+    p_portfolio = subparsers.add_parser('portfolio', help='포트폴리오 조회')
+    p_portfolio.add_argument('--format', choices=['json', 'text'], default='text')
+    p_portfolio.set_defaults(func=cmd_portfolio)
+
+    # trade
+    p_trade = subparsers.add_parser('trade', help='매매 실행')
+    p_trade.add_argument('action', choices=['buy', 'sell'])
+    p_trade.add_argument('symbol', help='종목 코드')
+    p_trade.add_argument('amount', type=float, help='수량')
+    p_trade.add_argument('--confirm', action='store_true', help='매매 확인')
+    p_trade.add_argument('--format', choices=['json', 'text'], default='json')
+    p_trade.set_defaults(func=cmd_trade)
+
+    # recommend
+    p_recommend = subparsers.add_parser('recommend', help='종목 추천')
+    p_recommend.add_argument('--method', choices=['trend', 'performance'], default='performance')
+    p_recommend.add_argument('--top', type=int, default=5, help='추천 개수')
+    p_recommend.add_argument('--days', type=int, default=7, help='분석 기간')
+    p_recommend.add_argument('--format', choices=['json', 'text'], default='text')
+    p_recommend.set_defaults(func=cmd_recommend)
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(0)
+
+    args.func(args)
+
+
+if __name__ == '__main__':
+    main()
