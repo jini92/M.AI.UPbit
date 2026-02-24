@@ -11,3 +11,17 @@ build/
 *.log
 node_modules/
 .DS_Store
+
+# Models
+models/*.keras
+models/*.h5
+
+# Trade history
+trade_history.json
+
+# Coverage
+htmlcov/
+.coverage
+
+# pytest
+.pytest_cache/
