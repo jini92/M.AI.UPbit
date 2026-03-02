@@ -1,6 +1,6 @@
-"""모멘텀 지표 모듈.
+"""Momentum indicator module.
 
-RSI, 스토캐스틱 계산 함수를 제공합니다.
+Provides functions to calculate RSI and stochastic values.
 """
 
 from typing import Tuple
@@ -10,14 +10,14 @@ import pandas as pd
 
 
 def rsi(series: pd.Series, length: int = 14) -> pd.Series:
-    """RSI(상대강도지수)를 계산합니다.
+    """Calculates the Relative Strength Index (RSI).
 
     Args:
-        series: 종가 등 가격 데이터 (pandas Series).
-        length: RSI 계산 기간 (기본값 14).
+        series: Closing price data or similar (pandas Series).
+        length: RSI calculation period (default is 14).
 
     Returns:
-        RSI 값(0~100 범위)을 담은 pandas Series.
+        pandas Series containing RSI values in the range of 0 to 100.
     """
     delta = series.diff()
     gain = delta.where(delta > 0, 0.0)
@@ -39,19 +39,18 @@ def stochastic(
     d: int = 3,
     smooth_k: int = 3,
 ) -> Tuple[pd.Series, pd.Series]:
-    """스토캐스틱 %K와 %D를 계산합니다.
+    """Calculates the Stochastic %K and %D.
 
     Args:
-        high: 고가 데이터 (pandas Series).
-        low: 저가 데이터 (pandas Series).
-        close: 종가 데이터 (pandas Series).
-        k: %K 계산 기간 (기본값 14).
-        d: %D SMA 기간 (기본값 3).
-        smooth_k: %K 스무딩 기간 (기본값 3).
+        high: High price data (pandas Series).
+        low: Low price data (pandas Series).
+        close: Closing price data (pandas Series).
+        k: Period for %K calculation (default is 14).
+        d: SMA period for %D (default is 3).
+        smooth_k: Smoothing period for %K (default is 3).
 
     Returns:
-        (stoch_k, stoch_d) 튜플.
-        각각 pandas Series.
+        Tuple of (stoch_k, stoch_d), each a pandas Series.
     """
     lowest_low = low.rolling(window=k).min()
     highest_high = high.rolling(window=k).max()
@@ -68,18 +67,19 @@ def momentum_score(
     periods: list[int] | None = None,
     weights: list[float] | None = None,
 ) -> pd.Series:
-    """강환국 가중 모멘텀 점수를 계산합니다.
+    """Calculates the weighted momentum score by Kang.
 
-    각 기간의 수익률에 가중치를 곱한 합으로 종합 모멘텀을 산출합니다.
-    암호화폐 기본값: 28/84/168/365일, 가중치 12/4/2/1.
+    Calculates a comprehensive momentum by summing up the product of returns
+    and weights for each period. Default crypto values are 28/84/168/365 days, 
+    with weights 12/4/2/1 respectively.
 
     Args:
-        close: 종가 데이터.
-        periods: 모멘텀 계산 기간 리스트 (기본값 [28, 84, 168, 365]).
-        weights: 각 기간의 가중치 (기본값 [12, 4, 2, 1]).
+        close: Closing price data.
+        periods: List of momentum calculation periods (default is [28, 84, 168, 365]).
+        weights: Weights for each period (default is [12, 4, 2, 1]).
 
     Returns:
-        가중 모멘텀 점수 pandas Series.
+        pandas Series containing the weighted momentum score.
     """
     if periods is None:
         periods = [28, 84, 168, 365]
@@ -98,19 +98,19 @@ def average_momentum_signal(
     close: pd.Series,
     lookbacks: list[int] | None = None,
 ) -> pd.Series:
-    """12개 개별 모멘텀의 평균 시그널을 계산합니다.
+    """Calculates the average signal of 12 individual momentum indicators.
 
-    각 lookback 기간에서 수익률 > 0이면 1, 아니면 0으로
-    개별 모멘텀 시그널을 생성하고 평균을 구합니다(0~1).
-    결과값은 포지션 비중으로 사용 가능합니다.
+    For each lookback period, generates an individual momentum signal with
+    a value of 1 if return > 0 and 0 otherwise. Then calculates the mean (0~1).
+    The result can be used as position weight.
 
     Args:
-        close: 종가 데이터.
-        lookbacks: 개별 모멘텀 기간 리스트.
-            기본값: [7, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77, 84].
+        close: Closing price data.
+        lookbacks: List of periods for individual momentum signals.
+            Default is [7, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77, 84].
 
     Returns:
-        평균 모멘텀 시그널(0~1) pandas Series.
+        pandas Series containing the average momentum signal (0~1).
     """
     if lookbacks is None:
         lookbacks = [7, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77, 84]

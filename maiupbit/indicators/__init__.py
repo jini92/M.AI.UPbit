@@ -1,4 +1,4 @@
-"""기술 지표 모듈 패키지."""
+"""Technical indicator module package."""
 
 from maiupbit.indicators.trend import sma, ema, macd
 from maiupbit.indicators.momentum import rsi, stochastic, momentum_score, average_momentum_signal

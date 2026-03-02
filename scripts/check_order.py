@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""주문 체결 확인 스크립트."""
+"""Order execution confirmation script."""
 import json
 import os
 import sys
@@ -16,11 +16,11 @@ load_dotenv()
 ak = os.getenv("UPBIT_ACCESS_KEY")
 sk = os.getenv("UPBIT_SECRET_KEY")
 
-# 1) 잔고 확인
+# 1) Balance check
 import pyupbit
 upbit = pyupbit.Upbit(ak, sk)
 balances = upbit.get_balances()
-print("=== 잔고 ===")
+print("=== Balance ===")
 for b in balances:
     bal = float(b.get("balance", 0))
     if bal > 0:
@@ -28,7 +28,7 @@ for b in balances:
         avg = b.get("avg_buy_price", "?")
         print(f"  {cur}: {bal:,.2f} (avg: {avg})")
 
-# 2) 주문 확인
+# 2) Order check
 order_uuid = sys.argv[1] if len(sys.argv) > 1 else "c94a9433-aa57-42de-9162-1c24fc26d2aa"
 query = {"uuid": order_uuid}
 query_string = unquote(urlencode(query, doseq=True)).encode("utf-8")
@@ -45,7 +45,7 @@ payload = {
 token = jwt.encode(payload, sk)
 headers = {"Authorization": f"Bearer {token}"}
 res = requests.get("https://api.upbit.com/v1/order", params=query, headers=headers)
-print(f"\n=== 주문 ({order_uuid[:12]}...) ===")
+print(f"\n=== Order ({order_uuid[:12]}...) ===")
 print(f"Status: {res.status_code}")
 if res.status_code == 200:
     order = res.json()

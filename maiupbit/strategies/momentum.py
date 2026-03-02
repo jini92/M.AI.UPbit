@@ -1,9 +1,9 @@
-"""듀얼 모멘텀 전략.
+"""Dual Momentum Strategy.
 
-강환국 듀얼 모멘텀 프레임워크:
-- 절대 모멘텀: 수익률 > 0 (양수 모멘텀만 투자)
-- 상대 모멘텀: 코인 간 모멘텀 점수 비교 → 상위 N개
-- 평균 모멘텀 시그널: 12개 기간 모멘텀 평균 → 포지션 비중
+Kwang Hwan Gu Dual Momentum Framework:
+- Absolute Momentum: Return > 0 (only positive momentum investments)
+- Relative Momentum: Compare momentum scores between coins → Top N
+- Average Momentum Signal: 12 period average momentum signal → Position weight
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from maiupbit.strategies.base import StrategyConfig
 
 @dataclass
 class DualMomentumConfig(StrategyConfig):
-    """듀얼 모멘텀 전략 설정."""
+    """Dual Momentum strategy configuration."""
 
     score_periods: list[int] = field(default_factory=lambda: [28, 84, 168, 365])
     score_weights: list[float] = field(default_factory=lambda: [12, 4, 2, 1])
@@ -27,23 +27,23 @@ class DualMomentumConfig(StrategyConfig):
 
 
 class DualMomentumStrategy:
-    """듀얼 모멘텀 전략 (QuantStrategy + PortfolioStrategy 모두 호환).
+    """Dual Momentum Strategy (compatible with QuantStrategy and PortfolioStrategy).
 
-    단일 종목: signal() → BacktestEngine
-    다중 종목: allocate() → PortfolioBacktestEngine
+    Single symbol: signal() → BacktestEngine
+    Multiple symbols: allocate() → PortfolioBacktestEngine
     """
 
     def __init__(self, config: DualMomentumConfig | None = None) -> None:
         self.config = config or DualMomentumConfig()
 
     def signal(self, data: pd.DataFrame) -> int:
-        """단일 종목 절대 모멘텀 시그널.
+        """Single symbol absolute momentum signal.
 
         Args:
             data: OHLCV DataFrame.
 
         Returns:
-            1=buy (모멘텀 양수), -1=sell (모멘텀 음수), 0=hold.
+            1=buy (positive momentum), -1=sell (negative momentum), 0=hold.
         """
         if len(data) < max(self.config.score_periods):
             return 0
@@ -65,14 +65,14 @@ class DualMomentumStrategy:
         data: dict[str, pd.DataFrame],
         date: pd.Timestamp | None = None,
     ) -> list[dict]:
-        """코인 모멘텀 랭킹.
+        """Coin momentum ranking.
 
         Args:
-            data: {symbol: OHLCV DataFrame} 딕셔너리.
-            date: 기준 날짜 (None이면 최신).
+            data: {symbol: OHLCV DataFrame} dictionary.
+            date: Reference date (None for latest).
 
         Returns:
-            [{"symbol", "score", "avg_signal", "rank"}] 리스트 (점수 내림차순).
+            [{"symbol", "score", "avg_signal", "rank"}] list (sorted by score descending).
         """
         rankings = []
         for symbol, df in data.items():
@@ -105,31 +105,31 @@ class DualMomentumStrategy:
         data: dict[str, pd.DataFrame],
         date: pd.Timestamp | None = None,
     ) -> dict[str, float]:
-        """듀얼 모멘텀 기반 자산배분.
+        """Dual Momentum based asset allocation.
 
-        1) 절대 모멘텀 필터: score > threshold
-        2) 상대 모멘텀: 상위 N개 선택
-        3) 평균 모멘텀 시그널로 비중 산출
+        1) Absolute momentum filter: score > threshold
+        2) Relative momentum: Top N selection
+        3) Average momentum signal for weight calculation
 
         Args:
             data: {symbol: OHLCV DataFrame}.
-            date: 기준 날짜.
+            date: Reference date.
 
         Returns:
-            {symbol: weight} (합계 <= 1.0).
+            {symbol: weight} (sum <= 1.0).
         """
         rankings = self.rank_coins(data, date)
 
-        # 절대 모멘텀 필터
+        # Absolute momentum filter
         positive = [r for r in rankings if r["score"] > self.config.abs_threshold]
 
-        # 상위 N개
+        # Top N selection
         selected = positive[: self.config.top_n]
 
         if not selected:
             return {}
 
-        # 평균 모멘텀 시그널로 비중 산출
+        # Average momentum signal for weight calculation
         total_signal = sum(r["avg_signal"] for r in selected)
         if total_signal <= 0:
             return {}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenClaw용 매매 실행 스크립트 — confirm 플래그 필수"""
+"""OpenClaw trading execution script — --confirm flag required"""
 import sys, os, json
 from dotenv import load_dotenv
 load_dotenv()

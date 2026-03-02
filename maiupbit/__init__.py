@@ -1,3 +1,3 @@
-"""M.AI.UPbit — AI 디지털 자산 분석 엔진"""
+"""M.AI.UPbit — AI Digital Asset Analysis Engine"""
 
 __version__ = "0.1.0"

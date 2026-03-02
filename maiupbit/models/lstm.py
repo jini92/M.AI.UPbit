@@ -3,9 +3,9 @@
 maiupbit.models.lstm
 ~~~~~~~~~~~~~~~~~~~~
 
-LSTM(Long Short-Term Memory) 기반 암호화폐 가격 예측 모델.
+An LSTM (Long Short-Term Memory) based cryptocurrency price prediction model.
 
-사용 예::
+Usage example::
 
     predictor = LSTMPredictor(lookback=720)
     predictor.train(close_prices)
@@ -27,12 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 class LSTMPredictor:
-    """LSTM 기반 가격 예측 모델.
+    """An LSTM-based price prediction model.
 
     Attributes:
-        lookback (int): 예측에 사용할 과거 데이터 포인트 수.
-        model (Sequential | None): 학습된 Keras Sequential 모델.
-        scaler (MinMaxScaler | None): 데이터 정규화에 사용하는 스케일러.
+        lookback (int): Number of past data points used for predictions.
+        model (Sequential | None): Trained Keras Sequential model.
+        scaler (MinMaxScaler | None): Normalization scaler used on the data.
     """
 
     def __init__(
@@ -40,13 +40,13 @@ class LSTMPredictor:
         lookback: int = 720,
         model_path: Optional[str] = None,
     ) -> None:
-        """LSTMPredictor 초기화.
+        """Initialize LSTMPredictor.
 
         Args:
-            lookback: 과거 데이터 포인트 수.
-                기본값 720 = 24시간 × 30일 (시간 단위 데이터 기준).
-            model_path: 사전 학습된 모델 파일 경로.
-                None 이면 새 모델을 생성하고, 값이 있으면 해당 경로에서 로드.
+            lookback: Number of past data points.
+                Default value 720 = 24 hours × 30 days (time-based data).
+            model_path: Path to a pre-trained model file.
+                If None, creates a new model; if provided, loads from the path.
         """
         self.lookback: int = lookback
         self.model: Optional[Sequential] = None
@@ -56,18 +56,18 @@ class LSTMPredictor:
             self.load(model_path)
 
     # ------------------------------------------------------------------
-    # 내부 헬퍼
+    # Internal helpers
     # ------------------------------------------------------------------
 
     def _prepare_data(
         self,
         data: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
-        """정규화된 시계열 데이터를 지도학습용 (X, Y) 쌍으로 변환.
+        """Convert normalized time series data into supervised learning (X, Y) pairs.
 
         Args:
-            data: 이미 MinMaxScaler 로 변환된 1-D 또는 2-D 배열.
-                shape: (n_samples,) 또는 (n_samples, 1).
+            data: 1-D or 2-D array already transformed by MinMaxScaler.
+                shape: (n_samples,) or (n_samples, 1).
 
         Returns:
             X: shape (n_windows, lookback, 1)
@@ -83,13 +83,13 @@ class LSTMPredictor:
         return X_arr, Y_arr
 
     def _build_model(self, input_shape: tuple[int, int]) -> Sequential:
-        """2-layer LSTM 모델 생성.
+        """Build a two-layer LSTM model.
 
         Args:
-            input_shape: (timesteps, features) 튜플.
+            input_shape: Tuple (timesteps, features).
 
         Returns:
-            컴파일된 Keras Sequential 모델.
+            Compiled Keras Sequential model.
         """
         model = Sequential(
             [
@@ -106,7 +106,7 @@ class LSTMPredictor:
         return model
 
     # ------------------------------------------------------------------
-    # 공개 API
+    # Public API
     # ------------------------------------------------------------------
 
     def train(
@@ -115,18 +115,18 @@ class LSTMPredictor:
         epochs: int = 100,
         batch_size: int = 16,
     ) -> dict:
-        """LSTM 모델을 학습.
+        """Train the LSTM model.
 
-        데이터를 MinMaxScaler 로 [0, 1] 범위로 정규화한 뒤
-        (X, Y) 슬라이딩 윈도우를 생성하여 모델을 학습합니다.
+        The data is normalized to [0, 1] range using MinMaxScaler
+        and then (X, Y) sliding windows are created for training the model.
 
         Args:
-            data: 종가 배열. shape (n_samples,) 또는 (n_samples, 1).
-            epochs: 학습 에포크 수. 기본값 100.
-            batch_size: 미니배치 크기. 기본값 16.
+            data: Array of closing prices. shape (n_samples,) or (n_samples, 1).
+            epochs: Number of training epochs. Default value 100.
+            batch_size: Mini-batch size. Default value 16.
 
         Returns:
-            학습 결과 딕셔너리 ``{'loss': float, 'epochs': int}``.
+            Dictionary with training results ``{'loss': float, 'epochs': int}``.
         """
         data = np.array(data, dtype=float).reshape(-1, 1)
 
@@ -154,31 +154,31 @@ class LSTMPredictor:
         data: np.ndarray,
         num_predictions: int = 48,
     ) -> list[float]:
-        """학습된 모델로 미래 가격을 예측.
+        """Predict future prices using the trained model.
 
-        마지막 ``lookback`` 개의 데이터를 시작점으로 삼아
-        ``num_predictions`` 개의 미래 가격을 순차적으로 예측합니다.
+        Starting from the last ``lookback`` number of data points,
+        it predicts ``num_predictions`` steps into the future sequentially.
 
         Args:
-            data: 종가 배열. shape (n_samples,) 또는 (n_samples, 1).
-                최소 ``lookback`` 개 이상의 데이터가 필요합니다.
-            num_predictions: 예측할 미래 시간 스텝 수. 기본값 48.
+            data: Array of closing prices. shape (n_samples,) or (n_samples, 1).
+                At least ``lookback`` number of data points are required.
+            num_predictions: Number of future time steps to predict. Default value 48.
 
         Returns:
-            예측 가격 리스트 (원래 스케일로 역변환된 값).
+            List of predicted prices (inverted back to original scale).
 
         Raises:
-            RuntimeError: 모델 또는 스케일러가 초기화되지 않은 경우.
+            RuntimeError: If the model or scaler is not initialized.
         """
         if self.model is None or self.scaler is None:
             raise RuntimeError(
-                "모델이 학습되지 않았습니다. train() 을 먼저 호출하세요."
+                "The model has not been trained. Call train() first."
             )
 
         data = np.array(data, dtype=float).reshape(-1, 1)
         scaled = self.scaler.transform(data)
 
-        # 슬라이딩 윈도우 초기값 (lookback × 1 × 1)
+        # Initial sliding window (lookback × 1 × 1)
         window = scaled[-self.lookback :].reshape(1, self.lookback, 1)
 
         predictions: list[float] = []
@@ -189,7 +189,7 @@ class LSTMPredictor:
             )
             predictions.append(pred_price)
 
-            # 윈도우 슬라이드
+            # Slide the window
             window = np.append(
                 window[:, 1:, :],
                 pred_scaled.reshape(1, 1, 1),
@@ -200,32 +200,32 @@ class LSTMPredictor:
         return predictions
 
     def save(self, path: str) -> None:
-        """학습된 모델을 파일로 저장.
+        """Save the trained model to a file.
 
         Args:
-            path: 저장 경로 (.keras 또는 .h5 형식).
+            path: Path to save the model (.keras or .h5 format).
 
         Raises:
-            RuntimeError: 저장할 모델이 없는 경우.
+            RuntimeError: If there is no model to save.
         """
         if self.model is None:
-            raise RuntimeError("저장할 모델이 없습니다. 먼저 train() 을 호출하세요.")
+            raise RuntimeError("No model to save. Call train() first.")
 
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         self.model.save(path)
         logger.info("LSTM model saved → %s", path)
 
     def load(self, path: str) -> None:
-        """저장된 모델을 파일에서 로드.
+        """Load a saved model from file.
 
         Args:
-            path: 모델 파일 경로.
+            path: Path to the model file.
 
         Raises:
-            FileNotFoundError: 파일이 존재하지 않는 경우.
+            FileNotFoundError: If the file does not exist.
         """
         if not os.path.exists(path):
-            raise FileNotFoundError(f"모델 파일을 찾을 수 없습니다: {path}")
+            raise FileNotFoundError(f"Model file not found: {path}")
 
         self.model = load_model(path)
         logger.info("LSTM model loaded ← %s", path)

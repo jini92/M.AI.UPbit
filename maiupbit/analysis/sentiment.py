@@ -3,12 +3,11 @@
 maiupbit.analysis.sentiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-뉴스 수집 및 감성 분석 모듈.
+News collection and sentiment analysis module.
 
-Google News RSS 피드를 통해 코인 관련 뉴스를 수집하고
-텍스트 기반의 간단한 감성 점수를 계산합니다.
+Collects coin-related news from Google News RSS feed and calculates a simple text-based sentiment score.
 
-사용 예::
+Usage example::
 
     analyzer = SentimentAnalyzer()
     news_list = analyzer.get_news("KRW-BTC", num_articles=5)
@@ -28,7 +27,7 @@ from urllib.request import urlopen
 
 logger = logging.getLogger(__name__)
 
-# 긍정/부정 키워드 (영문 기준 — 필요 시 확장 가능)
+# Positive/Negative keywords (English based — expandable as needed)
 _POSITIVE_KEYWORDS: frozenset[str] = frozenset(
     [
         "surge", "rally", "bull", "gain", "rise", "up", "high", "growth",
@@ -46,42 +45,42 @@ _NEGATIVE_KEYWORDS: frozenset[str] = frozenset(
 
 
 class SentimentAnalyzer:
-    """뉴스 수집 및 감성 분석 엔진.
+    """News collection and sentiment analysis engine.
 
-    Google News RSS 피드를 파싱하여 코인 관련 뉴스를 수집하고,
-    키워드 기반의 단순 감성 점수를 계산합니다.
+    Parses Google News RSS feed to collect coin-related news,
+    and calculates a simple keyword-based sentiment score.
     """
 
     # ------------------------------------------------------------------
-    # 내부 헬퍼
+    # Internal helpers
     # ------------------------------------------------------------------
 
     def _extract_summary(self, raw_summary: str) -> str:
-        """HTML 태그 및 불필요한 문자열을 제거하여 깨끗한 요약문 반환.
+        """Removes HTML tags and unnecessary strings to return a clean summary.
 
         Args:
-            raw_summary: feedparser entry 의 원본 summary 문자열.
+            raw_summary: Original summary string from feedparser entry.
 
         Returns:
-            정제된 요약 텍스트.
+            Cleaned summary text.
         """
-        # HTML 태그 제거
+        # Remove HTML tags
         text = re.sub(r"<[^<]+?>", "", raw_summary)
-        # " - 출처명" 형식 제거
+        # Remove " - Source Name" format
         text = re.sub(r"\s-\s.*$", "", text)
-        # 다중 공백 정규화
+        # Normalize multiple spaces
         text = re.sub(r"\s{2,}", " ", text)
         return text.strip()
 
     def _get_article_content(self, url: str) -> str:
-        """URL 에서 기사 본문을 추출.
+        """Extract article content from URL.
 
         Args:
-            url: 기사 페이지 URL.
+            url: Article page URL.
 
         Returns:
-            ``<p>`` 태그를 이어붙인 기사 본문 문자열.
-            오류 발생 시 빈 문자열 반환.
+            String of concatenated ``<p>`` tags for the article body.
+            Returns an empty string if an error occurs.
         """
         try:
             html = urlopen(url, timeout=10).read()
@@ -89,11 +88,11 @@ class SentimentAnalyzer:
             paragraphs = [p.get_text() for p in soup.find_all("p")]
             return "\n".join(paragraphs)
         except Exception as exc:  # noqa: BLE001
-            logger.debug("기사 본문 추출 실패 (%s): %s", url, exc)
+            logger.debug("Failed to extract article content (%s): %s", url, exc)
             return ""
 
     # ------------------------------------------------------------------
-    # 공개 API
+    # Public API
     # ------------------------------------------------------------------
 
     def get_news(
@@ -101,25 +100,25 @@ class SentimentAnalyzer:
         symbol: str,
         num_articles: int = 5,
     ) -> list[dict]:
-        """Google News RSS 에서 코인 관련 뉴스를 수집.
+        """Collects coin-related news from Google News RSS.
 
         Args:
-            symbol: 거래 심볼 또는 코인명. 예: ``"KRW-BTC"``, ``"bitcoin"``.
-                KRW-XXX 형식인 경우 'XXX' 부분을 검색어로 사용합니다.
-            num_articles: 수집할 최대 기사 수. 기본값 5.
+            symbol: Trading symbol or coin name. Example: ``"KRW-BTC"``, ``"bitcoin"``.
+                If in KRW-XXX format, the 'XXX' part is used as a search term.
+            num_articles: Maximum number of articles to collect. Default 5.
 
         Returns:
-            뉴스 항목 리스트. 각 항목::
-
+            List of news items. Each item::
+            
                 {
-                    'title': str,    # 기사 제목
-                    'summary': str,  # 정제된 요약
-                    'link': str,     # 원문 URL
+                    'title': str,    # Article title
+                    'summary': str,  # Cleaned summary
+                    'link': str,     # Original URL
                 }
 
-            수집 실패 시 빈 리스트 반환.
+            Returns an empty list if collection fails.
         """
-        # 심볼에서 코인 티커 추출 (예: "KRW-BTC" → "BTC")
+        # Extract coin ticker from symbol (e.g., "KRW-BTC" → "BTC")
         query_term = symbol.split("-")[-1] if "-" in symbol else symbol
 
         rss_url = (
@@ -130,7 +129,7 @@ class SentimentAnalyzer:
         try:
             feed = feedparser.parse(rss_url)
         except Exception as exc:  # noqa: BLE001
-            logger.error("뉴스 피드 파싱 실패: %s", exc)
+            logger.error("Failed to parse news feed: %s", exc)
             return []
 
         news_list: list[dict] = []
@@ -149,27 +148,27 @@ class SentimentAnalyzer:
             )
 
         logger.info(
-            "get_news('%s'): %d개 기사 수집 완료",
+            "get_news('%s'): %d articles collected",
             symbol,
             len(news_list),
         )
         return news_list
 
     def analyze_sentiment(self, news_list: list[dict]) -> dict:
-        """수집된 뉴스 목록에 대한 감성 점수 계산.
+        """Calculates sentiment score for the collected news list.
 
-        제목과 요약문의 키워드를 분석하여 -1.0 ~ 1.0 범위의
-        감성 점수를 반환합니다.
+        Analyzes keywords in titles and summaries to return a sentiment score
+        within the range of -1.0 (very negative) to 1.0 (very positive).
 
         Args:
-            news_list: :meth:`get_news` 의 반환값.
+            news_list: Return value from :meth:`get_news`.
 
         Returns:
-            감성 분석 결과::
-
+            Sentiment analysis result::
+            
                 {
-                    'score': float,   # -1.0 (매우 부정) ~ 1.0 (매우 긍정)
-                    'summary': str,   # 감성 레이블 ('positive' | 'negative' | 'neutral')
+                    'score': float,   # -1.0 (very negative) ~ 1.0 (very positive)
+                    'summary': str,   # Sentiment label ('positive' | 'negative' | 'neutral')
                 }
         """
         if not news_list:
@@ -188,7 +187,7 @@ class SentimentAnalyzer:
             total_score += article_score
 
         avg_score = total_score / len(news_list)
-        # -1.0 ~ 1.0 클리핑
+        # Clip to -1.0 ~ 1.0
         avg_score = max(-1.0, min(1.0, avg_score))
 
         if avg_score > 0.1:
@@ -211,18 +210,18 @@ class SentimentAnalyzer:
         symbol: str,
         num_articles: int = 5,
     ) -> str:
-        """LLM 입력용 뉴스 텍스트 블록을 반환.
+        """Returns a news text block for LLM input.
 
         Args:
-            symbol: 거래 심볼 또는 코인명. 예: ``"KRW-BTC"``.
-            num_articles: 수집할 최대 기사 수. 기본값 5.
+            symbol: Trading symbol or coin name. Example: ``"KRW-BTC"``.
+            num_articles: Maximum number of articles to collect. Default 5.
 
         Returns:
-            번호가 매겨진 뉴스 텍스트 문자열.
-            수집된 기사가 없으면 빈 문자열 반환.
+            Numbered news text string.
+            Returns an empty string if no articles are collected.
 
         Example::
-
+            
             Article 1:
 
             Title: Bitcoin surges past $70,000
@@ -244,6 +243,6 @@ class SentimentAnalyzer:
             lines.append("")
             lines.append(f"Summary: {item['summary']}")
             lines.append("")
-            lines.append("")  # 기사 간 구분 빈 줄
+            lines.append("")  # Blank line between articles
 
         return "\n".join(lines)

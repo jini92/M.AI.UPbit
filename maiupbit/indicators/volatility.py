@@ -1,6 +1,6 @@
-"""변동성 지표 모듈.
+"""Volatility indicator module.
 
-볼린저 밴드, ATR, 노이즈 비율 계산 함수를 제공합니다.
+Provides functions to calculate Bollinger Bands, ATR, and Noise Ratio.
 """
 
 from typing import Tuple
@@ -14,16 +14,15 @@ def bollinger_bands(
     length: int = 20,
     std_dev: float = 2.0,
 ) -> Tuple[pd.Series, pd.Series, pd.Series]:
-    """볼린저 밴드(상단, 중간, 하단)를 계산합니다.
+    """Calculates Bollinger Bands (upper, middle, lower).
 
     Args:
-        series: 종가 등 가격 데이터 (pandas Series).
-        length: 이동 평균 및 표준편차 계산 기간 (기본값 20).
-        std_dev: 표준편차 배수 (기본값 2.0).
+        series: Closing price data or similar (pandas Series).
+        length: Period for moving average and standard deviation calculation (default 20).
+        std_dev: Standard deviation multiplier (default 2.0).
 
     Returns:
-        (upper_band, middle_band, lower_band) 튜플.
-        각각 pandas Series.
+        Tuple of (upper_band, middle_band, lower_band), each a pandas Series.
     """
     middle = series.rolling(window=length).mean()
     rolling_std = series.rolling(window=length).std()
@@ -38,16 +37,16 @@ def atr(
     close: pd.Series,
     length: int = 14,
 ) -> pd.Series:
-    """Average True Range(ATR)를 계산합니다.
+    """Calculates Average True Range(ATR).
 
     Args:
-        high: 고가 데이터.
-        low: 저가 데이터.
-        close: 종가 데이터.
-        length: ATR 계산 기간 (기본값 14).
+        high: High price data.
+        low: Low price data.
+        close: Closing price data.
+        length: Period for ATR calculation (default 14).
 
     Returns:
-        ATR 값을 담은 pandas Series.
+        pandas Series containing the ATR values.
     """
     prev_close = close.shift(1)
     tr1 = high - low
@@ -64,20 +63,20 @@ def noise_ratio(
     close: pd.Series,
     length: int = 20,
 ) -> pd.Series:
-    """강환국 노이즈 비율을 계산합니다.
+    """Calculates the Noise Ratio by Kang Won Gu.
 
-    노이즈 = 1 - abs(close - open) / (high - low).
-    값이 낮을수록 추세가 강하고 변동성 돌파 전략에 유리합니다.
+    Noise = 1 - abs(close - open) / (high - low).
+    Lower values indicate a stronger trend and are favorable for volatility breakout strategies.
 
     Args:
-        open_: 시가 데이터.
-        high: 고가 데이터.
-        low: 저가 데이터.
-        close: 종가 데이터.
-        length: 이동 평균 기간 (기본값 20).
+        open_: Opening price data.
+        high: High price data.
+        low: Low price data.
+        close: Closing price data.
+        length: Period for moving average calculation (default 20).
 
     Returns:
-        노이즈 비율(0~1)의 이동평균 pandas Series.
+        pandas Series containing the rolling mean of Noise Ratio values between 0 and 1.
     """
     daily_range = high - low
     body = (close - open_).abs()

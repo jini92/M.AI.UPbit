@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-"""maiupbit.trading.outcome — 매매 사후 평가.
+"""maiupbit.trading.outcome — trading post-evaluation.
 
-매매 후 24시간 경과한 거래의 가격 변동을 조회하여
-판단 정확도를 자동 평가합니다.
+Evaluates the price movement of trades that have passed 24 hours after execution to automatically assess judgment accuracy.
 """
 
 from __future__ import annotations
@@ -17,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 class OutcomeTracker:
-    """매매 사후 평가 추적기.
+    """Trading post-evaluation tracker.
 
     Attributes:
-        exchange: UPbit 거래소 인스턴스.
-        journal: 거래 기록 저널.
+        exchange: UPbit exchange instance.
+        journal: trade record journal.
     """
 
     def __init__(self, exchange: UPbitExchange, journal: TradeJournal) -> None:
@@ -29,13 +28,13 @@ class OutcomeTracker:
         self.journal = journal
 
     def evaluate_pending(self, min_hours: float = 24.0) -> list[dict]:
-        """미평가 매매 일괄 평가.
+        """Batch evaluation of pending trades.
 
         Args:
-            min_hours: 최소 경과 시간 (기본 24h).
+            min_hours: minimum elapsed time (default 24h).
 
         Returns:
-            평가된 결과 목록.
+            List of evaluated results.
         """
         pending = self.journal.get_pending_outcomes(min_hours=min_hours)
         results = []
@@ -51,24 +50,24 @@ class OutcomeTracker:
                     **result,
                 })
 
-        logger.info("사후 평가 완료: %d/%d건", len(results), len(pending))
+        logger.info("Post-evaluation complete: %d/%d items", len(results), len(pending))
         return results
 
     def _evaluate_trade(self, trade: dict) -> Optional[dict]:
-        """단일 매매 평가.
+        """Evaluate a single trade.
 
         Args:
-            trade: 거래 레코드.
+            trade: trade record.
 
         Returns:
-            평가 결과 dict 또는 None.
+            Evaluation result dict or None.
         """
         symbol = trade["symbol"]
         action = trade["action"]
         entry_price = trade["price"]
 
         if not entry_price or entry_price <= 0:
-            logger.warning("진입 가격 없음: %s", trade["trade_id"])
+            logger.warning("No entry price: %s", trade["trade_id"])
             return None
 
         try:
@@ -76,19 +75,19 @@ class OutcomeTracker:
             if not current_price:
                 return None
         except Exception as exc:
-            logger.error("가격 조회 실패 [%s]: %s", symbol, exc)
+            logger.error("Price lookup failed [%s]: %s", symbol, exc)
             return None
 
-        # 수익률 계산
+        # Calculate profit and loss percentage
         pnl_percent = ((current_price - entry_price) / entry_price) * 100
 
-        # 정확도 판정
+        # Accuracy assessment
         if action == "sell":
-            # 매도 후 가격 하락 → 올바른 판단
+            # Price decline after sell → correct judgment
             was_correct = current_price <= entry_price
-            pnl_percent = -pnl_percent  # 매도는 하락이 수익
+            pnl_percent = -pnl_percent  # Sell is profit with a price drop
         elif action == "buy":
-            # 매수 후 가격 상승 → 올바른 판단
+            # Price rise after buy → correct judgment
             was_correct = current_price >= entry_price
         else:
             was_correct = None
@@ -100,7 +99,7 @@ class OutcomeTracker:
         }
 
         logger.info(
-            "평가: %s %s — entry=%.6f, now=%.6f, pnl=%.2f%%, correct=%s",
+            "Evaluation: %s %s — entry=%.6f, now=%.6f, pnl=%.2f%%, correct=%s",
             action, symbol, entry_price, current_price, pnl_percent,
             "✅" if was_correct else "❌",
         )

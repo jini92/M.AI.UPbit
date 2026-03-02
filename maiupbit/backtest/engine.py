@@ -1,4 +1,3 @@
-"""백테스팅 엔진"""
 from __future__ import annotations
 
 import pandas as pd
@@ -7,13 +6,13 @@ from typing import Protocol
 
 
 class Strategy(Protocol):
-    """전략 프로토콜 — signal() 메서드만 구현하면 됨"""
+    """Strategy protocol — only need to implement the signal() method"""
 
     def signal(self, data: pd.DataFrame) -> int:
-        """매매 시그널 생성.
+        """Generate trading signals.
 
         Args:
-            data: 현재까지의 OHLCV + 지표 데이터
+            data: OHLCV DataFrame plus indicator data up to now
 
         Returns:
             1=buy, -1=sell, 0=hold
@@ -22,7 +21,7 @@ class Strategy(Protocol):
 
 
 class BacktestEngine:
-    """백테스트 엔진
+    """Backtesting engine
 
     Usage:
         engine = BacktestEngine(initial_capital=1_000_000)
@@ -34,11 +33,11 @@ class BacktestEngine:
         self.initial_capital = initial_capital
 
     def run(self, data: pd.DataFrame, strategy: Strategy) -> dict:
-        """백테스트 실행.
+        """Run backtest.
 
         Args:
-            data: OHLCV DataFrame (close 컬럼 필수)
-            strategy: Strategy 프로토콜 구현체
+            data: OHLCV DataFrame (close column is required)
+            strategy: Strategy protocol implementation
 
         Returns:
             dict: {total_return, sharpe_ratio, max_drawdown, num_trades, trades, final_equity}

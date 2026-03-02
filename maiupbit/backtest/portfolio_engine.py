@@ -1,7 +1,7 @@
-"""포트폴리오 백테스트 엔진.
+"""Portfolio backtest engine.
 
-PortfolioStrategy 기반 다중 자산 백테스트를 실행합니다.
-주기적 리밸런싱으로 자산배분 전략을 검증합니다.
+Runs portfolio backtests based on the PortfolioStrategy.
+Validates asset allocation strategies through periodic rebalancing.
 """
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pandas as pd
 
 
 class PortfolioBacktestEngine:
-    """포트폴리오 백테스트 엔진.
+    """Portfolio backtest engine.
 
     Usage:
         engine = PortfolioBacktestEngine(initial_capital=10_000_000)
@@ -25,18 +25,18 @@ class PortfolioBacktestEngine:
         strategy,
         rebalance_days: int = 7,
     ) -> dict:
-        """포트폴리오 백테스트 실행.
+        """Run portfolio backtest.
 
         Args:
-            data: {symbol: OHLCV DataFrame} 딕셔너리.
-            strategy: PortfolioStrategy 구현체 (allocate() 메서드 필요).
-            rebalance_days: 리밸런싱 주기 (일).
+            data: {symbol: OHLCV DataFrame} dictionary.
+            strategy: PortfolioStrategy implementation (allocate() method required).
+            rebalance_days: Rebalancing period (days).
 
         Returns:
             dict: {total_return, sharpe_ratio, max_drawdown, equity_curve,
                    allocation_history, per_asset_return, num_rebalances}.
         """
-        # 공통 날짜 인덱스 생성
+        # Create common date index
         common_dates = None
         for symbol, df in data.items():
             if common_dates is None:
@@ -54,30 +54,30 @@ class PortfolioBacktestEngine:
 
         equity_curve = []
         allocation_history = []
-        days_since_rebalance = rebalance_days  # 첫날 리밸런싱
+        days_since_rebalance = rebalance_days  # Rebalance on the first day
 
         for date in dates:
             days_since_rebalance += 1
 
-            # 리밸런싱
+            # Rebalancing
             if days_since_rebalance >= rebalance_days:
-                # 현재 포트폴리오 가치 계산
+                # Calculate current portfolio value
                 total_value = cash
                 for symbol, qty in holdings.items():
                     price = data[symbol].loc[date, "close"]
                     total_value += qty * price
 
-                # 전량 매도
+                # Sell all positions
                 cash = total_value
                 holdings = {}
 
-                # 새 배분 산출
+                # New allocation calculation
                 data_up_to = {
                     s: df.loc[:date] for s, df in data.items()
                 }
                 allocations = strategy.allocate(data_up_to, date)
 
-                # 매수
+                # Buy
                 for symbol, weight in allocations.items():
                     if symbol not in data or weight <= 0:
                         continue
@@ -93,7 +93,7 @@ class PortfolioBacktestEngine:
                 })
                 days_since_rebalance = 0
 
-            # 일일 포트폴리오 가치
+            # Daily portfolio value
             portfolio_value = cash
             for symbol, qty in holdings.items():
                 price = data[symbol].loc[date, "close"]
@@ -109,14 +109,14 @@ class PortfolioBacktestEngine:
             index=[e["date"] for e in equity_curve],
         )
 
-        # 수익률 계산
+        # Calculate total return
         total_return = (
             (equity_series.iloc[-1] - self.initial_capital)
             / self.initial_capital
             * 100
         )
 
-        # 샤프 비율 (365일 기준, 암호화폐)
+        # Sharpe ratio (365 days basis, cryptocurrency)
         returns = equity_series.pct_change().dropna()
         sharpe = float(
             (returns.mean() / returns.std() * (365**0.5))
@@ -129,7 +129,7 @@ class PortfolioBacktestEngine:
         drawdown = (equity_series - peak) / peak
         mdd = float(drawdown.min() * 100)
 
-        # 자산별 수익률
+        # Asset-specific returns
         per_asset_return = {}
         for symbol, df in data.items():
             if dates[0] in df.index and dates[-1] in df.index:
@@ -152,7 +152,7 @@ class PortfolioBacktestEngine:
         }
 
     def _empty_result(self) -> dict:
-        """빈 결과 반환."""
+        """Return empty result."""
         return {
             "total_return": 0.0,
             "sharpe_ratio": 0.0,

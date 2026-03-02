@@ -1,9 +1,3 @@
-"""다중팩터 랭킹 전략.
-
-강환국 다중팩터 프레임워크를 암호화폐에 적응:
-- PER/PBR 대신 모멘텀, 퀄리티(거래량 일관성), 변동성, 단기성과 사용
-- 각 팩터 Z-score 기반 복합 랭킹
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -17,7 +11,7 @@ from maiupbit.strategies.base import StrategyConfig
 
 @dataclass
 class MultiFactorConfig(StrategyConfig):
-    """다중팩터 전략 설정."""
+    """Multi-factor strategy configuration."""
 
     momentum_weight: float = 0.3
     quality_weight: float = 0.2
@@ -28,13 +22,13 @@ class MultiFactorConfig(StrategyConfig):
 
 
 class MultiFactorStrategy:
-    """다중팩터 랭킹 전략 (PortfolioStrategy 호환).
+    """Multi-factor ranking strategy (PortfolioStrategy compatible).
 
-    팩터:
-    - 모멘텀: 28일 수익률
-    - 퀄리티: 거래량 CV (변동계수, 낮을수록 일관적)
-    - 변동성: ATR/가격 (낮을수록 안정적)
-    - 성과: 7일 수익률
+    Factors:
+    - Momentum: 28-day return rate
+    - Quality: Volume CV (coefficient of variation, lower is better)
+    - Volatility: ATR/price (lower is better)
+    - Performance: 7-day return rate
     """
 
     def __init__(self, config: MultiFactorConfig | None = None) -> None:
@@ -45,14 +39,14 @@ class MultiFactorStrategy:
         data: dict[str, pd.DataFrame],
         date: pd.Timestamp | None = None,
     ) -> pd.DataFrame:
-        """각 코인의 팩터 값 계산.
+        """Calculate factor values for each coin.
 
         Args:
             data: {symbol: OHLCV DataFrame}.
-            date: 기준 날짜.
+            date: Reference date.
 
         Returns:
-            팩터 값 DataFrame (index=symbol).
+            Factor value DataFrame (index=symbol).
         """
         factors = []
         for symbol, df in data.items():
@@ -63,20 +57,20 @@ class MultiFactorStrategy:
 
             close = df["close"]
 
-            # 모멘텀: 28일 수익률
+            # Momentum: 28-day return rate
             mom_28 = close.pct_change(28).iloc[-1] if len(df) >= 29 else np.nan
 
-            # 퀄리티: 거래량 CV (낮을수록 좋음 → 역수 사용)
+            # Quality: Volume CV (lower is better → use reciprocal)
             vol_20 = df["volume"].tail(20)
             vol_cv = vol_20.std() / vol_20.mean() if vol_20.mean() > 0 else np.nan
             quality = 1.0 / vol_cv if vol_cv and vol_cv > 0 else 0.0
 
-            # 변동성: ATR/가격 (낮을수록 좋음 → 역수)
+            # Volatility: ATR/price (lower is better → use reciprocal)
             atr_val = atr(df["high"], df["low"], close, length=14).iloc[-1]
             price = close.iloc[-1]
             vol_factor = 1.0 / (atr_val / price) if atr_val > 0 and price > 0 else 0.0
 
-            # 성과: 7일 수익률
+            # Performance: 7-day return rate
             perf_7 = close.pct_change(7).iloc[-1] if len(df) >= 8 else np.nan
 
             factors.append({
@@ -93,7 +87,7 @@ class MultiFactorStrategy:
 
     @staticmethod
     def _zscore(series: pd.Series) -> pd.Series:
-        """Z-score 표준화."""
+        """Z-score normalization."""
         std = series.std()
         if std == 0 or np.isnan(std):
             return pd.Series(0.0, index=series.index)
@@ -104,11 +98,11 @@ class MultiFactorStrategy:
         data: dict[str, pd.DataFrame],
         date: pd.Timestamp | None = None,
     ) -> list[dict]:
-        """다중팩터 기반 코인 랭킹.
+        """Multi-factor based coin ranking.
 
         Args:
             data: {symbol: OHLCV DataFrame}.
-            date: 기준 날짜.
+            date: Reference date.
 
         Returns:
             [{"symbol", "composite_score", "momentum", "quality", "volatility", "performance", "rank"}].
@@ -117,14 +111,14 @@ class MultiFactorStrategy:
         if factors.empty:
             return []
 
-        # Z-score 표준화
+        # Z-score normalization
         z_scores = pd.DataFrame(index=factors.index)
         z_scores["momentum"] = self._zscore(factors["momentum"])
         z_scores["quality"] = self._zscore(factors["quality"])
         z_scores["volatility"] = self._zscore(factors["volatility"])
         z_scores["performance"] = self._zscore(factors["performance"])
 
-        # 복합 점수
+        # Composite score
         composite = (
             z_scores["momentum"] * self.config.momentum_weight
             + z_scores["quality"] * self.config.quality_weight
@@ -156,14 +150,14 @@ class MultiFactorStrategy:
         data: dict[str, pd.DataFrame],
         date: pd.Timestamp | None = None,
     ) -> dict[str, float]:
-        """다중팩터 랭킹 기반 동일가중 배분.
+        """Multi-factor ranking based equal-weight allocation.
 
         Args:
             data: {symbol: OHLCV DataFrame}.
-            date: 기준 날짜.
+            date: Reference date.
 
         Returns:
-            {symbol: weight} 상위 N개 동일가중.
+            {symbol: weight} top N equally weighted.
         """
         rankings = self.rank_coins(data, date)
         selected = rankings[: self.config.top_n]

@@ -1,6 +1,6 @@
-"""퀀트 전략 패키지.
+"""Quant strategy package.
 
-강환국 퀀트 투자 프레임워크 기반 전략 모듈.
+Modules based on the framework by Hwan-guk Kang for quantitative investment.
 """
 
 from maiupbit.strategies.base import QuantStrategy, PortfolioStrategy, StrategyConfig

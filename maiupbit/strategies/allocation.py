@@ -1,9 +1,9 @@
-"""GTAA 동적 자산배분 전략.
+"""GTAA Dynamic Asset Allocation Strategy.
 
-강환국 GTAA(Global Tactical Asset Allocation) 프레임워크:
-- 모멘텀 양수 자산만 투자, 음수면 현금 보유
-- SMA 필터: 현재가 > SMA(200)인 자산만 투자
-- 상위 N개 동일가중 배분
+Kwang Hwan Gu GTAA (Global Tactical Asset Allocation) Framework:
+- Invest only in assets with positive momentum, hold cash if negative
+- SMA Filter: Only invest in assets where current price > SMA(200)
+- Allocate equally among the top N assets
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from maiupbit.strategies.base import StrategyConfig
 
 @dataclass
 class GTAAConfig(StrategyConfig):
-    """GTAA 자산배분 전략 설정."""
+    """GTAA Asset Allocation Strategy Configuration."""
 
     momentum_periods: list[int] = field(default_factory=lambda: [28, 84, 168])
     momentum_weights: list[float] = field(default_factory=lambda: [6, 3, 1])
@@ -28,13 +28,13 @@ class GTAAConfig(StrategyConfig):
 
 
 class GTAAStrategy:
-    """GTAA 동적 자산배분 전략 (PortfolioStrategy 호환).
+    """GTAA Dynamic Asset Allocation Strategy (PortfolioStrategy compatible).
 
-    선택 기준:
-    1) 모멘텀 점수 양수
-    2) 현재가 > SMA(sma_filter)
-    3) 모멘텀 점수 기준 상위 max_positions개
-    4) 동일가중 배분
+    Selection Criteria:
+    1) Positive momentum score
+    2) Current price > SMA(sma_filter)
+    3) Top max_positions assets based on momentum score
+    4) Equal-weight allocation
     """
 
     def __init__(self, config: GTAAConfig | None = None) -> None:
@@ -46,15 +46,15 @@ class GTAAStrategy:
         df: pd.DataFrame,
         date: pd.Timestamp | None = None,
     ) -> dict | None:
-        """개별 자산 평가.
+        """Evaluate individual asset.
 
         Args:
-            symbol: 종목 코드.
+            symbol: Symbol code.
             df: OHLCV DataFrame.
-            date: 기준 날짜.
+            date: Reference date.
 
         Returns:
-            {"symbol", "score", "above_sma"} 또는 None.
+            {"symbol", "score", "above_sma"} or None.
         """
         if date is not None:
             df = df.loc[:date]
@@ -77,7 +77,7 @@ class GTAAStrategy:
         if np.isnan(score) or score <= 0:
             return None
 
-        # SMA 필터
+        # SMA filter
         sma_val = close.rolling(self.config.sma_filter).mean().iloc[-1]
         if np.isnan(sma_val) or close.iloc[-1] < sma_val:
             return None
@@ -93,14 +93,14 @@ class GTAAStrategy:
         data: dict[str, pd.DataFrame],
         date: pd.Timestamp | None = None,
     ) -> dict[str, float]:
-        """GTAA 동적 자산배분.
+        """GTAA Dynamic Asset Allocation.
 
         Args:
             data: {symbol: OHLCV DataFrame}.
-            date: 기준 날짜.
+            date: Reference date.
 
         Returns:
-            {symbol: weight} 동일가중 배분.
+            {symbol: weight} equal-weight allocation.
         """
         candidates = []
         for symbol, df in data.items():

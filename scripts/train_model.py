@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""모델 재학습 스크립트 — LSTM 또는 Transformer"""
+"""Model retraining script — LSTM or Transformer"""
 import sys, os, json
 from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -8,12 +8,12 @@ from maiupbit.exchange.upbit import UPbitExchange
 
 
 def train(symbol: str = 'KRW-BTC', days: int = 90, model_type: str = 'transformer'):
-    """모델 재학습
+    """Model retraining
 
     Args:
-        symbol: 종목 코드 (예: KRW-BTC)
-        days: 학습 데이터 기간 (일)
-        model_type: 'lstm' 또는 'transformer'
+        symbol: Symbol code (e.g., KRW-BTC)
+        days: Training data period in days
+        model_type: 'lstm' or 'transformer'
     """
     exchange = UPbitExchange()
     hourly = exchange.get_ohlcv(symbol, 'minute60', count=days * 24)
@@ -31,7 +31,7 @@ def train(symbol: str = 'KRW-BTC', days: int = 90, model_type: str = 'transforme
         try:
             from maiupbit.models.transformer import TransformerPredictor
 
-            lookback = min(168, len(close_data) // 3)  # 7일 또는 데이터의 1/3
+            lookback = min(168, len(close_data) // 3)  # 7 days or data's 1/3
             predictor = TransformerPredictor(lookback=lookback, d_model=64, nhead=4, num_layers=2)
             result = predictor.train(close_data, epochs=50, batch_size=32)
 

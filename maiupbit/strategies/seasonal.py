@@ -1,9 +1,9 @@
-"""시즌/사이클 타이밍 필터.
+"""Season/Cycle timing filter.
 
-강환국 시즌 전략:
-- 10~4월 강세 (비중 확대)
-- 5~9월 약세 (비중 축소)
-- 비트코인 반감기 사이클 참조
+Kwang Hwan Kuk's seasonal strategy:
+- Bullish from October to April (increase weight)
+- Bearish from May to September (decrease weight)
+- Refer to Bitcoin halving cycle
 """
 from __future__ import annotations
 
@@ -12,17 +12,17 @@ from datetime import datetime
 
 from maiupbit.strategies.base import StrategyConfig
 
-# 비트코인 반감기 날짜
+# Bitcoin halving dates
 HALVING_DATES = [
     datetime(2012, 11, 28),
     datetime(2016, 7, 9),
     datetime(2020, 5, 11),
     datetime(2024, 4, 19),
-    # 예상
+    # Estimated
     datetime(2028, 4, 1),
 ]
 
-# 월별 시즌 성격 (1~12월)
+# Monthly seasonality (January to December)
 MONTHLY_SEASONALITY: dict[int, str] = {
     1: "bullish",
     2: "bullish",
@@ -41,7 +41,7 @@ MONTHLY_SEASONALITY: dict[int, str] = {
 
 @dataclass
 class SeasonalConfig(StrategyConfig):
-    """시즌 필터 설정."""
+    """Season filter settings."""
 
     bullish_months: list[int] = field(
         default_factory=lambda: [10, 11, 12, 1, 2, 3, 4]
@@ -54,11 +54,11 @@ class SeasonalConfig(StrategyConfig):
 
 
 class SeasonalFilter:
-    """시즌/반감기 타이밍 필터 (조합용).
+    """Season/halving timing filter (for combination).
 
-    다른 전략의 배분 결과에 시즌 조정을 적용합니다.
+    Applies seasonal adjustments to the distribution results of other strategies.
 
-    사용:
+    Usage:
         allocations = momentum.allocate(data)
         allocations = seasonal.adjust_allocations(allocations, datetime.now())
     """
@@ -67,10 +67,10 @@ class SeasonalFilter:
         self.config = config or SeasonalConfig()
 
     def get_season_info(self, date: datetime | None = None) -> dict:
-        """현재 시즌 정보 조회.
+        """Retrieve current season information.
 
         Args:
-            date: 기준 날짜 (None이면 현재).
+            date: Reference date (None means now).
 
         Returns:
             {"month", "season", "multiplier", "halving_phase", "days_since_halving",
@@ -87,7 +87,7 @@ class SeasonalFilter:
             else self.config.bearish_multiplier
         )
 
-        # 반감기 분석
+        # Halving analysis
         halving_phase = "unknown"
         days_since = None
         next_halving = None
@@ -126,14 +126,14 @@ class SeasonalFilter:
         allocations: dict[str, float],
         date: datetime | None = None,
     ) -> dict[str, float]:
-        """시즌에 따라 배분 비중 조정.
+        """Adjust allocation weights based on season.
 
         Args:
-            allocations: {symbol: weight} 원본 배분.
-            date: 기준 날짜.
+            allocations: {symbol: weight} original distribution.
+            date: Reference date.
 
         Returns:
-            시즌 조정된 {symbol: weight}.
+            Seasonally adjusted {symbol: weight}.
         """
         if not allocations:
             return allocations
@@ -141,7 +141,7 @@ class SeasonalFilter:
         info = self.get_season_info(date)
         multiplier = info["multiplier"]
 
-        # 반감기 후 강세 구간이면 추가 부스트
+        # Additional boost during post-halving bullish phase
         if info["halving_phase"] == "post_halving_bull":
             multiplier *= self.config.halving_boost
 
@@ -149,7 +149,7 @@ class SeasonalFilter:
         for symbol, weight in allocations.items():
             adjusted[symbol] = round(weight * multiplier, 4)
 
-        # 합계가 1.0을 초과하면 정규화
+        # Normalize if total exceeds 1.0
         total = sum(adjusted.values())
         if total > 1.0:
             for symbol in adjusted:

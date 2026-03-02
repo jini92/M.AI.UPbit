@@ -1,4 +1,4 @@
-"""퀀트 지표 단위 테스트 — ATR, noise_ratio, momentum_score, average_momentum_signal."""
+"""Quant Indicator Unit Tests — ATR, noise_ratio, momentum_score, average_momentum_signal."""
 import pandas as pd
 
 
@@ -9,10 +9,10 @@ class TestATR:
         result = atr(sample_ohlcv["high"], sample_ohlcv["low"], sample_ohlcv["close"])
         assert isinstance(result, pd.Series)
         assert len(result) == len(sample_ohlcv)
-        # 처음 13개는 NaN (rolling(14), TR은 index 0부터 유효)
+        # First 13 are NaN (rolling(14), TR is valid from index 0)
         assert result.iloc[:13].isna().all()
         assert not result.iloc[13:].isna().any()
-        # 유효값은 양수
+        # Valid values are positive
         valid = result.dropna()
         assert (valid > 0).all()
 
@@ -48,7 +48,7 @@ class TestNoiseRatio:
             sample_ohlcv["low"], sample_ohlcv["close"],
             length=10,
         )
-        # rolling(10): 처음 9개 NaN
+        # rolling(10): First 9 are NaN
         assert result.iloc[:9].isna().all()
         assert not result.iloc[9:].isna().any()
 
@@ -70,7 +70,7 @@ class TestMomentumScore:
             weights=[3, 2, 1],
         )
         assert isinstance(result, pd.Series)
-        # 7일 이전은 NaN 포함 가능
+        # Values before the 7th day may include NaN
         valid = result.dropna()
         assert len(valid) > 0
 
@@ -104,6 +104,6 @@ class TestAddAllSignals:
         assert "ATR_14" in result.columns
         assert "Noise_20" in result.columns
         assert "Momentum_Score" in result.columns
-        # 기존 컬럼도 유지
+        # Original columns are maintained
         assert "RSI_14" in result.columns
         assert "MACD_Signal" in result.columns

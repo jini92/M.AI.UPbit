@@ -3,12 +3,12 @@
 maiupbit.analysis
 ~~~~~~~~~~~~~~~~~
 
-시장 분석 엔진 패키지.
+Market analysis engine package.
 
 Modules:
-    technical  - 기술적 지표 분석 및 코인 추천
-    sentiment  - 뉴스 수집 및 감성 분석
-    llm        - LLM(GPT-4o) 기반 종합 투자 분석
+    technical  - Technical indicator analysis and coin recommendation
+    sentiment  - News collection and sentiment analysis
+    llm        - LLM (GPT-4o) based comprehensive investment analysis
 """
 
 from .technical import TechnicalAnalyzer

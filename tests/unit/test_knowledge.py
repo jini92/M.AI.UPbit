@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""KnowledgeProvider 테스트."""
+"""KnowledgeProvider tests."""
 
 import json
 import subprocess
@@ -16,8 +16,8 @@ from maiupbit.analysis.knowledge import KnowledgeProvider, _COIN_KEYWORDS
 
 @pytest.fixture
 def provider(tmp_path):
-    """테스트용 KnowledgeProvider (실제 Mnemo 호출 방지)."""
-    # 가짜 스크립트 파일 생성
+    """Test KnowledgeProvider (prevents actual Mnemo call)."""
+    # Create fake script file
     scripts_dir = tmp_path / "scripts"
     scripts_dir.mkdir()
     script = scripts_dir / "integrated_search.py"
@@ -32,7 +32,7 @@ def provider(tmp_path):
 
 @pytest.fixture
 def disabled_provider(tmp_path):
-    """비활성화된 KnowledgeProvider."""
+    """Disabled KnowledgeProvider."""
     return KnowledgeProvider(
         mnemo_path=str(tmp_path),
         enabled=False,
@@ -41,16 +41,16 @@ def disabled_provider(tmp_path):
 
 SAMPLE_RESULTS = [
     {
-        "name": "비트코인 투자 전략",
+        "name": "Bitcoin Investment Strategy",
         "score": 8.5,
-        "snippet": "BTC 장기 투자 시 DCA 전략이 효과적",
+        "snippet": "BTC long-term investment DCA strategy is effective",
         "source": "vault",
         "path": "/vault/crypto/btc.md",
     },
     {
-        "name": "퀀트 투자 솔루션",
+        "name": "Quant Investment Solution",
         "score": 7.2,
-        "snippet": "ChatGPT를 활용한 퀀트 투자 포트폴리오",
+        "snippet": "ChatGPT-based quant investment portfolio",
         "source": "vault",
         "path": "/vault/daily/quant.md",
     },
@@ -58,11 +58,11 @@ SAMPLE_RESULTS = [
 
 
 # ---------------------------------------------------------------------------
-# Tests: 초기화 및 가용성
+# Tests: Initialization and Availability
 # ---------------------------------------------------------------------------
 
 class TestKnowledgeProviderInit:
-    """초기화 및 가용성 테스트."""
+    """Initialization and availability tests."""
 
     def test_default_enabled(self, provider):
         assert provider.enabled is True
@@ -90,11 +90,11 @@ class TestKnowledgeProviderInit:
 
 
 # ---------------------------------------------------------------------------
-# Tests: 검색
+# Tests: Search
 # ---------------------------------------------------------------------------
 
 class TestSearch:
-    """search() 메서드 테스트."""
+    """search() method tests."""
 
     def test_search_disabled(self, disabled_provider):
         results = disabled_provider.search("bitcoin")
@@ -109,11 +109,11 @@ class TestSearch:
             results = provider.search("비트코인 투자")
 
         assert len(results) == 2
-        assert results[0]["name"] == "비트코인 투자 전략"
+        assert results[0]["name"] == "Bitcoin Investment Strategy"
         assert results[0]["score"] == 8.5
 
     def test_search_with_log_noise(self, provider):
-        """stdout에 로그가 섞여도 JSON 추출."""
+        """Extract JSON even if stdout contains logs."""
         noisy_output = "Loading model...\nSome log\n" + json.dumps(SAMPLE_RESULTS)
         mock_result = MagicMock()
         mock_result.stdout = noisy_output
@@ -155,11 +155,11 @@ class TestSearch:
 
 
 # ---------------------------------------------------------------------------
-# Tests: 코인별 검색
+# Tests: Coin-specific search
 # ---------------------------------------------------------------------------
 
 class TestSearchForCoin:
-    """search_for_coin() 테스트."""
+    """search_for_coin() tests."""
 
     def test_btc_keywords(self, provider):
         with patch.object(provider, "search", return_value=SAMPLE_RESULTS) as mock:
@@ -181,11 +181,11 @@ class TestSearchForCoin:
 
 
 # ---------------------------------------------------------------------------
-# Tests: 포매팅
+# Tests: Formatting
 # ---------------------------------------------------------------------------
 
 class TestFormatAsContext:
-    """format_as_context() 테스트."""
+    """format_as_context() tests."""
 
     def test_empty_results(self, provider):
         assert provider.format_as_context([]) == ""
@@ -193,12 +193,12 @@ class TestFormatAsContext:
     def test_basic_format(self, provider):
         context = provider.format_as_context(SAMPLE_RESULTS)
         assert "Knowledge Context from Mnemo" in context
-        assert "비트코인 투자 전략" in context
-        assert "퀀트 투자 솔루션" in context
+        assert "Bitcoin Investment Strategy" in context
+        assert "Quant Investment Solution" in context
 
     def test_max_chars_limit(self, provider):
         context = provider.format_as_context(SAMPLE_RESULTS, max_chars=100)
-        assert len(context) <= 200  # 헤더 + 일부 내용
+        assert len(context) <= 200  # header + some content
 
     def test_includes_source_and_score(self, provider):
         context = provider.format_as_context(SAMPLE_RESULTS)
@@ -207,11 +207,11 @@ class TestFormatAsContext:
 
 
 # ---------------------------------------------------------------------------
-# Tests: LLM 컨텍스트 생성
+# Tests: LLM Context Enrichment
 # ---------------------------------------------------------------------------
 
 class TestEnrichLLMContext:
-    """enrich_llm_context() 테스트."""
+    """enrich_llm_context() tests."""
 
     def test_disabled_returns_empty(self, disabled_provider):
         result = disabled_provider.enrich_llm_context("KRW-BTC")
@@ -221,7 +221,7 @@ class TestEnrichLLMContext:
         with patch.object(provider, "search_for_coin", return_value=SAMPLE_RESULTS):
             context = provider.enrich_llm_context("KRW-BTC")
 
-        assert "비트코인 투자 전략" in context
+        assert "Bitcoin Investment Strategy" in context
         assert "Knowledge Context" in context
 
     def test_no_results(self, provider):
@@ -232,17 +232,17 @@ class TestEnrichLLMContext:
 
 
 # ---------------------------------------------------------------------------
-# Tests: 시장 컨텍스트
+# Tests: Market Context Search
 # ---------------------------------------------------------------------------
 
 class TestSearchMarketContext:
-    """search_market_context() 테스트."""
+    """search_market_context() tests."""
 
     def test_deduplication(self, provider):
         with patch.object(provider, "search", return_value=SAMPLE_RESULTS):
             results = provider.search_market_context(top_k=5)
 
-        # 2개 쿼리 × 2개 결과 = 4개, 중복 제거 후 2개
+        # 2 queries × 2 results = 4, deduplicated to 2
         assert len(results) == 2
 
     def test_empty_results(self, provider):
@@ -253,11 +253,11 @@ class TestSearchMarketContext:
 
 
 # ---------------------------------------------------------------------------
-# Tests: COIN_KEYWORDS 매핑
+# Tests: COIN_KEYWORDS Mapping
 # ---------------------------------------------------------------------------
 
 class TestCoinKeywords:
-    """_COIN_KEYWORDS 매핑 테스트."""
+    """_COIN_KEYWORDS mapping tests."""
 
     def test_btc_has_korean(self):
         assert "비트코인" in _COIN_KEYWORDS["BTC"]

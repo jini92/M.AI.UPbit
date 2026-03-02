@@ -1,4 +1,4 @@
-"""유틸리티 패키지."""
+"""Utility package."""
 
 from maiupbit.utils.data import prepare_data, get_instructions
 from maiupbit.utils.report import ReportGenerator

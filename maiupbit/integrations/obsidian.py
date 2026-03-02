@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""maiupbit.integrations.obsidian — Obsidian 볼트 동기화.
+"""maiupbit.integrations.obsidian — Synchronize trading records to Obsidian bolt.
 
-거래 기록을 Obsidian 마크다운 노트로 자동 생성.
-Mnemo daily_enrich가 이 노트를 파싱하여 지식그래프에 축적.
+Automatically generate trading records in Obsidian markdown notes.
+Mnemo daily_enrich parses these notes and accumulates them into a knowledge graph.
 """
 
 from __future__ import annotations
@@ -24,12 +24,12 @@ _DEFAULT_PROJECT = "01.PROJECT/16.M.AI.UPbit"
 
 
 class ObsidianSync:
-    """Obsidian 볼트에 거래 노트 동기화.
+    """Synchronize trading notes to the Obsidian bolt.
 
     Attributes:
-        vault_path: Obsidian 볼트 루트 경로.
-        trades_dir: 거래 노트 저장 디렉토리.
-        reports_dir: 리포트 저장 디렉토리.
+        vault_path: Root path of the Obsidian vault.
+        trades_dir: Directory for storing trade notes.
+        reports_dir: Directory for storing report files.
     """
 
     def __init__(
@@ -42,14 +42,14 @@ class ObsidianSync:
         self.reports_dir = self.vault_path / project_folder / "reports"
 
     def sync_trade(self, trade: dict, journal: TradeJournal) -> Optional[Path]:
-        """단일 거래를 Obsidian 노트로 저장.
+        """Save a single trade record as an Obsidian note.
 
         Args:
-            trade: 거래 레코드 dict.
-            journal: TradeJournal 인스턴스 (노트 생성용).
+            trade: Dictionary containing the trade record.
+            journal: TradeJournal instance for creating notes.
 
         Returns:
-            생성된 노트 경로 또는 None.
+            Path to the created note or None.
         """
         self.trades_dir.mkdir(parents=True, exist_ok=True)
 
@@ -59,23 +59,23 @@ class ObsidianSync:
 
         try:
             note_path.write_text(note_content, encoding="utf-8")
-            logger.info("Obsidian 노트 생성: %s", note_path.name)
+            logger.info("Obsidian note created: %s", note_path.name)
             return note_path
         except OSError as exc:
-            logger.error("노트 생성 실패: %s", exc)
+            logger.error("Failed to create note: %s", exc)
             return None
 
     def sync_daily_trades(
         self, trades: list[dict], journal: TradeJournal
     ) -> list[Path]:
-        """여러 거래를 Obsidian 노트로 동기화.
+        """Synchronize multiple trade records to Obsidian notes.
 
         Args:
-            trades: 거래 레코드 목록.
-            journal: TradeJournal 인스턴스.
+            trades: List of trade record dictionaries.
+            journal: TradeJournal instance for creating notes.
 
         Returns:
-            생성된 노트 경로 목록.
+            Paths to the created notes.
         """
         paths = []
         for trade in trades:
@@ -85,45 +85,45 @@ class ObsidianSync:
         return paths
 
     def update_outcome_note(self, trade: dict, journal: TradeJournal) -> bool:
-        """사후 평가 결과를 기존 노트에 업데이트.
+        """Update a post-trade evaluation result to an existing note.
 
-        기존 노트를 새 내용으로 덮어쓰기 (사후 평가 섹션 포함).
+        Overwrite the existing note with new content (including the post-evaluation section).
 
         Args:
-            trade: 사후 평가가 완료된 거래 레코드.
-            journal: TradeJournal 인스턴스.
+            trade: Dictionary containing the completed trade record.
+            journal: TradeJournal instance for creating notes.
 
         Returns:
-            업데이트 성공 여부.
+            True if update is successful, False otherwise.
         """
         filename = f"{trade['trade_id']}.md"
         note_path = self.trades_dir / filename
 
         if not note_path.exists():
-            logger.warning("업데이트할 노트 없음: %s", filename)
+            logger.warning("No note to update: %s", filename)
             return False
 
         note_content = journal.to_obsidian_note(trade)
         try:
             note_path.write_text(note_content, encoding="utf-8")
-            logger.info("Obsidian 노트 사후 평가 업데이트: %s", filename)
+            logger.info("Obsidian note post-evaluation updated: %s", filename)
             return True
         except OSError as exc:
-            logger.error("노트 업데이트 실패: %s", exc)
+            logger.error("Failed to update note: %s", exc)
             return False
 
     def generate_weekly_report(
         self, stats: dict, trades: list[dict], week_label: Optional[str] = None
     ) -> Optional[Path]:
-        """주간 성과 리포트 노트 생성.
+        """Generate a weekly performance report note.
 
         Args:
-            stats: TradeJournal.get_stats() 결과.
-            trades: 해당 주 거래 목록.
-            week_label: 주 라벨 (예: "2026-W09"). None이면 자동 생성.
+            stats: Dictionary containing the results of TradeJournal.get_stats().
+            trades: List of trades for the given week.
+            week_label: Label for the week (e.g., "2026-W09"). If None, auto-generated.
 
         Returns:
-            생성된 리포트 경로 또는 None.
+            Path to the created report or None.
         """
         self.reports_dir.mkdir(parents=True, exist_ok=True)
 
@@ -138,24 +138,24 @@ class ObsidianSync:
             f"week: {week_label}",
             "---",
             "",
-            f"# M.AI.UPbit 주간 리포트 — {week_label}",
+            f"# M.AI.UPbit Weekly Report — {week_label}",
             "",
-            "## 성과 요약",
+            "## Performance Summary",
             "",
-            f"| 지표 | 값 |",
-            f"|------|-----|",
-            f"| 총 매매 | {stats.get('total_trades', 0)}건 |",
-            f"| 평가 완료 | {stats.get('evaluated_trades', 0)}건 |",
-            f"| 승률 | {stats.get('win_rate', 0) * 100:.1f}% |",
-            f"| 평균 수익률 | {stats.get('avg_pnl_percent', 0):.2f}% |",
-            f"| 최대 수익 | {stats.get('max_gain_percent', 0):.2f}% |",
-            f"| 최대 손실 | {stats.get('max_loss_percent', 0):.2f}% |",
-            f"| 총 수수료 | ₩{stats.get('total_fee_krw', 0):,.2f} |",
+            f"| Metric | Value |",
+            f"|--------|-------|",
+            f"| Total Trades | {stats.get('total_trades', 0)} |",
+            f"| Evaluated Trades | {stats.get('evaluated_trades', 0)} |",
+            f"| Win Rate | {stats.get('win_rate', 0) * 100:.1f}% |",
+            f"| Average PNL | {stats.get('avg_pnl_percent', 0):.2f}% |",
+            f"| Max Gain | {stats.get('max_gain_percent', 0):.2f}% |",
+            f"| Max Loss | {stats.get('max_loss_percent', 0):.2f}% |",
+            f"| Total Fees | ₩{stats.get('total_fee_krw', 0):,.2f} |",
             "",
-            "## 매매 목록",
+            "## Trade List",
             "",
-            "| 시각 | 종목 | 행동 | 금액 | 결과 |",
-            "|------|------|------|------|------|",
+            "| Timestamp | Symbol | Action | Amount | Result |",
+            "|-----------|--------|--------|--------|--------|",
         ]
 
         for t in trades:
@@ -166,7 +166,7 @@ class ObsidianSync:
             elif outcome.get("was_correct") is False:
                 result_str = f"❌ {outcome.get('pnl_percent', 0):.2f}%"
             else:
-                result_str = "⏳ 대기"
+                result_str = "⏳ Pending"
 
             ts = t.get("timestamp", "")[:16]
             lines.append(
@@ -176,9 +176,9 @@ class ObsidianSync:
 
         lines.extend([
             "",
-            "## AI 분석 정확도 추이",
+            "## AI Analysis Accuracy Trend",
             "",
-            f"이번 주 승률: **{stats.get('win_rate', 0) * 100:.1f}%**",
+            f"This week's win rate: **{stats.get('win_rate', 0) * 100:.1f}%**",
             "",
             "---",
             f"_Generated by M.AI.UPbit AutoTrader_",
@@ -187,8 +187,8 @@ class ObsidianSync:
         report_path = self.reports_dir / f"{week_label}.md"
         try:
             report_path.write_text("\n".join(lines), encoding="utf-8")
-            logger.info("주간 리포트 생성: %s", report_path.name)
+            logger.info("Weekly report generated: %s", report_path.name)
             return report_path
         except OSError as exc:
-            logger.error("리포트 생성 실패: %s", exc)
+            logger.error("Failed to generate report: %s", exc)
             return None

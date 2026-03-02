@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""주간 성과 리포트 생성 (크론용).
+"""Weekly performance report generation (cron job).
 
-매주 월요일 08:00 KST 실행.
+Runs every Monday at 08:00 KST.
 
 Usage:
     python scripts/weekly_performance.py [--weeks 1]
@@ -23,8 +23,8 @@ logging.basicConfig(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="주간 성과 리포트")
-    parser.add_argument("--weeks", type=int, default=1, help="주 수")
+    parser = argparse.ArgumentParser(description="Weekly performance report")
+    parser.add_argument("--weeks", type=int, default=1, help="Number of weeks")
     args = parser.parse_args()
 
     from maiupbit.trading.journal import TradeJournal

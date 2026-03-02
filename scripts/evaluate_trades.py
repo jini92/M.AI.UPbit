@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""매매 사후 평가 스크립트 (크론용).
+"""Post-trade evaluation script (cron job).
 
-매일 07:30 KST 실행.
-24h+ 경과한 미평가 매매의 수익률·정확도 평가.
+Runs daily at 07:30 KST.
+Evaluates the profitability and accuracy of un-evaluated trades that have passed 24 hours.
 
 Usage:
     python scripts/evaluate_trades.py
@@ -29,7 +29,7 @@ def main() -> None:
     secret_key = os.getenv("UPBIT_SECRET_KEY")
 
     if not access_key or not secret_key:
-        print(json.dumps({"error": "UPBIT_ACCESS_KEY/SECRET_KEY 필요"}))
+        print(json.dumps({"error": "UPBIT_ACCESS_KEY/SECRET_KEY required"}))
         sys.exit(1)
 
     from maiupbit.exchange.upbit import UPbitExchange
@@ -42,7 +42,7 @@ def main() -> None:
 
     results = tracker.evaluate_pending()
 
-    # Obsidian 노트 업데이트
+    # Update Obsidian notes
     if results:
         try:
             from maiupbit.integrations.obsidian import ObsidianSync
@@ -56,7 +56,7 @@ def main() -> None:
                 if trade:
                     sync.update_outcome_note(trade, journal)
         except Exception as exc:
-            logging.warning("Obsidian 업데이트 실패: %s", exc)
+            logging.warning("Obsidian update failed: %s", exc)
 
     output = {
         "evaluated": len(results),

@@ -1,4 +1,4 @@
-"""SentimentAnalyzer 단위 테스트"""
+"""Unit tests for SentimentAnalyzer"""
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -82,7 +82,6 @@ class TestAnalyzeSentiment:
     def test_mixed_keywords_neutral_score(
         self, analyzer: SentimentAnalyzer
     ) -> None:
-        # 긍정/부정 균형 → neutral
         news = [
             {"title": "surge crash rally dump", "summary": "bull bear"},
         ]
@@ -91,7 +90,6 @@ class TestAnalyzeSentiment:
         assert -1.0 <= result["score"] <= 1.0
 
     def test_score_clamped_to_range(self, analyzer: SentimentAnalyzer) -> None:
-        """score는 -1.0 ~ 1.0 범위 내"""
         news = [
             {"title": " ".join(["surge"] * 20), "summary": "bullish rally profit gain"},
         ] * 5
@@ -109,7 +107,7 @@ class TestAnalyzeSentiment:
 
 
 # ---------------------------------------------------------------------------
-# get_news (feedparser 모킹)
+# get_news (feedparser mocking)
 # ---------------------------------------------------------------------------
 
 class TestGetNews:
@@ -154,7 +152,6 @@ class TestGetNews:
         assert result == []
 
     def test_symbol_without_dash(self, analyzer: SentimentAnalyzer) -> None:
-        """심볼에 '-' 없으면 그대로 사용"""
         mock_feed = MagicMock()
         mock_feed.entries = []
         with patch(
@@ -165,7 +162,6 @@ class TestGetNews:
         assert "bitcoin" in call_url
 
     def test_symbol_with_dash_uses_ticker(self, analyzer: SentimentAnalyzer) -> None:
-        """KRW-BTC → 'BTC'를 검색어로 사용"""
         mock_feed = MagicMock()
         mock_feed.entries = []
         with patch(
@@ -204,10 +200,11 @@ class TestGetNewsText:
         with patch.object(analyzer, "get_news", return_value=mock_news):
             result = analyzer.get_news_text("KRW-BTC")
         assert "BTC Hits 70K" in result
-        assert "Record breaking" in result
+        assert "Summary: Record breaking" in result
 
-    def test_empty_news_returns_empty_string(self, analyzer: SentimentAnalyzer) -> None:
-        with patch.object(analyzer, "get_news", return_value=[]):
+    def test_empty_string_on_no_articles(self, analyzer: SentimentAnalyzer) -> None:
+        mock_news = []
+        with patch.object(analyzer, "get_news", return_value=mock_news):
             result = analyzer.get_news_text("KRW-BTC")
         assert result == ""
 
@@ -219,8 +216,14 @@ class TestGetNewsText:
         with patch.object(analyzer, "get_news", return_value=mock_news):
             result = analyzer.get_news_text("KRW-BTC")
         assert "Article 1:" in result
+        assert "Title 1" in result
+        assert "Summary: Summary 1" in result
         assert "Article 2:" in result
+        assert "Title 2" in result
+        assert "Summary: Summary 2" in result
         assert "Article 3:" in result
+        assert "Title 3" in result
+        assert "Summary: Summary 3" in result
 
 
 # ---------------------------------------------------------------------------

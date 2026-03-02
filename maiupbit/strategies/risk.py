@@ -1,10 +1,10 @@
-"""리스크 관리 모듈.
+"""Risk management module.
 
-강환국 리스크 관리 프레임워크:
-- ATR 기반 포지션 사이징
-- 켈리 공식 (최적 투자 비율)
-- MDD 단계별 디레버리징
-- 최대 비중 제한
+Kwang Hwan Gu risk management framework:
+- ATR-based position sizing
+- Kelly formula (optimal investment ratio)
+- MDD tiered de-leveraging
+- Maximum weight limit
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from maiupbit.strategies.base import StrategyConfig
 
 @dataclass
 class RiskConfig(StrategyConfig):
-    """리스크 관리 설정."""
+    """Risk management settings."""
 
     max_position: float = 0.2
     risk_per_trade: float = 0.02
@@ -31,15 +31,15 @@ class RiskConfig(StrategyConfig):
             {"threshold": -0.40, "multiplier": 0.00},
         ]
     )
-    kelly_fraction: float = 0.25  # 켈리의 1/4 (보수적)
+    kelly_fraction: float = 0.25  # Kelly's 1/4 (conservative)
 
 
 class RiskManager:
-    """리스크 관리자 (조합용).
+    """Risk manager (for combination).
 
-    다른 전략의 배분 결과에 리스크 관리를 적용합니다.
+    Applies risk management to the distribution results of other strategies.
 
-    사용:
+    Usage:
         allocations = momentum.allocate(data)
         allocations = risk.apply_equal_weight_constraint(allocations)
         allocations = risk.apply_mdd_rule(allocations, equity_curve)
@@ -54,15 +54,15 @@ class RiskManager:
         data: pd.DataFrame,
         length: int = 14,
     ) -> float:
-        """ATR 기반 포지션 사이즈 계산.
+        """ATR-based position size calculation.
 
         Args:
-            capital: 현재 자본금.
+            capital: Current capital.
             data: OHLCV DataFrame.
-            length: ATR 기간.
+            length: ATR period.
 
         Returns:
-            투자할 금액.
+            Investment amount.
         """
         if len(data) < length + 1:
             return capital * self.config.risk_per_trade
@@ -79,13 +79,13 @@ class RiskManager:
         return min(position, max_allowed)
 
     def kelly_from_history(self, trades: list[dict]) -> float:
-        """과거 거래 이력으로 켈리 비율 계산.
+        """Calculate Kelly ratio from historical trade history.
 
         Args:
-            trades: [{"type": "buy"/"sell", "price": float}] 리스트.
+            trades: [{"type": "buy"/"sell", "price": float}] list.
 
         Returns:
-            켈리 비율 (0~1). 음수면 0 반환.
+            Kelly ratio (0~1). Negative returns 0.
         """
         if len(trades) < 4:
             return self.config.kelly_fraction
@@ -93,7 +93,9 @@ class RiskManager:
         profits = []
         for i in range(0, len(trades) - 1, 2):
             if trades[i]["type"] == "buy" and trades[i + 1]["type"] == "sell":
-                ret = (trades[i + 1]["price"] - trades[i]["price"]) / trades[i]["price"]
+                ret = (trades[i + 1]["price"] - trades[i]["price"]) / trades[i][
+                    "price"
+                ]
                 profits.append(ret)
 
         if not profits:
@@ -112,23 +114,23 @@ class RiskManager:
         if avg_loss == 0:
             return self.config.kelly_fraction
 
-        # 켈리 공식: f = W - (1-W)/R, R = avg_win/avg_loss
+        # Kelly formula: f = W - (1-W)/R, R = avg_win/avg_loss
         r = avg_win / avg_loss
         kelly = win_rate - (1 - win_rate) / r
 
-        # 보수적 적용 (1/4 켈리)
+        # Conservative application (1/4 Kelly)
         result = max(0.0, kelly * self.config.kelly_fraction / 0.25)
         return round(min(result, 1.0), 4)
 
     @staticmethod
     def calc_current_mdd(equity: pd.Series) -> float:
-        """현재 MDD 계산.
+        """Calculate current MDD.
 
         Args:
-            equity: 자산 가치 시계열.
+            equity: Asset value time series.
 
         Returns:
-            현재 MDD (음수, 예: -0.15 = 15% 하락).
+            Current MDD (negative, e.g., -0.15 = 15% decline).
         """
         if len(equity) < 2:
             return 0.0
@@ -137,13 +139,13 @@ class RiskManager:
         return float(drawdown.iloc[-1])
 
     def get_mdd_multiplier(self, mdd: float) -> float:
-        """MDD에 따른 포지션 배수 조회.
+        """Retrieve position multiplier based on MDD.
 
         Args:
-            mdd: 현재 MDD (음수).
+            mdd: Current MDD (negative).
 
         Returns:
-            포지션 배수 (0.0~1.0).
+            Position multiplier (0.0~1.0).
         """
         multiplier = 1.0
         for tier in self.config.mdd_tiers:
@@ -156,14 +158,14 @@ class RiskManager:
         allocations: dict[str, float],
         equity: pd.Series,
     ) -> dict[str, float]:
-        """MDD 규칙에 따라 배분 비중 축소.
+        """Reduce allocation weights according to MDD rule.
 
         Args:
-            allocations: {symbol: weight} 원본 배분.
-            equity: 자산 가치 시계열.
+            allocations: {symbol: weight} original distribution.
+            equity: Asset value time series.
 
         Returns:
-            MDD 조정된 {symbol: weight}.
+            MDD adjusted {symbol: weight}.
         """
         if not allocations or len(equity) < 2:
             return allocations
@@ -183,13 +185,13 @@ class RiskManager:
         self,
         allocations: dict[str, float],
     ) -> dict[str, float]:
-        """최대 비중 제한 적용.
+        """Apply maximum weight limit.
 
         Args:
             allocations: {symbol: weight}.
 
         Returns:
-            제한 적용된 {symbol: weight}.
+            Limit applied {symbol: weight}.
         """
         if not allocations:
             return allocations
@@ -198,7 +200,7 @@ class RiskManager:
         excess = 0.0
         uncapped_count = 0
 
-        # 1차: 최대 비중 초과분 누적
+        # First pass: accumulate overages
         for symbol, weight in allocations.items():
             if weight > self.config.max_position:
                 constrained[symbol] = self.config.max_position
@@ -207,7 +209,7 @@ class RiskManager:
                 constrained[symbol] = weight
                 uncapped_count += 1
 
-        # 2차: 초과분 재분배
+        # Second pass: redistribute overages
         if excess > 0 and uncapped_count > 0:
             add_per = excess / uncapped_count
             for symbol in constrained:

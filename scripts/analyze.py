@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenClaw용 분석 실행 스크립트"""
+"""OpenClaw analysis execution script"""
 import sys
 import json
 import os

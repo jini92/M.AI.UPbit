@@ -1,4 +1,4 @@
-"""utils 모듈 단위 테스트 (data.py, report.py, signals add_all_signals)"""
+"""unit tests for the utils module (data.py, report.py, signals add_all_signals)"""
 from __future__ import annotations
 
 import io
@@ -18,7 +18,7 @@ import pytest
 
 @pytest.fixture
 def small_ohlcv() -> pd.DataFrame:
-    """지표 계산에 충분한 50개 행 OHLCV"""
+    """Sufficient 50-row OHLCV for indicator calculation"""
     np.random.seed(11)
     n = 50
     dates = pd.date_range("2026-01-01", periods=n, freq="D")
@@ -94,12 +94,12 @@ class TestPrepareData:
     def test_result_is_valid_json(self, small_ohlcv: pd.DataFrame) -> None:
         from maiupbit.utils.data import prepare_data
         result = prepare_data(small_ohlcv, small_ohlcv)
-        # json.loads는 중첩 json.dumps를 역직렬화
+        # json.loads can deserialize nested json.dumps
         inner = json.loads(result)
-        assert isinstance(inner, str)  # 이중 직렬화
+        assert isinstance(inner, str)  # double serialization
 
     def test_uses_both_dataframes(self, small_ohlcv: pd.DataFrame) -> None:
-        """두 DataFrame 이 모두 반영되는지 확인"""
+        """Check that both DataFrames are reflected"""
         from maiupbit.utils.data import prepare_data
         daily = small_ohlcv.copy()
         hourly = small_ohlcv.copy()
@@ -194,20 +194,20 @@ class TestReportGenerator:
         assert os.path.isabs(result)
 
     def test_generates_pdf_with_partial_analysis(self, tmp_path: Path) -> None:
-        """선택 필드 누락돼도 오류 없이 생성"""
+        """Generate PDF even with missing fields"""
         from maiupbit.utils.report import ReportGenerator
         gen = ReportGenerator()
         output_path = str(tmp_path / "partial.pdf")
         result = gen.generate_pdf(
             symbol="KRW-XRP",
-            analysis_result={},  # 모든 필드 N/A
+            analysis_result={},  # all fields N/A
             news_text="",
             output_path=output_path,
         )
         assert os.path.exists(result)
 
     def test_raises_on_unwritable_path(self) -> None:
-        """쓸 수 없는 경로면 RuntimeError 발생"""
+        """Raise RuntimeError if path is unwritable"""
         from maiupbit.utils.report import ReportGenerator
         gen = ReportGenerator()
         with pytest.raises(RuntimeError):

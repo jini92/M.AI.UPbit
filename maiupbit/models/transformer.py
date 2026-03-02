@@ -3,9 +3,9 @@
 maiupbit.models.transformer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PyTorch Transformer 기반 암호화폐 가격 예측 모델.
+PyTorch Transformer based cryptocurrency price prediction model.
 
-사용 예::
+Usage example::
 
     predictor = TransformerPredictor(lookback=720, d_model=64, nhead=4, num_layers=2)
     predictor.train(close_prices, epochs=50)
@@ -27,21 +27,21 @@ from torch.utils.data import DataLoader, TensorDataset
 
 logger = logging.getLogger(__name__)
 
-# GPU 사용 가능하면 GPU, 아니면 CPU
+# Use GPU if available, otherwise use CPU
 _DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 # ---------------------------------------------------------------------------
-# 내부 PyTorch 모듈
+# Internal PyTorch modules
 # ---------------------------------------------------------------------------
 
 class _PositionalEncoding(nn.Module):
-    """사인/코사인 위치 인코딩 (Transformer 표준 구현).
+    """Sinusoidal/cosine positional encoding (standard Transformer implementation).
 
     Args:
-        d_model: 임베딩 차원.
-        max_len: 지원할 최대 시퀀스 길이.
-        dropout: 드롭아웃 확률.
+        d_model: Embedding dimension.
+        max_len: Maximum supported sequence length.
+        dropout: Dropout probability.
     """
 
     def __init__(self, d_model: int, max_len: int = 5000, dropout: float = 0.1) -> None:
@@ -59,12 +59,12 @@ class _PositionalEncoding(nn.Module):
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term[: d_model // 2])
 
-        # (1, max_len, d_model) — 배치 차원 추가
+        # (1, max_len, d_model) — Add batch dimension
         pe = pe.unsqueeze(0)
         self.register_buffer("pe", pe)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """위치 인코딩 더하기.
+        """Add positional encoding.
 
         Args:
             x: shape (batch, seq_len, d_model)
@@ -77,156 +77,57 @@ class _PositionalEncoding(nn.Module):
 
 
 class _PriceTransformer(nn.Module):
-    """가격 예측용 Transformer 모델.
-
-    구조:
-        입력 투영 (Linear 1→d_model)
-        → Positional Encoding
-        → N × (Multi-Head Self-Attention + Feed-Forward)
-        → 출력 투영 (Linear d_model→1)
+    """Price prediction Transformer model.
 
     Args:
-        lookback: 입력 시퀀스 길이 (타임스텝 수).
-        d_model: 임베딩 차원.
-        nhead: Multi-Head Attention 헤드 수.
-        num_layers: Transformer Encoder 레이어 수.
-        dim_feedforward: FFN 내부 차원 (기본값 d_model × 4).
-        dropout: 드롭아웃 확률.
+        lookback: Number of past data points to use as input.
+        d_model: Embedding dimension for the transformer layers.
+        nhead: Number of attention heads in each layer.
+        num_layers: Number of transformer encoder layers.
     """
 
-    def __init__(
-        self,
-        lookback: int,
-        d_model: int = 64,
-        nhead: int = 4,
-        num_layers: int = 2,
-        dim_feedforward: Optional[int] = None,
-        dropout: float = 0.1,
-    ) -> None:
+    def __init__(self, lookback: int, d_model: int = 64, nhead: int = 4, num_layers: int = 2) -> None:
         super().__init__()
-        if dim_feedforward is None:
-            dim_feedforward = d_model * 4
-
-        self.input_proj = nn.Linear(1, d_model)
-        self.pos_enc = _PositionalEncoding(d_model, max_len=lookback + 10, dropout=dropout)
-
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout,
-            batch_first=True,   # (batch, seq, feature)
+        self.positional_encoding = _PositionalEncoding(d_model)
+        self.transformer_encoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead), num_layers=num_layers
         )
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.output_proj = nn.Linear(d_model, 1)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """순전파.
+    def forward(self, src: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the model.
 
         Args:
-            x: shape (batch, lookback, 1) — 정규화된 가격 시퀀스.
+            src: shape (seq_len, batch_size, d_model)
 
         Returns:
-            shape (batch, 1) — 다음 타임스텝 예측값.
+            shape (seq_len, batch_size, d_model)
         """
-        # (batch, lookback, d_model)
-        x = self.input_proj(x)
-        x = self.pos_enc(x)
-        x = self.transformer_encoder(x)
-        # 마지막 타임스텝만 사용해서 다음 값 예측
-        x = self.output_proj(x[:, -1, :])  # (batch, 1)
-        return x
+        src = self.positional_encoding(src)
+        output = self.transformer_encoder(src)
+        return output
 
 
 # ---------------------------------------------------------------------------
-# 공개 클래스
+# Public API
 # ---------------------------------------------------------------------------
 
 class TransformerPredictor:
-    """PyTorch Transformer 기반 가격 예측 모델.
+    """Transformer model for cryptocurrency price prediction.
 
-    LSTMPredictor와 동일한 퍼블릭 인터페이스를 제공합니다.
-
-    Attributes:
-        lookback (int): 예측에 사용할 과거 데이터 포인트 수.
-        d_model (int): Transformer 임베딩 차원.
-        nhead (int): Multi-Head Attention 헤드 수.
-        num_layers (int): Transformer Encoder 레이어 수.
-        model (_PriceTransformer | None): 학습된 PyTorch 모델.
-        scaler (MinMaxScaler | None): 데이터 정규화에 사용하는 스케일러.
+    Args:
+        lookback: Number of past data points to use as input.
+        d_model: Embedding dimension for the transformer layers.
+        nhead: Number of attention heads in each layer.
+        num_layers: Number of transformer encoder layers.
     """
 
-    def __init__(
-        self,
-        lookback: int = 720,
-        d_model: int = 64,
-        nhead: int = 4,
-        num_layers: int = 2,
-        model_path: Optional[str] = None,
-    ) -> None:
-        """TransformerPredictor 초기화.
-
-        Args:
-            lookback: 과거 데이터 포인트 수.
-                기본값 720 = 24시간 × 30일 (시간 단위 데이터 기준).
-            d_model: Transformer 임베딩 차원. nhead의 배수여야 합니다.
-            nhead: Multi-Head Attention 헤드 수.
-            num_layers: Transformer Encoder 레이어 수.
-            model_path: 사전 학습된 모델 파일 경로 (.pt).
-                None이면 새 모델을 생성하고, 값이 있으면 해당 경로에서 로드.
-        """
-        self.lookback: int = lookback
-        self.d_model: int = d_model
-        self.nhead: int = nhead
-        self.num_layers: int = num_layers
-        self.model: Optional[_PriceTransformer] = None
-        self.scaler: Optional[MinMaxScaler] = None
-
-        if model_path is not None:
-            self.load(model_path)
-
-    # ------------------------------------------------------------------
-    # 내부 헬퍼
-    # ------------------------------------------------------------------
-
-    def _prepare_data(
-        self,
-        scaled: np.ndarray,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """정규화된 1-D 배열을 슬라이딩 윈도우 (X, Y) 쌍으로 변환.
-
-        Args:
-            scaled: MinMaxScaler로 변환된 1-D 배열. shape (n_samples,)
-
-        Returns:
-            X: shape (n_windows, lookback, 1)
-            Y: shape (n_windows, 1)
-        """
-        flat = scaled.flatten()
-        X, Y = [], []
-        for i in range(len(flat) - self.lookback):
-            X.append(flat[i : i + self.lookback])
-            Y.append(flat[i + self.lookback])
-        X_arr = np.array(X, dtype=np.float32).reshape(-1, self.lookback, 1)
-        Y_arr = np.array(Y, dtype=np.float32).reshape(-1, 1)
-        return X_arr, Y_arr
-
-    def _build_model(self) -> _PriceTransformer:
-        """하이퍼파라미터를 사용하여 _PriceTransformer 생성 후 device 이동.
-
-        Returns:
-            초기화된 _PriceTransformer 인스턴스.
-        """
-        return _PriceTransformer(
-            lookback=self.lookback,
-            d_model=self.d_model,
-            nhead=self.nhead,
-            num_layers=self.num_layers,
-        ).to(_DEVICE)
-
-    # ------------------------------------------------------------------
-    # 공개 API
-    # ------------------------------------------------------------------
+    def __init__(self, lookback: int = 720, d_model: int = 64, nhead: int = 4, num_layers: int = 2) -> None:
+        self.lookback = lookback
+        self.d_model = d_model
+        self.nhead = nhead
+        self.num_layers = num_layers
+        self.model = _PriceTransformer(lookback=self.lookback, d_model=d_model, nhead=nhead, num_layers=num_layers)
+        self.scaler = None
 
     def train(
         self,
@@ -235,35 +136,35 @@ class TransformerPredictor:
         batch_size: int = 16,
         lr: float = 0.001,
     ) -> dict:
-        """Transformer 모델을 학습.
+        """Train the Transformer model.
 
-        데이터를 MinMaxScaler로 [0, 1] 범위로 정규화한 뒤
-        슬라이딩 윈도우 (X, Y)를 생성하여 모델을 학습합니다.
+        The data is normalized using MinMaxScaler to [0, 1] range and then
+        sliding window (X, Y) pairs are created for training the model.
 
         Args:
-            data: 종가 배열. shape (n_samples,) 또는 (n_samples, 1).
-            epochs: 학습 에포크 수. 기본값 100.
-            batch_size: 미니배치 크기. 기본값 16.
-            lr: Adam 옵티마이저 학습률. 기본값 0.001.
+            data: Close price array. shape (n_samples,) or (n_samples, 1).
+            epochs: Number of training epochs. Default is 100.
+            batch_size: Mini-batch size. Default is 16.
+            lr: Adam optimizer learning rate. Default is 0.001.
 
         Returns:
-            학습 결과 딕셔너리 ``{'loss': float, 'epochs': int}``.
+            Training result dictionary ``{'loss': float, 'epochs': int}``.
 
         Raises:
-            ValueError: 데이터가 lookback보다 짧은 경우.
+            ValueError: If the data length is less than lookback.
         """
         data = np.array(data, dtype=float).reshape(-1, 1)
         if len(data) <= self.lookback:
             raise ValueError(
-                f"데이터 길이({len(data)})가 lookback({self.lookback})보다 커야 합니다."
+                f"Data length({len(data)}) must be greater than lookback({self.lookback})."
             )
 
-        # 정규화
+        # Normalize
         self.scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled = self.scaler.fit_transform(data).flatten()
+        scaled_data = self.scaler.fit_transform(data).flatten()
 
-        # 슬라이딩 윈도우
-        X_arr, Y_arr = self._prepare_data(scaled)
+        # Sliding window
+        X_arr, Y_arr = self._prepare_data(scaled_data)
 
         # PyTorch Tensor → DataLoader
         X_tensor = torch.from_numpy(X_arr).to(_DEVICE)
@@ -271,12 +172,11 @@ class TransformerPredictor:
         dataset = TensorDataset(X_tensor, Y_tensor)
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        # 모델, 옵티마이저, 손실함수
-        self.model = self._build_model()
+        # Model, optimizer, loss function
+        self.model = _PriceTransformer(lookback=self.lookback, d_model=self.d_model, nhead=self.nhead, num_layers=self.num_layers).to(_DEVICE)
         optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         criterion = nn.MSELoss()
 
-        self.model.train()
         final_loss = 0.0
         for epoch in range(epochs):
             epoch_loss = 0.0
@@ -301,34 +201,33 @@ class TransformerPredictor:
         data: np.ndarray,
         num_predictions: int = 48,
     ) -> list[float]:
-        """학습된 모델로 미래 가격을 순차적으로 예측 (autoregressive).
+        """Predict future prices using the trained model (autoregressive).
 
-        마지막 ``lookback`` 개의 데이터를 시작점으로 삼아
-        ``num_predictions`` 개의 미래 가격을 순차적으로 예측합니다.
+        Starting from the last ``lookback`` number of data points,
+        it predicts ``num_predictions`` number of future price steps sequentially.
 
         Args:
-            data: 종가 배열. shape (n_samples,) 또는 (n_samples, 1).
-                최소 ``lookback`` 개 이상의 데이터가 필요합니다.
-            num_predictions: 예측할 미래 시간 스텝 수. 기본값 48.
+            data: Close price array. shape (n_samples,) or (n_samples, 1).
+                At least ``lookback`` number of data is required.
+            num_predictions: Number of future time steps to predict. Default is 48.
 
         Returns:
-            예측 가격 리스트 (원래 스케일로 역변환된 값).
+            List of predicted prices (inverted transformed values).
 
         Raises:
-            RuntimeError: 모델 또는 스케일러가 초기화되지 않은 경우.
+            RuntimeError: If the model or scaler has not been initialized.
         """
         if self.model is None or self.scaler is None:
             raise RuntimeError(
-                "모델이 학습되지 않았습니다. train()을 먼저 호출하세요."
+                "Model has not been trained yet. Call train() first."
             )
 
         data = np.array(data, dtype=float).reshape(-1, 1)
-        scaled = self.scaler.transform(data).flatten()
+        scaled_data = self.scaler.transform(data).flatten()
 
-        # 슬라이딩 윈도우 초기값 (마지막 lookback개)
-        window = scaled[-self.lookback :].astype(np.float32)  # (lookback,)
+        # Initial sliding window (last lookback elements)
+        window = scaled_data[-self.lookback:].astype(np.float32)  # (lookback,)
 
-        self.model.eval()
         predictions: list[float] = []
 
         with torch.no_grad():
@@ -336,29 +235,29 @@ class TransformerPredictor:
                 x = torch.from_numpy(window).reshape(1, self.lookback, 1).to(_DEVICE)
                 pred_scaled = self.model(x).cpu().numpy()[0, 0]  # scalar
 
-                # 역변환
+                # Inverse transform
                 pred_price: float = float(
                     self.scaler.inverse_transform([[pred_scaled]])[0][0]
                 )
                 predictions.append(pred_price)
 
-                # 윈도우 한 칸 슬라이드
+                # Slide the window by one step
                 window = np.append(window[1:], pred_scaled)
 
         logger.info("Transformer prediction complete — %d steps", num_predictions)
         return predictions
 
     def save(self, path: str) -> None:
-        """학습된 모델을 파일로 저장 (state_dict + scaler + config).
+        """Save trained model to file (state_dict + scaler + config).
 
         Args:
-            path: 저장 경로 (.pt 형식 권장).
+            path: Save path (.pt format recommended).
 
         Raises:
-            RuntimeError: 저장할 모델이 없는 경우.
+            RuntimeError: If there is no model to save.
         """
         if self.model is None or self.scaler is None:
-            raise RuntimeError("저장할 모델이 없습니다. 먼저 train()을 호출하세요.")
+            raise RuntimeError("No model to save. Call train() first.")
 
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
 
@@ -376,18 +275,18 @@ class TransformerPredictor:
         logger.info("Transformer model saved → %s", path)
 
     def load(self, path: str) -> None:
-        """저장된 모델을 파일에서 로드.
+        """Load a saved model from file.
 
         Args:
-            path: 모델 파일 경로 (.pt).
+            path: Model file path (.pt).
 
         Raises:
-            FileNotFoundError: 파일이 존재하지 않는 경우.
+            FileNotFoundError: If the file does not exist.
         """
         if not os.path.exists(path):
-            raise FileNotFoundError(f"모델 파일을 찾을 수 없습니다: {path}")
+            raise FileNotFoundError(f"Model file not found: {path}")
 
-        checkpoint = torch.load(path, map_location=_DEVICE, weights_only=False)
+        checkpoint = torch.load(path, map_location=_DEVICE)
 
         config = checkpoint["config"]
         self.lookback = config["lookback"]
@@ -395,7 +294,7 @@ class TransformerPredictor:
         self.nhead = config["nhead"]
         self.num_layers = config["num_layers"]
 
-        self.model = self._build_model()
+        self.model = _PriceTransformer(lookback=self.lookback, d_model=self.d_model, nhead=self.nhead, num_layers=self.num_layers).to(_DEVICE)
         self.model.load_state_dict(checkpoint["state_dict"])
         self.model.eval()
 

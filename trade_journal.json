@@ -308,5 +308,67 @@
       "was_correct": null,
       "evaluated_at": null
     }
+  },
+  {
+    "trade_id": "2026-03-02_19-01_KRW-BTT_hold_b73d29",
+    "timestamp": "2026-03-02T19:01:06.368506+09:00",
+    "date": "2026-03-02",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000494,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 41.111111111111086,
+      "macd_signal": "bullish",
+      "stoch_k": 20.65217391304345,
+      "bb_position": "inside",
+      "quant_score": 0.25,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-02_19-56_KRW-BTC_hold_a2c235",
+    "timestamp": "2026-03-02T19:56:44.826623+09:00",
+    "date": "2026-03-02",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 96857000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 37.97342663955743,
+      "macd_signal": "bullish",
+      "stoch_k": 46.45624103299856,
+      "bb_position": "inside",
+      "quant_score": 0.25,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < threshold 0.6",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
   }
 ]

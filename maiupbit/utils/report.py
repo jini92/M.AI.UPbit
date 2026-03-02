@@ -1,11 +1,10 @@
-"""리포트 생성 유틸리티 모듈.
+"""Report generation utility module.
 
-분석 결과와 뉴스 텍스트를 받아 PDF 파일로 저장하는
-ReportGenerator 클래스를 제공합니다.
+Provides the ReportGenerator class for saving analysis results and news text to PDF files.
 
 Note:
-    Streamlit 의존성 없이 동작합니다.
-    reportlab 라이브러리가 필요합니다.
+    Works without Streamlit dependency.
+    Requires the reportlab library.
 """
 
 import io
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReportGenerator:
-    """트레이딩 분석 결과를 PDF로 저장하는 리포트 생성기.
+    """A report generator for saving trading analysis results to PDF.
 
     Example::
 
@@ -42,30 +41,30 @@ class ReportGenerator:
         news_text: str,
         output_path: str,
     ) -> str:
-        """분석 결과와 뉴스를 포함한 PDF 리포트를 파일로 저장합니다.
+        """Saves a PDF report containing the analysis results and news text.
 
         Args:
-            symbol: 거래 심볼 (예: "KRW-BTC").
-            analysis_result: GPT-4 분석 결과 dict.
-                필드: recommendation, buy_price, sell_price, reason,
-                      technical_analysis.key_indicators,
-                      technical_analysis.chart_patterns,
-                      market_sentiment,
-                      risk_management.position_sizing,
-                      risk_management.stop_loss,
-                      risk_management.take_profit
-            news_text: 뉴스 기사 텍스트 (기사 간 '\\n\\n' 구분).
-            output_path: 저장할 PDF 파일 경로.
+            symbol: Trading symbol (e.g., "KRW-BTC").
+            analysis_result: GPT-4 analysis result dict.
+                Fields: recommendation, buy_price, sell_price, reason,
+                        technical_analysis.key_indicators,
+                        technical_analysis.chart_patterns,
+                        market_sentiment,
+                        risk_management.position_sizing,
+                        risk_management.stop_loss,
+                        risk_management.take_profit
+            news_text: News article text (articles separated by '\\n\\n').
+            output_path: Path to save the PDF file.
 
         Returns:
-            저장된 PDF 파일의 절대 경로.
+            Absolute path of the saved PDF file.
 
         Raises:
-            RuntimeError: PDF 생성에 실패한 경우.
+            RuntimeError: If PDF generation fails.
         """
-        logger.info("트레이딩 리포트 생성 중... [%s]", symbol)
+        logger.info("Generating trading report... [%s]", symbol)
 
-        # 분석 결과 안전 추출
+        # Safely extract analysis results
         recommendation = analysis_result.get("recommendation", "N/A")
         buy_price = analysis_result.get("buy_price", "N/A")
         sell_price = analysis_result.get("sell_price", "N/A")
@@ -88,14 +87,14 @@ class ReportGenerator:
             elements = []
             styles = getSampleStyleSheet()
 
-            # --- 제목 ---
+            # --- Title ---
             title_style = styles["Heading1"]
             title_style.fontSize = 24
             title_style.leading = 30
             elements.append(Paragraph(f"Trading Report - {symbol}", title_style))
             elements.append(Spacer(1, 24))
 
-            # --- 뉴스 섹션 ---
+            # --- News Section ---
             news_title_style = styles["Heading2"]
             news_title_style.fontSize = 16
             news_title_style.leading = 24
@@ -110,7 +109,7 @@ class ReportGenerator:
 
             elements.append(Spacer(1, 24))
 
-            # --- 분석 결과 섹션 ---
+            # --- Analysis Results Section ---
             analysis_style = styles["Normal"]
             analysis_style.fontSize = 12
             analysis_style.leading = 20
@@ -129,16 +128,16 @@ class ReportGenerator:
             )
             elements.append(Paragraph(analysis_html, analysis_style))
 
-            # --- PDF 빌드 및 파일 저장 ---
+            # --- PDF Build and File Save ---
             doc.build(elements)
 
             abs_path = os.path.abspath(output_path)
             with open(abs_path, "wb") as f:
                 f.write(buffer.getvalue())
 
-            logger.info("리포트 저장 완료: %s", abs_path)
+            logger.info("Report saved: %s", abs_path)
             return abs_path
 
         except Exception as exc:
-            logger.error("리포트 생성 실패: %s", exc)
-            raise RuntimeError(f"PDF 생성 실패: {exc}") from exc
+            logger.error("Failed to generate report: %s", exc)
+            raise RuntimeError(f"PDF generation failed: {exc}") from exc

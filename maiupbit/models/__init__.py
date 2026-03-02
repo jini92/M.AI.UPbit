@@ -3,12 +3,12 @@
 maiupbit.models
 ~~~~~~~~~~~~~~~
 
-ML 예측 모델 패키지.
+Package for ML prediction models.
 
 Modules:
-    lstm        - LSTM 기반 가격 예측 모델 (TensorFlow/Keras)
-    transformer - Transformer 기반 가격 예측 모델 (PyTorch)
-    ensemble    - 앙상블 예측 (다중 모델 결합)
+    lstm        - Price prediction model based on LSTM (TensorFlow/Keras)
+    transformer - Price prediction model based on Transformer (PyTorch)
+    ensemble    - Ensemble prediction (combination of multiple models)
 """
 
 try:

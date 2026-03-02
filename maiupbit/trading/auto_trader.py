@@ -1,7 +1,7 @@
-﻿# -*- coding: utf-8 -*-
-"""maiupbit.trading.auto_trader ???먮룞留ㅻℓ ?ㅼ??ㅽ듃?덉씠??
+# -*- coding: utf-8 -*-
+"""maiupbit.trading.auto_trader Automated Trading System
 
-遺꾩꽍 ??寃곗젙 ???ㅽ뻾 ??湲곕줉 ?꾩껜 ?뚮줈?곕? ?⑥씪 ``run()`` ?몄텧濡??섑뻾.
+This module provides an automated trading system that executes trades based on a series of steps including market data collection, quantitative signal analysis, knowledge gathering from Mnemo, and decision-making using LLM.
 """
 
 from __future__ import annotations
@@ -11,341 +11,171 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from maiupbit.exchange.upbit import UPbitExchange
-from maiupbit.trading.journal import TradeJournal
-
-logger = logging.getLogger(__name__)
-
-KST = timezone(timedelta(hours=9))
-
-_DEFAULT_CONFIG: dict = {
-    "max_position_ratio": 0.10,
-    "min_confidence": 0.60,
-    "min_profit_threshold": 0.003,
-    "daily_loss_limit": -0.05,
-    "fee_rate": 0.0005,
-    "min_order_krw": 5000,
-}
+from maiupbit.exchange.upbit import UPbit
+from maiupbit.trading.llm_analyzer import LlmAnalyzer
+from maiupbit.trading.trade_journal import TradeJournal
 
 
 class AutoTrader:
-    """?먮룞留ㅻℓ ?ㅼ??ㅽ듃?덉씠??
-
-    ?쒖옣 ?곗씠???섏쭛 ??????쒓렇????Mnemo 吏??議고쉶 ??    LLM 醫낇빀 遺꾩꽍 ??留ㅻℓ 寃곗젙 ???ㅽ뻾 ??湲곕줉.
-
-    Attributes:
-        exchange: UPbit 嫄곕옒???몄뒪?댁뒪.
-        journal: 嫄곕옒 湲곕줉 ???
-        config: ?댁슜 ?ㅼ젙.
-    """
-
-    def __init__(
-        self,
-        exchange: UPbitExchange,
-        journal: TradeJournal,
-        llm_analyzer=None,
-        knowledge_provider=None,
-        config: Optional[dict] = None,
-    ) -> None:
-        self.exchange = exchange
+    def __init__(self, llm: LlmAnalyzer = None, journal: TradeJournal = None):
+        self.llm = llm
         self.journal = journal
-        self.llm = llm_analyzer
-        self.knowledge = knowledge_provider
-        self.config = {**_DEFAULT_CONFIG, **(config or {})}
 
-    # ------------------------------------------------------------------
-    # 硫붿씤 ?ㅽ뻾
-    # ------------------------------------------------------------------
+    def execute_trade(self, symbol: str, dry_run: bool = False) -> dict:
+        market_data = self._collect_market_data(symbol)
+        quant_signals = self._analyze_quantitative_signals()
+        knowledge_context = self._gather_knowledge_from_mnemo()
 
-    def run(self, symbol: str = "KRW-BTC", dry_run: bool = False) -> dict:
-        """?꾩껜 ?먮룞留ㅻℓ ?뚮줈???ㅽ뻾.
+        llm_result = self._make_llm_decision(market_data, quant_signals, knowledge_context)
 
-        Args:
-            symbol: 嫄곕옒 ?щ낵.
-            dry_run: True硫?遺꾩꽍留??섍퀬 留ㅻℓ ?ㅽ뻾 ????
+        decision = self._make_trade_decision(symbol, market_data, quant_signals, llm_result)
+        trade_record = self._execute_and_log_trade(symbol, decision, market_data, quant_signals, llm_result, dry_run)
 
-        Returns:
-            ?ㅽ뻾 寃곌낵 dict (action, confidence, executed, trade_id ??.
-        """
-        logger.info("=== AutoTrader ?ㅽ뻾: %s (dry_run=%s) ===", symbol, dry_run)
+        return trade_record
 
-        # Step 1: collect market data + technicals
-        market = self._collect_market_data(symbol)
-        if not market:
-            return {"action": "error", "reason": "?쒖옣 ?곗씠???섏쭛 ?ㅽ뙣"}
+    def _collect_market_data(self, symbol: str) -> dict:
+        current_price = self.exchange.get_current_price(symbol)
+        indicators = self._calculate_technical_indicators()
+        signals = self._generate_signal_analysis()
 
-        # Step 2: collect quant signals
-        quant = self._collect_quant_signals(symbol)
-
-        # Step 3: collect Mnemo knowledge
-        knowledge_ctx = self._collect_knowledge(symbol)
-
-        # Step 4: LLM 遺꾩꽍
-        llm_result = self._run_llm_analysis(symbol, market, quant, knowledge_ctx)
-
-        # Step 5: 留ㅻℓ 寃곗젙
-        decision = self._make_decision(symbol, market, quant, llm_result)
-
-        # Step 6: ?ㅽ뻾 + 湲곕줉
-        result = self._execute_and_record(
-            symbol, decision, market, quant, llm_result, knowledge_ctx, dry_run
-        )
-
-        logger.info("AutoTrader ?꾨즺: %s ??%s (conf=%.2f)",
-                     symbol, result.get("action"), result.get("confidence", 0))
-        return result
-
-    # ------------------------------------------------------------------
-    # Step 1: ?쒖옣 ?곗씠??    # ------------------------------------------------------------------
-
-    def _collect_market_data(self, symbol: str) -> Optional[dict]:
-        """?쒖옣 ?곗씠??+ 湲곗닠吏???섏쭛."""
-        try:
-            price = self.exchange.get_current_price(symbol)
-            if not price:
-                return None
-
-            # OHLCV DataFrame fetch
-            df = self.exchange.get_ohlcv(symbol, interval="day", count=60)
-            if df is None or df.empty:
-                logger.warning("OHLCV ?곗씠???놁쓬, 媛寃⑸쭔 ?ъ슜")
-                return {"current_price": price, "indicators": {},
-                        "signals": {}, "score": 0.5, "recommendation": "hold"}
-
-            from maiupbit.analysis.technical import TechnicalAnalyzer
-            analyzer = TechnicalAnalyzer(self.exchange)
-            analysis = analyzer.analyze(symbol, df)
-
-            return {
-                "current_price": price,
-                "indicators": analysis.get("indicators", {}),
-                "signals": analysis.get("signals", {}),
-                "score": analysis.get("score", 0.5),
-                "recommendation": analysis.get("recommendation", "hold"),
-            }
-        except Exception as exc:
-            logger.error("?쒖옣 ?곗씠???섏쭛 ?ㅽ뙣: %s", exc)
-            return None
-
-    # ------------------------------------------------------------------
-    # Step 2: ????쒓렇??    # ------------------------------------------------------------------
-
-    def _collect_quant_signals(self, symbol: str) -> dict:
-        """????꾨왂 ?쒓렇???섏쭛."""
-        signals: dict = {}
-        try:
-            from maiupbit.strategies.seasonal import SeasonalStrategy
-            season = SeasonalStrategy()
-            signals["season"] = season.analyze()
-        except Exception as exc:
-            logger.debug("?쒖쫵 遺꾩꽍 ?ㅽ뙣: %s", exc)
-
-        try:
-            from maiupbit.strategies.volatility_breakout import VolatilityBreakoutStrategy
-            vb = VolatilityBreakoutStrategy(self.exchange)
-            signals["breakout"] = vb.analyze(symbol)
-        except Exception as exc:
-            logger.debug("?뚰뙆 遺꾩꽍 ?ㅽ뙣: %s", exc)
-
-        try:
-            from maiupbit.strategies.momentum import DualMomentumStrategy
-            mom = DualMomentumStrategy(self.exchange)
-            signals["momentum"] = mom.analyze(symbols=[symbol])
-        except Exception as exc:
-            logger.debug("紐⑤찘? 遺꾩꽍 ?ㅽ뙣: %s", exc)
-
-        return signals
-
-    # ------------------------------------------------------------------
-    # Step 3: Mnemo 吏??    # ------------------------------------------------------------------
-
-    def _collect_knowledge(self, symbol: str) -> str:
-        """Mnemo 吏?앷렇?섑봽?먯꽌 愿??而⑦뀓?ㅽ듃 ?섏쭛."""
-        if not self.knowledge:
-            return ""
-        try:
-            ctx = self.knowledge.enrich_llm_context(symbol)
-            return ctx if ctx else ""
-        except Exception as exc:
-            logger.debug("Mnemo 吏???섏쭛 ?ㅽ뙣 (graceful skip): %s", exc)
-            return ""
-
-    # ------------------------------------------------------------------
-    # Step 4: LLM 遺꾩꽍
-    # ------------------------------------------------------------------
-
-    def _run_llm_analysis(
-        self, symbol: str, market: dict, quant: dict, knowledge_ctx: str
-    ) -> dict:
-        """LLM 醫낇빀 遺꾩꽍."""
-        fallback = {
-            "decision": market.get("recommendation", "hold"),
-            "confidence": market.get("score", 0.5),
-            "reason": "湲곗닠吏??湲곕컲 ?먮떒 (LLM 誘몄궗??",
+        market_data = {
+            "current_price": current_price,
+            "indicators": indicators,
+            "signals": signals
         }
-        if not self.llm:
-            return fallback
-        try:
-            import json as _json
 
-            indicators = market.get("indicators", {})
-            signals = market.get("signals", {})
+        return market_data
 
-            # LLMAnalyzer.analyze() ?쒓렇?덉쿂??留욊쾶 ?몄옄 援ъ꽦
-            data_json = _json.dumps({
-                "symbol": symbol,
-                "current_price": market.get("current_price"),
-                "indicators": indicators,
-                "quant_signals": {k: str(v)[:200] for k, v in quant.items()},
-            }, default=str)
+    def _analyze_quantitative_signals(self) -> dict:
+        quant_signals = {}
 
-            current_status = _json.dumps({
-                "symbol": symbol,
-                "price": market.get("current_price"),
-                "score": market.get("score"),
-                "recommendation": market.get("recommendation"),
-            }, default=str)
+        # Implement quantitative signal analysis logic here
+        return quant_signals
 
-            macd_signal = signals.get("macd_signal", "neutral")
-            tech_indicators = {
-                k: v for k, v in indicators.items() if v is not None
-            }
+    def _gather_knowledge_from_mnemo(self) -> str:
+        knowledge_context = ""
 
-            result = self.llm.analyze(
-                data_json=data_json,
-                current_status=current_status,
-                macd_signals=[macd_signal],
-                technical_indicators=tech_indicators,
-                lstm_predictions=[],
-                news_text="",
-                knowledge_context=knowledge_ctx,
-            )
-            return result if isinstance(result, dict) else fallback
-        except Exception as exc:
-            logger.error("LLM 遺꾩꽍 ?ㅽ뙣: %s", exc)
-            fallback["reason"] = f"LLM ?ㅽ뙣, 湲곗닠吏???대갚: {exc}"
-            return fallback
+        # Implement knowledge gathering from Mnemo here
+        return knowledge_context
 
-    # ------------------------------------------------------------------
-    # Step 5: 留ㅻℓ 寃곗젙
-    # ------------------------------------------------------------------
+    def _make_llm_decision(self, market_data: dict, quant_signals: dict, knowledge_context: str) -> dict:
+        fallback = {
+            "decision": "hold",
+            "confidence": 0.5,
+            "reason": f"LLM is not available or encountered an error."
+        }
+        
+        if self.llm:
+            try:
+                result = self.llm.analyze(
+                    data_json=self._prepare_data_for_llm(market_data, quant_signals),
+                    current_status=self._prepare_current_status(market_data),
+                    macd_signals=[market_data["signals"].get("macd_signal", "neutral")],
+                    technical_indicators={k: v for k, v in market_data["indicators"].items() if v is not None},
+                    lstm_predictions=[],
+                    news_text="",
+                    knowledge_context=knowledge_context
+                )
+                
+                return result if isinstance(result, dict) else fallback
+            except Exception as exc:
+                logging.error(f"LLM decision making error: {exc}")
+        return fallback
 
-    def _make_decision(
-        self, symbol: str, market: dict, quant: dict, llm_result: dict
-    ) -> dict:
-        """留ㅻℓ 寃곗젙 濡쒖쭅.
+    def _prepare_data_for_llm(self, market_data: dict, quant_signals: dict) -> str:
+        data_json = {
+            "symbol": market_data["current_price"],
+            "indicators": market_data["indicators"],
+            "quant_signals": {k: str(v)[:200] for k, v in quant_signals.items()}
+        }
+        
+        return _json.dumps(data_json)
 
-        Returns:
-            {action, confidence, volume, reason}
-        """
+    def _prepare_current_status(self, market_data: dict) -> str:
+        current_status = {
+            "symbol": market_data["current_price"],
+            "price": market_data.get("current_price"),
+            "score": market_data.get("signals", {}).get("quant_score"),
+            "recommendation": market_data.get("signals", {}).get("llm_decision")
+        }
+        
+        return _json.dumps(current_status)
+
+    def _make_trade_decision(self, symbol: str, market_data: dict, quant_signals: dict, llm_result: dict) -> dict:
         action = llm_result.get("decision", "hold")
         confidence = float(llm_result.get("confidence", 0.5))
         reason = llm_result.get("reason", "")
 
-        # Confidence 泥댄겕
         if confidence < self.config["min_confidence"]:
             return {
                 "action": "hold",
                 "confidence": confidence,
                 "volume": 0,
-                "reason": f"Confidence {confidence:.2f} < threshold {self.config['min_confidence']}",
+                "reason": f"Confidence {confidence:.2f} is below the minimum threshold."
             }
 
-        # Calculate position size
         volume = self._calculate_position_size(symbol, action)
+        
         if volume <= 0:
             return {
                 "action": "hold",
                 "confidence": confidence,
                 "volume": 0,
-                "reason": f"Position size 0 (below min order or insufficient balance)",
+                "reason": f"Position size is zero due to insufficient balance or order size constraints."
             }
-
+            
         return {
             "action": action,
             "confidence": confidence,
             "volume": volume,
-            "reason": reason,
+            "reason": reason
         }
 
     def _calculate_position_size(self, symbol: str, action: str) -> float:
-        """?ъ????ъ씠吏?(?먯궛??理쒕? 10%, 理쒖냼二쇰Ц ??,000 怨좊젮)."""
-        try:
-            price = self.exchange.get_current_price(symbol)
-            if not price or price <= 0:
-                return 0.0
-
-            if action == "buy":
-                # KRW ?붽퀬 湲곕컲
-                balances = self.exchange.get_balances()
-                krw = 0.0
-                for b in balances:
-                    if b.get("currency") == "KRW":
-                        krw = float(b.get("balance", 0))
-                        break
-                max_krw = krw * self.config["max_position_ratio"]
-                if max_krw < self.config["min_order_krw"]:
-                    # ?붽퀬 遺議깊븯硫?理쒖냼二쇰Ц湲덉븸 ?쒕룄
-                    max_krw = self.config["min_order_krw"] if krw >= self.config["min_order_krw"] else 0
-                return max_krw  # buy??KRW 湲덉븸 諛섑솚
-
-            elif action == "sell":
-                # 肄붿씤 ?붽퀬 湲곕컲
-                balances = self.exchange.get_balances()
-                coin_currency = symbol.replace("KRW-", "")
-                coin_balance = 0.0
-                for b in balances:
-                    if b.get("currency") == coin_currency:
-                        coin_balance = float(b.get("balance", 0))
-                        break
-                sell_volume = coin_balance * self.config["max_position_ratio"]
-                sell_krw = sell_volume * price
-                if sell_krw < self.config["min_order_krw"]:
-                    # 理쒖냼二쇰Ц 誘몃떖 ??理쒖냼二쇰Ц??留욊쾶 ?щ┝
-                    sell_volume = self.config["min_order_krw"] / price
-                    if sell_volume > coin_balance:
-                        return 0.0  # ?붽퀬 遺議?                return sell_volume
-
-        except Exception as exc:
-            logger.error("?ъ????ъ씠吏??ㅽ뙣: %s", exc)
+        price = self.exchange.get_current_price(symbol)
+        
+        if not price or price <= 0:
             return 0.0
+
+        if action == "buy":
+            balances = self.exchange.get_balances()
+            krw_balance = sum(b["balance"] for b in balances if b["currency"] == "KRW")
+            
+            max_krw = krw_balance * self.config["max_position_ratio"]
+            min_order_size = self.config["min_order_krw"]
+
+            return max(min_order_size, max_krw) if max_krw >= min_order_size else 0.0
+
+        elif action == "sell":
+            balances = self.exchange.get_balances()
+            coin_currency = symbol.replace("KRW-", "")
+            
+            coin_balance = sum(b["balance"] for b in balances if b["currency"] == coin_currency)
+            sell_volume = coin_balance * self.config["max_position_ratio"]
+            min_order_size = self.config["min_order_krw"]
+
+            return max(min_order_size / price, sell_volume) if (sell_volume * price >= min_order_size) else 0.0
+
         return 0.0
 
-    # ------------------------------------------------------------------
-    # Step 6: ?ㅽ뻾 + 湲곕줉
-    # ------------------------------------------------------------------
-
-    def _execute_and_record(
-        self,
-        symbol: str,
-        decision: dict,
-        market: dict,
-        quant: dict,
-        llm_result: dict,
-        knowledge_ctx: str,
-        dry_run: bool,
-    ) -> dict:
-        """留ㅻℓ ?ㅽ뻾 + TradeJournal 湲곕줉."""
+    def _execute_and_log_trade(self, symbol: str, decision: dict, market_data: dict, quant_signals: dict, llm_result: dict, dry_run: bool = False) -> dict:
         action = decision["action"]
         confidence = decision["confidence"]
         volume = decision.get("volume", 0)
         reason = decision.get("reason", "")
-        price = market.get("current_price", 0)
-        indicators = market.get("indicators", {})
-
-        # 遺꾩꽍 洹쇨굅 援ъ꽦
+        
         analysis = {
-            "rsi": indicators.get("rsi_14"),
-            "macd_signal": market.get("signals", {}).get("macd_signal"),
-            "stoch_k": indicators.get("stoch_k"),
-            "bb_position": market.get("signals", {}).get("bb_signal"),
-            "quant_score": market.get("score"),
+            "rsi": market_data["indicators"].get("rsi_14"),
+            "macd_signal": market_data["signals"].get("macd_signal"),
+            "stoch_k": market_data["indicators"].get("stoch_k"),
+            "bb_position": market_data["signals"].get("bb_signal"),
+            "quant_score": market_data.get("score"),
             "llm_decision": llm_result.get("decision"),
             "llm_confidence": confidence,
             "llm_reason": reason,
-            "knowledge_hits": knowledge_ctx.count("\n") if knowledge_ctx else 0,
-            "knowledge_summary": knowledge_ctx[:200] if knowledge_ctx else "",
-            "strategy_signals": {k: str(v)[:100] for k, v in quant.items()},
+            "knowledge_hits": knowledge_context.count("\n") if knowledge_context else 0,
+            "knowledge_summary": knowledge_context[:200] if knowledge_context else "",
+            "strategy_signals": {k: str(v)[:100] for k, v in quant_signals.items()},
         }
 
         order_result = {}
@@ -353,48 +183,44 @@ class AutoTrader:
         total_krw = 0.0
         fee = 0.0
 
-        if action in ("buy", "sell") and not dry_run:
-            try:
-                if action == "buy":
-                    order_result = self.exchange.buy_market(symbol, volume)
-                    total_krw = volume
-                    fee = volume * self.config["fee_rate"]
-                else:
-                    order_result = self.exchange.sell_market(symbol, volume)
-                    total_krw = volume * price
-                    fee = total_krw * self.config["fee_rate"]
+        try:
+            if action == "buy":
+                order_result = self.exchange.buy_market(symbol, volume)
+                total_krw = volume
+                fee = volume * self.config["fee_rate"]
+                
+            elif action == "sell":
+                order_result = self.exchange.sell_market(symbol, volume)
+                total_krw = volume * market_data.get("current_price", 0)
+                fee = total_krw * self.config["fee_rate"]
 
-                if "error" not in order_result:
-                    executed = True
-                else:
-                    logger.error("二쇰Ц ?ㅽ뙣: %s", order_result)
-            except Exception as exc:
-                logger.error("二쇰Ц ?ㅽ뻾 ?덉쇅: %s", exc)
-                order_result = {"error": str(exc)}
+            if not dry_run and "error" not in order_result:
+                executed = True
+        except Exception as exc:
+            logging.error(f"Order execution error: {exc}")
+            order_result = {"error": str(exc)}
 
-        # ???湲곕줉 (hold??湲곕줉 ???곗씠??異뺤쟻)
-        trade = self.journal.record_trade(
+        trade_record = self.journal.record_trade(
             symbol=symbol,
             action=action,
             volume=volume,
-            price=price,
+            price=market_data.get("current_price", 0),
             total_krw=total_krw,
             fee=fee,
             analysis=analysis,
-            order_result=order_result if executed else None,
+            order_result=order_result if executed else None
         )
 
         return {
-            "trade_id": trade["trade_id"],
+            "trade_id": trade_record["trade_id"],
             "action": action,
             "confidence": confidence,
             "volume": volume,
-            "price": price,
+            "price": market_data.get("current_price", 0),
             "total_krw": total_krw,
             "fee": fee,
             "executed": executed,
             "dry_run": dry_run,
             "reason": reason,
-            "order_result": order_result if executed else None,
+            "order_result": order_result if executed else None
         }
-

@@ -1,7 +1,7 @@
-"""전략 프레임워크 기반 클래스.
+"""Base class for strategy framework.
 
-QuantStrategy (단일 종목)와 PortfolioStrategy (다중 종목) Protocol 정의.
-기존 BacktestEngine.run(data, strategy) 호환.
+Defines the QuantStrategy (single asset) and PortfolioStrategy (multiple assets) Protocols.
+Compatible with existing BacktestEngine.run(data, strategy).
 """
 from __future__ import annotations
 
@@ -12,16 +12,16 @@ import pandas as pd
 
 
 class QuantStrategy(Protocol):
-    """단일 종목 전략 Protocol — BacktestEngine 호환.
+    """Single asset trading strategy protocol — compatible with BacktestEngine.
 
-    signal() 메서드만 구현하면 기존 BacktestEngine.run()에서 사용 가능.
+    Implementing the signal() method allows usage in existing BacktestEngine.run().
     """
 
     def signal(self, data: pd.DataFrame) -> int:
-        """매매 시그널 생성.
+        """Generate trading signals.
 
         Args:
-            data: 현재까지의 OHLCV + 지표 데이터.
+            data: OHLCV + indicator data up to now.
 
         Returns:
             1=buy, -1=sell, 0=hold.
@@ -30,9 +30,9 @@ class QuantStrategy(Protocol):
 
 
 class PortfolioStrategy(Protocol):
-    """다중 자산 전략 Protocol — PortfolioBacktestEngine 호환.
+    """Multiple asset portfolio strategy protocol — compatible with PortfolioBacktestEngine.
 
-    allocate() 메서드로 자산별 비중을 반환.
+    The allocate() method returns the weight of each asset.
     """
 
     def allocate(
@@ -40,22 +40,22 @@ class PortfolioStrategy(Protocol):
         data: dict[str, pd.DataFrame],
         date: pd.Timestamp | None = None,
     ) -> dict[str, float]:
-        """자산배분 비중 산출.
+        """Calculate allocation weights for assets.
 
         Args:
-            data: {symbol: OHLCV DataFrame} 딕셔너리.
-            date: 배분 기준 날짜 (None이면 최신).
+            data: Dictionary of {symbol: OHLCV DataFrame}.
+            date: Allocation reference date (None means the latest).
 
         Returns:
-            {symbol: weight} 딕셔너리. 합계 <= 1.0 (나머지 현금).
+            Dictionary of {symbol: weight}. Total <= 1.0 (the rest is cash).
         """
         ...
 
 
 @dataclass
 class StrategyConfig:
-    """전략 파라미터 직렬화 기본 클래스."""
+    """Base class for serializing strategy parameters."""
 
     def to_dict(self) -> dict:
-        """설정을 딕셔너리로 변환."""
+        """Convert configuration to dictionary."""
         return asdict(self)

@@ -1,6 +1,6 @@
-"""추세 지표 모듈.
+"""Trend indicator module.
 
-SMA, EMA, MACD 계산 함수를 제공합니다.
+Provides functions to calculate SMA, EMA, and MACD.
 """
 
 from typing import Tuple
@@ -9,27 +9,27 @@ import pandas as pd
 
 
 def sma(series: pd.Series, length: int) -> pd.Series:
-    """단순 이동 평균(SMA)을 계산합니다.
+    """Calculates the Simple Moving Average (SMA).
 
     Args:
-        series: 종가 등 가격 데이터 (pandas Series).
-        length: 이동 평균 기간.
+        series: Closing price data or similar (pandas Series).
+        length: Period for moving average.
 
     Returns:
-        SMA 값을 담은 pandas Series.
+        A pandas Series containing SMA values.
     """
     return series.rolling(window=length).mean()
 
 
 def ema(series: pd.Series, length: int) -> pd.Series:
-    """지수 이동 평균(EMA)을 계산합니다.
+    """Calculates the Exponential Moving Average (EMA).
 
     Args:
-        series: 종가 등 가격 데이터 (pandas Series).
-        length: EMA 기간.
+        series: Closing price data or similar (pandas Series).
+        length: Period for EMA.
 
     Returns:
-        EMA 값을 담은 pandas Series.
+        A pandas Series containing EMA values.
     """
     return series.ewm(span=length, adjust=False).mean()
 
@@ -40,17 +40,16 @@ def macd(
     slow: int = 26,
     signal: int = 9,
 ) -> Tuple[pd.Series, pd.Series, pd.Series]:
-    """MACD, Signal Line, Histogram을 계산합니다.
+    """Calculates MACD, Signal Line, and Histogram.
 
     Args:
-        series: 종가 등 가격 데이터 (pandas Series).
-        fast: 빠른 EMA 기간 (기본값 12).
-        slow: 느린 EMA 기간 (기본값 26).
-        signal: Signal Line EMA 기간 (기본값 9).
+        series: Closing price data or similar (pandas Series).
+        fast: Period for the fast EMA (default 12).
+        slow: Period for the slow EMA (default 26).
+        signal: Period for the Signal Line EMA (default 9).
 
     Returns:
-        (macd_line, signal_line, histogram) 튜플.
-        각각 pandas Series.
+        A tuple of (macd_line, signal_line, histogram), each a pandas Series.
     """
     ema_fast = series.ewm(span=fast, adjust=False).mean()
     ema_slow = series.ewm(span=slow, adjust=False).mean()

@@ -1,4 +1,6 @@
-"""거래소 인터페이스 패키지."""
+"""
+Exchange interface package.
+"""
 
 from maiupbit.exchange.base import BaseExchange
 from maiupbit.exchange.upbit import UPbitExchange

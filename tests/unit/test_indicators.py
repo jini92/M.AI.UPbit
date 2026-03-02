@@ -1,4 +1,4 @@
-"""기술 지표 단위 테스트"""
+"""Unit tests for technical indicators"""
 import pytest
 import pandas as pd
 import numpy as np

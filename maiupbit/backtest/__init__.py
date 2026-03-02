@@ -1,4 +1,4 @@
-"""백테스팅 프레임워크"""
+"""Backtesting framework"""
 from maiupbit.backtest.engine import BacktestEngine
 from maiupbit.backtest.portfolio_engine import PortfolioBacktestEngine
 

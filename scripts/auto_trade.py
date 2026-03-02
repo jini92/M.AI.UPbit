@@ -1,9 +1,9 @@
 ﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""?먮룞留ㅻℓ ?ㅽ뻾 ?ㅽ겕由쏀듃 (?щ줎??.
+"""Auto trading script for M.AI.Upbit.
 
-留ㅼ씪 07:00 + 19:00 KST ?ㅽ뻾.
-遺꾩꽍 ??留ㅻℓ 寃곗젙 ???ㅽ뻾 ??湲곕줉 ??Obsidian ?숆린??
+This script runs from 07:00 to 19:00 KST daily.
+It uses Obsidian for trade record synchronization.
 
 Usage:
     python scripts/auto_trade.py [--symbol KRW-BTC] [--dry-run] [--provider ollama]
@@ -27,9 +27,9 @@ logger = logging.getLogger("auto_trade")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="M.AI.UPbit ?먮룞留ㅻℓ")
-    parser.add_argument("--symbol", default="KRW-BTC", help="嫄곕옒 ?щ낵")
-    parser.add_argument("--dry-run", action="store_true", help="遺꾩꽍留?(留ㅻℓ ????")
+    parser = argparse.ArgumentParser(description="M.AI.Upbit auto trading script")
+    parser.add_argument("--symbol", default="KRW-BTC", help="Trading symbol")
+    parser.add_argument("--dry-run", action="store_true", help="Dry run mode (no actual trades)")
     parser.add_argument("--provider", default=None, help="LLM provider (openai/ollama)")
     args = parser.parse_args()
 
@@ -37,7 +37,7 @@ def main() -> None:
     secret_key = os.getenv("UPBIT_SECRET_KEY")
 
     if not access_key or not secret_key:
-        print(json.dumps({"error": "UPBIT_ACCESS_KEY/SECRET_KEY ?꾩슂"}))
+        print(json.dumps({"error": "UPBIT_ACCESS_KEY/SECRET_KEY missing"}))
         sys.exit(1)
 
     # Exchange
@@ -54,9 +54,9 @@ def main() -> None:
         from maiupbit.analysis.llm import LLMAnalyzer
         provider = args.provider or os.getenv("LLM_PROVIDER", "ollama")
         llm = LLMAnalyzer(provider=provider)
-        logger.info("LLM 珥덇린?? %s (%s)", provider, llm.model)
+        logger.info("LLM initialized with %s (%s)", provider, llm.model)
     except Exception as exc:
-        logger.warning("LLM 珥덇린???ㅽ뙣 (湲곗닠吏???대갚): %s", exc)
+        logger.warning("Failed to initialize LLM (reason: %s): %s", type(exc).__name__, exc)
 
     # Knowledge (optional)
     knowledge = None
@@ -69,7 +69,7 @@ def main() -> None:
             knowledge = None
             logger.info("Mnemo unavailable (data not found)")
     except Exception as exc:
-        logger.debug("KnowledgeProvider 珥덇린???ㅽ뙣: %s", exc)
+        logger.debug("Failed to initialize KnowledgeProvider: %s", exc)
 
     # AutoTrader
     from maiupbit.trading.auto_trader import AutoTrader
@@ -80,7 +80,7 @@ def main() -> None:
         knowledge_provider=knowledge,
     )
 
-    # ?ㅽ뻾
+    # Execution
     # Execute with overall timeout
     import concurrent.futures as _cf
     import os as _os
@@ -105,12 +105,11 @@ def main() -> None:
             if latest:
                 sync.sync_trade(latest, journal)
         except Exception as exc:
-            logger.warning("Obsidian ?숆린???ㅽ뙣: %s", exc)
+            logger.warning("Failed to synchronize with Obsidian: %s", exc)
 
-    # JSON 異쒕젰 (MAIBOT ?щ줎 ?뚯떛??
+    # JSON output (MAIBOT response format)
     print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
 
 
 if __name__ == "__main__":
     main()
-

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenClaw HEARTBEAT용 시장 모니터링"""
+"""OpenClaw HEARTBEAT market monitoring"""
 import sys, os, json
 from dotenv import load_dotenv
 load_dotenv()
@@ -10,7 +10,7 @@ from maiupbit.indicators import trend, momentum, volatility
 
 
 def monitor(symbols: list[str] = None, threshold: float = 5.0) -> dict:
-    """관심 코인 모니터링. threshold% 이상 변동 시 알림 대상"""
+    """Monitoring of coins of interest. Alerts if the change exceeds threshold%"""
     exchange = UPbitExchange()
 
     if not symbols:
@@ -44,7 +44,7 @@ def monitor(symbols: list[str] = None, threshold: float = 5.0) -> dict:
             status.append(coin_status)
 
             if abs(change_pct) >= threshold:
-                direction = '급등' if change_pct > 0 else '급락'
+                direction = 'sharp rise' if change_pct > 0 else 'sharp fall'
                 alerts.append({
                     'symbol': symbol,
                     'type': direction,
@@ -53,7 +53,7 @@ def monitor(symbols: list[str] = None, threshold: float = 5.0) -> dict:
                 })
 
             if rsi_val and (rsi_val > 80 or rsi_val < 20):
-                zone = '과매수' if rsi_val > 80 else '과매도'
+                zone = 'overbought' if rsi_val > 80 else 'oversold'
                 alerts.append({
                     'symbol': symbol,
                     'type': f'RSI {zone}',

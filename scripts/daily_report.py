@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenClaw용 일일 분석 리포트 생성"""
+"""OpenClaw daily analysis report generation"""
 import sys, os, json, io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 from datetime import datetime
@@ -12,20 +12,20 @@ from maiupbit.analysis.technical import TechnicalAnalyzer
 
 
 def _get_knowledge_context(symbols: list[str]) -> str:
-    """Mnemo 지식 컨텍스트 조회 (graceful degradation)."""
+    """Retrieve Mnemo knowledge context (graceful degradation)."""
     try:
         from maiupbit.analysis.knowledge import KnowledgeProvider
         kp = KnowledgeProvider()
         if not kp.is_available():
             return ""
-        # 첫 번째 심볼 기준으로 검색
+        # Search based on the first symbol
         return kp.enrich_llm_context(symbols[0], top_k=3, timeout=20)
     except Exception:  # noqa: BLE001
         return ""
 
 
 def daily_report(symbols: list[str] = None) -> dict:
-    """일일 분석 리포트 생성"""
+    """Generate daily analysis report"""
     exchange = UPbitExchange(
         access_key=os.getenv('UPBIT_ACCESS_KEY'),
         secret_key=os.getenv('UPBIT_SECRET_KEY')
@@ -42,14 +42,14 @@ def daily_report(symbols: list[str] = None) -> dict:
         'recommendations': []
     }
 
-    # 포트폴리오
+    # Portfolio
     if os.getenv('UPBIT_ACCESS_KEY'):
         try:
             report['portfolio'] = exchange.get_portfolio()
         except Exception:
             pass
 
-    # 각 코인 분석
+    # Analysis for each coin
     for symbol in symbols:
         try:
             daily = exchange.get_ohlcv(symbol, 'day', count=30)
@@ -61,12 +61,12 @@ def daily_report(symbols: list[str] = None) -> dict:
         except Exception:
             continue
 
-    # Mnemo 지식 컨텍스트
+    # Mnemo knowledge context
     knowledge = _get_knowledge_context(symbols or ['KRW-BTC'])
     if knowledge:
         report['knowledge_enriched'] = True
         report['knowledge_source'] = "Mnemo (MAISECONDBRAIN)"
-        report['knowledge_context'] = knowledge[:500]  # 리포트용 요약
+        report['knowledge_context'] = knowledge[:500]  # Summary for the report
 
     return report
 

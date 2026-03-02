@@ -7,13 +7,13 @@ from dotenv import load_dotenv
 
 
 def cmd_analyze(args):
-    """코인 분석 실행"""
+    """Execute coin analysis"""
     from maiupbit.exchange.upbit import UPbitExchange
     from maiupbit.analysis.technical import TechnicalAnalyzer
     from maiupbit.indicators import trend, momentum, volatility, signals
 
     exchange = UPbitExchange()
-    # 데이터 수집
+    # Data collection
     daily = exchange.get_ohlcv(args.symbol, "day", count=args.days)
     hourly = exchange.get_ohlcv(args.symbol, "minute60", count=args.days * 24)
 
@@ -21,7 +21,7 @@ def cmd_analyze(args):
         print(json.dumps({"error": f"Failed to fetch data for {args.symbol}"}))
         sys.exit(1)
 
-    # 기술 지표 계산
+    # Calculate technical indicators
     for df in [daily, hourly]:
         df['SMA_10'] = trend.sma(df['close'], 10)
         df['EMA_10'] = trend.ema(df['close'], 10)
@@ -46,16 +46,16 @@ def cmd_analyze(args):
         if kp.is_available():
             knowledge_context = kp.enrich_llm_context(args.symbol, top_k=3, timeout=20)
     except Exception:  # noqa: BLE001
-        pass  # Mnemo 없어도 기존 분석 진행
+        pass  # Continue existing analysis even without Mnemo
 
-    # 기술 분석
+    # Technical analysis
     analyzer = TechnicalAnalyzer(exchange)
     result = analyzer.analyze(args.symbol, daily)
 
-    # 현재가 추가
+    # Add current price
     result['current_price'] = exchange.get_current_price(args.symbol)
 
-    # Mnemo 지식 컨텍스트 포함 여부
+    # Check if Mnemo knowledge context is included
     if knowledge_context:
         result['knowledge_enriched'] = True
         result['knowledge_source'] = "Mnemo (MAISECONDBRAIN)"
@@ -63,15 +63,15 @@ def cmd_analyze(args):
     if args.format == 'json':
         print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
     else:
-        print(f"=== {args.symbol} 분석 결과 ===")
-        print(f"현재가: {result['current_price']:,.0f}")
-        print(f"추천: {result.get('recommendation', 'N/A')}")
+        print(f"=== {args.symbol} Analysis Result ===")
+        print(f"Current Price: {result['current_price']:,.0f}")
+        print(f"Recommendation: {result.get('recommendation', 'N/A')}")
         print(f"RSI: {result.get('indicators', {}).get('rsi', 'N/A')}")
-        print(f"MACD 시그널: {result.get('signals', {}).get('macd', 'N/A')}")
+        print(f"MACD Signal: {result.get('signals', {}).get('macd', 'N/A')}")
 
 
 def cmd_portfolio(args):
-    """포트폴리오 조회"""
+    """View portfolio"""
     from maiupbit.exchange.upbit import UPbitExchange
 
     access_key = os.getenv("UPBIT_ACCESS_KEY")
@@ -87,14 +87,14 @@ def cmd_portfolio(args):
     if args.format == 'json':
         print(json.dumps(portfolio, ensure_ascii=False, indent=2, default=str))
     else:
-        print("=== 포트폴리오 ===")
+        print("=== Portfolio ===")
         for asset in portfolio.get('assets', []):
             print(f"  {asset['symbol']}: {asset['quantity']:.8f} ({asset['value']:,.0f} KRW)")
-        print(f"  총 자산: {portfolio.get('total_value', 0):,.0f} KRW")
+        print(f"  Total Assets: {portfolio.get('total_value', 0):,.0f} KRW")
 
 
 def cmd_trade(args):
-    """매매 실행"""
+    """Execute trade"""
     from maiupbit.exchange.upbit import UPbitExchange
 
     access_key = os.getenv("UPBIT_ACCESS_KEY")

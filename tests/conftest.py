@@ -1,4 +1,4 @@
-"""테스트 공통 설정"""
+"""Test common settings"""
 import pytest
 import pandas as pd
 import numpy as np
@@ -6,7 +6,7 @@ import numpy as np
 
 @pytest.fixture
 def sample_ohlcv() -> pd.DataFrame:
-    """테스트용 OHLCV 데이터 (100개 시간봉)"""
+    """Test OHLCV data (100 time periods)"""
     np.random.seed(42)
     n = 100
     dates = pd.date_range("2026-01-01", periods=n, freq="h")
@@ -25,5 +25,5 @@ def sample_ohlcv() -> pd.DataFrame:
 
 @pytest.fixture
 def sample_close(sample_ohlcv: pd.DataFrame) -> pd.Series:
-    """테스트용 종가 Series"""
+    """Test closing price Series"""
     return sample_ohlcv["close"]

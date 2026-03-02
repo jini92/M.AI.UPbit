@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenClaw용 포트폴리오 조회 스크립트"""
+"""OpenClaw portfolio query script"""
 import sys, os, json
 from dotenv import load_dotenv
 load_dotenv()

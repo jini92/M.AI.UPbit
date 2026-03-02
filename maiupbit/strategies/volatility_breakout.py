@@ -1,9 +1,9 @@
-"""변동성 돌파 전략.
+"""Volatility breakout strategy.
 
-래리 윌리엄스 변동성 돌파를 강환국 방식으로 적응:
-- 당일 시가 + 전일 레인지 × k 돌파 시 매수
-- 노이즈 비율 필터 + MA 필터
-- ATR 기반 포지션 사이징
+Adapted Larry Williams volatility breakout to Kang Whan Guk method:
+- Buy when the current open price + previous day's range × k breaks out
+- Noise ratio filter + MA filter
+- ATR based position sizing
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from maiupbit.strategies.base import StrategyConfig
 
 @dataclass
 class VolatilityBreakoutConfig(StrategyConfig):
-    """변동성 돌파 전략 설정."""
+    """Volatility breakout strategy configuration."""
 
     k: float = 0.5
     noise_threshold: float = 0.6
@@ -27,9 +27,9 @@ class VolatilityBreakoutConfig(StrategyConfig):
 
 
 class VolatilityBreakoutStrategy:
-    """변동성 돌파 전략 (QuantStrategy 호환).
+    """Volatility breakout strategy (QuantStrategy compatible).
 
-    사용:
+    Usage:
         strategy = VolatilityBreakoutStrategy()
         engine = BacktestEngine()
         result = engine.run(data, strategy)
@@ -40,10 +40,10 @@ class VolatilityBreakoutStrategy:
         self._in_position = False
 
     def signal(self, data: pd.DataFrame) -> int:
-        """변동성 돌파 매매 시그널.
+        """Volatility breakout trading signal.
 
         Args:
-            data: OHLCV DataFrame (open, high, low, close 필수).
+            data: OHLCV DataFrame (open, high, low, close required).
 
         Returns:
             1=buy, -1=sell, 0=hold.
@@ -57,7 +57,7 @@ class VolatilityBreakoutStrategy:
         prev_range = yesterday["high"] - yesterday["low"]
         breakout_price = today["open"] + prev_range * self.config.k
 
-        # MA 필터
+        # MA filter
         if self.config.ma_filter > 0 and len(data) >= self.config.ma_filter:
             ma = data["close"].rolling(self.config.ma_filter).mean().iloc[-1]
             if today["close"] < ma:
@@ -66,7 +66,7 @@ class VolatilityBreakoutStrategy:
                     return -1
                 return 0
 
-        # 노이즈 필터
+        # Noise filter
         if len(data) >= 20:
             nr = noise_ratio(
                 data["open"], data["high"], data["low"], data["close"], length=20
@@ -77,12 +77,12 @@ class VolatilityBreakoutStrategy:
                     return -1
                 return 0
 
-        # 돌파 매수
+        # Breakout buy
         if not self._in_position and today["high"] >= breakout_price:
             self._in_position = True
             return 1
 
-        # 일봉 종료 시 청산 (다음봉 시가에 매도)
+        # Close position at the end of the day (sell at next open)
         if self._in_position:
             self._in_position = False
             return -1
@@ -94,14 +94,14 @@ class VolatilityBreakoutStrategy:
         capital: float,
         data: pd.DataFrame,
     ) -> float:
-        """ATR 기반 포지션 사이즈 계산.
+        """Calculate position size based on ATR.
 
         Args:
-            capital: 현재 자본금.
+            capital: Current capital.
             data: OHLCV DataFrame.
 
         Returns:
-            투자할 금액.
+            Investment amount.
         """
         if len(data) < 15:
             return capital * self.config.risk_per_trade
@@ -120,14 +120,14 @@ class VolatilityBreakoutStrategy:
         data: pd.DataFrame,
         k_range: list[float] | None = None,
     ) -> dict:
-        """최적 k값을 백테스트로 탐색합니다.
+        """Search for optimal k value through backtesting.
 
         Args:
             data: OHLCV DataFrame.
-            k_range: 탐색할 k값 리스트.
+            k_range: List of k values to search.
 
         Returns:
-            {k: return_pct} 딕셔너리.
+            {k: return_pct} dictionary.
         """
         if k_range is None:
             k_range = [round(0.1 * i, 1) for i in range(1, 11)]
