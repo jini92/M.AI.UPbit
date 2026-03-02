@@ -1,4 +1,4 @@
-"""TechnicalAnalyzer / LLMAnalyzer 단위 테스트"""
+"""TechnicalAnalyzer / LLMAnalyzer unit tests"""
 from __future__ import annotations
 
 import json
@@ -19,7 +19,7 @@ from maiupbit.analysis.technical import TechnicalAnalyzer, _safe_float
 
 @pytest.fixture
 def mock_exchange() -> MagicMock:
-    """get_ohlcv, get_current_price를 가진 모의 거래소"""
+    """get_ohlcv, get_current_price mock exchange with"""
     return MagicMock()
 
 
@@ -30,7 +30,7 @@ def analyzer(mock_exchange: MagicMock) -> TechnicalAnalyzer:
 
 @pytest.fixture
 def ohlcv_100() -> pd.DataFrame:
-    """분석에 충분한 100개 OHLCV 데이터"""
+    """100 OHLCV data points sufficient for analysis"""
     np.random.seed(99)
     n = 100
     dates = pd.date_range("2026-01-01", periods=n, freq="h")
@@ -49,10 +49,10 @@ def ohlcv_100() -> pd.DataFrame:
 
 @pytest.fixture
 def oversold_ohlcv() -> pd.DataFrame:
-    """RSI 과매도 상태를 만들도록 급락하는 데이터"""
+    """RSI rapidly declining data to create oversold conditions"""
     n = 50
     dates = pd.date_range("2026-01-01", periods=n, freq="h")
-    # 꾸준히 하락
+    # steady decline
     close = np.linspace(100_000, 30_000, n)
     return pd.DataFrame(
         {
@@ -68,7 +68,7 @@ def oversold_ohlcv() -> pd.DataFrame:
 
 @pytest.fixture
 def overbought_ohlcv() -> pd.DataFrame:
-    """RSI 과매수 상태를 만들도록 급등하는 데이터"""
+    """RSI overbought rapidly rising data to create overbought conditions"""
     n = 50
     dates = pd.date_range("2026-01-01", periods=n, freq="h")
     close = np.linspace(30_000, 100_000, n)
@@ -128,8 +128,8 @@ class TestAnalyze:
         self, analyzer: TechnicalAnalyzer, oversold_ohlcv: pd.DataFrame
     ) -> None:
         result = analyzer.analyze("KRW-BTC", oversold_ohlcv)
-        # 과매도 상태면 score >= 0.3 → buy 권장
-        # (데이터에 따라 달라질 수 있으므로 score 기준으로 확인)
+        # oversold state then score >= 0.3 → buy recommended
+        # (depending on data may vary so score based on confirm)
         if result["score"] >= 0.3:
             assert result["recommendation"] == "buy"
         elif result["score"] <= -0.3:
@@ -146,7 +146,7 @@ class TestAnalyze:
 
 
 # ---------------------------------------------------------------------------
-# 시그널 해석 (macd/rsi/bb)
+# signal interpretation (macd/rsi/bb)
 # ---------------------------------------------------------------------------
 
 class TestSignalInterpretation:
@@ -217,7 +217,7 @@ class TestRecommendByTrend:
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
         mock_exchange.get_ohlcv.return_value = self._make_trend_ohlcv()
-        fake_markets = {"비트코인": "KRW-BTC"}
+        fake_markets = {"Bitcoin": "KRW-BTC"}
         with patch.object(analyzer, "_get_market_info", return_value=fake_markets):
             result = analyzer.recommend_by_trend(top_n=5)
         assert isinstance(result, list)
@@ -226,7 +226,7 @@ class TestRecommendByTrend:
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
         mock_exchange.get_ohlcv.return_value = self._make_trend_ohlcv(rising=True)
-        fake_markets = {f"코인{i}": f"KRW-COIN{i}" for i in range(10)}
+        fake_markets = {f"coin{i}": f"KRW-COIN{i}" for i in range(10)}
         with patch.object(analyzer, "_get_market_info", return_value=fake_markets):
             result = analyzer.recommend_by_trend(top_n=3)
         assert len(result) <= 3
@@ -241,10 +241,10 @@ class TestRecommendByTrend:
     def test_insufficient_data_skipped(
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
-        # 데이터가 너무 적으면 (< 90) 건너뜀
+        # if data is too few (< 90) skip
         short_df = self._make_trend_ohlcv(n=30)
         mock_exchange.get_ohlcv.return_value = short_df
-        with patch.object(analyzer, "_get_market_info", return_value={"비트코인": "KRW-BTC"}):
+        with patch.object(analyzer, "_get_market_info", return_value={"Bitcoin": "KRW-BTC"}):
             result = analyzer.recommend_by_trend()
         assert result == []
 
@@ -252,7 +252,7 @@ class TestRecommendByTrend:
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
         mock_exchange.get_ohlcv.side_effect = Exception("network error")
-        with patch.object(analyzer, "_get_market_info", return_value={"비트코인": "KRW-BTC"}):
+        with patch.object(analyzer, "_get_market_info", return_value={"Bitcoin": "KRW-BTC"}):
             result = analyzer.recommend_by_trend()
         assert isinstance(result, list)
 
@@ -275,7 +275,7 @@ class TestRecommendByPerformance:
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
         mock_exchange.get_ohlcv.return_value = self._make_perf_ohlcv(1000, 1100)
-        with patch.object(analyzer, "_get_market_info", return_value={"비트코인": "KRW-BTC"}):
+        with patch.object(analyzer, "_get_market_info", return_value={"Bitcoin": "KRW-BTC"}):
             result = analyzer.recommend_by_performance(top_n=3, days=7)
         assert isinstance(result, list)
 
@@ -283,18 +283,18 @@ class TestRecommendByPerformance:
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
         mock_exchange.get_ohlcv.return_value = self._make_perf_ohlcv(1000, 1100)
-        with patch.object(analyzer, "_get_market_info", return_value={"비트코인": "KRW-BTC"}):
+        with patch.object(analyzer, "_get_market_info", return_value={"Bitcoin": "KRW-BTC"}):
             result = analyzer.recommend_by_performance(top_n=3, days=7)
         if result:
             symbol, reason = result[0]
             assert isinstance(symbol, str)
-            assert "%" in reason  # 수익률 언급
+            assert "%" in reason  # profit rate mentioned
 
     def test_sorted_by_performance_descending(
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
-        # 세 코인에 서로 다른 수익률 부여
-        markets = {"비트코인": "KRW-BTC", "이더리움": "KRW-ETH", "리플": "KRW-XRP"}
+        # assign different profit rates to three coins
+        markets = {"Bitcoin": "KRW-BTC", "Ethereum": "KRW-ETH", "Ripple": "KRW-XRP"}
 
         def side_effect(symbol: str, **kwargs: Any) -> pd.DataFrame:
             gains = {"KRW-BTC": 30, "KRW-ETH": 50, "KRW-XRP": 10}
@@ -307,13 +307,13 @@ class TestRecommendByPerformance:
             result = analyzer.recommend_by_performance(top_n=3, days=7)
 
         symbols = [r[0] for r in result]
-        assert symbols[0] == "KRW-ETH"  # 50% 수익 1위
+        assert symbols[0] == "KRW-ETH"  # 50% highest profit
 
     def test_top_n_respected(
         self, analyzer: TechnicalAnalyzer, mock_exchange: MagicMock
     ) -> None:
         mock_exchange.get_ohlcv.return_value = self._make_perf_ohlcv(1000, 1200)
-        markets = {f"코인{i}": f"KRW-COIN{i}" for i in range(10)}
+        markets = {f"coin{i}": f"KRW-COIN{i}" for i in range(10)}
         with patch.object(analyzer, "_get_market_info", return_value=markets):
             result = analyzer.recommend_by_performance(top_n=2, days=7)
         assert len(result) <= 2
@@ -325,7 +325,7 @@ class TestRecommendByPerformance:
 
 
 # ---------------------------------------------------------------------------
-# _safe_float 유틸리티
+# _safe_float utility
 # ---------------------------------------------------------------------------
 
 class TestSafeFloat:
@@ -359,14 +359,14 @@ _SAMPLE_LLM_JSON = json.dumps({
     "decision": "buy",
     "buy_price": 50000,
     "sell_price": 55000,
-    "reason": "RSI 과매도 구간 진입 + MACD 골든크로스 확인으로 매수 적기",
+    "reason": "RSI oversold zone entry + MACD golden cross confirmed, good time to buy",
     "technical_analysis": {
         "key_indicators": "RSI oversold",
         "trend": "uptrend",
     },
     "market_sentiment": "positive",
     "risk_management": {
-        "position_sizing": "자본의 5%",
+        "position_sizing": "of capital 5%",
         "stop_loss": "48000",
         "take_profit": "56000",
     },
@@ -374,13 +374,13 @@ _SAMPLE_LLM_JSON = json.dumps({
 
 
 class TestLLMAnalyzer:
-    """LLMAnalyzer 단위 테스트 (OpenAI / Ollama 프로바이더)."""
+    """LLMAnalyzer unit tests (OpenAI / Ollama provider)."""
 
-    # -- init / provider 설정 -------------------------------------------
+    # -- init / provider config -------------------------------------------
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_init_default_openai(self, mock_openai_cls: MagicMock) -> None:
-        """기본 프로바이더는 openai, 모델은 gpt-4o."""
+        """default provider is openai, model is gpt-4o."""
         analyzer = LLMAnalyzer(api_key="sk-test")
         assert analyzer.provider == "openai"
         assert analyzer.model == "gpt-4o"
@@ -388,7 +388,7 @@ class TestLLMAnalyzer:
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_init_ollama_provider(self, mock_openai_cls: MagicMock) -> None:
-        """provider='ollama' 설정 시 base_url, api_key, model 자동 결정."""
+        """provider='ollama' config sets base_url, api_key, model auto-determined."""
         analyzer = LLMAnalyzer(provider="ollama")
         assert analyzer.provider == "ollama"
         assert analyzer.model == "qwen2.5:14b"
@@ -404,7 +404,7 @@ class TestLLMAnalyzer:
     })
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_init_from_env_vars(self, mock_openai_cls: MagicMock) -> None:
-        """환경 변수로 프로바이더, base_url, 모델 설정."""
+        """environment variable via provider, base_url, model config."""
         analyzer = LLMAnalyzer()
         assert analyzer.provider == "ollama"
         assert analyzer.model == "llama3:8b"
@@ -417,7 +417,7 @@ class TestLLMAnalyzer:
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_parse_response_valid_json(self, mock_openai_cls: MagicMock) -> None:
-        """표준 JSON 문자열 파싱."""
+        """standard JSON string parsing."""
         analyzer = LLMAnalyzer(api_key="sk-test")
         result = analyzer._parse_response(_SAMPLE_LLM_JSON)
         assert result["recommendation"] == "buy"
@@ -428,7 +428,7 @@ class TestLLMAnalyzer:
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_parse_response_markdown_codeblock(self, mock_openai_cls: MagicMock) -> None:
-        """마크다운 ```json ... ``` 코드 블록 내부 JSON 파싱."""
+        """markdown ```json ... ``` JSON inside code block parsing."""
         analyzer = LLMAnalyzer(api_key="sk-test")
         wrapped = f"```json\n{_SAMPLE_LLM_JSON}\n```"
         result = analyzer._parse_response(wrapped)
@@ -437,7 +437,7 @@ class TestLLMAnalyzer:
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_parse_response_invalid_returns_default(self, mock_openai_cls: MagicMock) -> None:
-        """파싱 불가 문자열 → 기본 hold 결과 반환."""
+        """unparseable string → default hold result return."""
         analyzer = LLMAnalyzer(api_key="sk-test")
         result = analyzer._parse_response("not valid json at all")
         assert result["recommendation"] == "hold"
@@ -445,10 +445,10 @@ class TestLLMAnalyzer:
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_parse_response_legacy_chart_patterns(self, mock_openai_cls: MagicMock) -> None:
-        """기존 chart_patterns 필드를 trend로 매핑 (하위 호환)."""
+        """existing chart_patterns field to trend via mapping (backward compatibility)."""
         legacy_json = json.dumps({
             "decision": "hold",
-            "reason": "횡보 중",
+            "reason": "sideways in progress",
             "technical_analysis": {"key_indicators": "RSI 50", "chart_patterns": "sideways"},
         })
         analyzer = LLMAnalyzer(api_key="sk-test")
@@ -459,7 +459,7 @@ class TestLLMAnalyzer:
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_analyze_success_mock(self, mock_openai_cls: MagicMock) -> None:
-        """analyze() 가 올바른 구조의 결과를 반환."""
+        """analyze() returns correctly structured result return."""
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
         mock_choice = MagicMock()
@@ -480,7 +480,7 @@ class TestLLMAnalyzer:
 
     @patch("maiupbit.analysis.llm.OpenAI")
     def test_analyze_api_error_returns_default(self, mock_openai_cls: MagicMock) -> None:
-        """API 예외 발생 시 기본 hold 결과 반환."""
+        """API exception raised returns default hold result on return."""
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
         mock_client.chat.completions.create.side_effect = Exception("API Error")

@@ -236,4 +236,4 @@ class TestMain:
         with patch("sys.argv", ["maiupbit", "analyze", "KRW-BTC", "--format", "json"]):
             with patch("maiupbit.exchange.upbit.UPbitExchange", return_value=mock_exchange_instance):
                 from maiupbit.cli import main
-                main()  # sys.exit 없이 정상 종료
+                main()  # sys.exit without normal exit

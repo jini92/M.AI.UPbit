@@ -40,7 +40,7 @@ import plotly.express as px
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 if config.DEBUG:
-    # 디버깅 관련 코드
+    # debugging related code
     logging.basicConfig(level=logging.DEBUG)
 
 
@@ -87,8 +87,8 @@ def fetch_portfolio_data(upbit):
             else:
                 continue
 
-        value = quantity * current_price  # 'value' 열 계산
-        pnl = value - (quantity * avg_buy_price) # 'pnl' 열 계산
+        value = quantity * current_price  # 'value' column calculation
+        pnl = value - (quantity * avg_buy_price) # 'pnl' column calculation
         
         asset_type = "Crypto" if currency != 'KRW' else "Cash"
 
@@ -98,7 +98,7 @@ def fetch_portfolio_data(upbit):
             "quantity": quantity,
             "current_price": current_price,
             "avg_buy_price": avg_buy_price,
-            "value": value,  # 'value' 열 추가
+            "value": value,  # 'value' column added
             "pnl": pnl
         })
 
@@ -319,7 +319,7 @@ def save_trade_history(symbol, amount, trade_type, price):
     conn = sqlite3.connect("trade_history.db")
     cursor = conn.cursor()
     
-    # trade_history 테이블이 없으면 생성
+    # trade_history create table if not exists
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS trade_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -331,7 +331,7 @@ def save_trade_history(symbol, amount, trade_type, price):
         )
     """)
     
-    # 거래 이력 저장
+    # trade history save
     cursor.execute("""
         INSERT INTO trade_history (symbol, amount, trade_type, price)
         VALUES (?, ?, ?, ?)
@@ -361,7 +361,7 @@ def execute_buy(upbit, symbol, order_amount):
         result = upbit.buy_market_order(symbol, order_amount)
         logging.info(f"Buy order successful: {result}")
 
-        # 구매 이력을 데이터베이스에 저장
+        # save buy history to database save
         save_trade_history(symbol, order_amount, "buy", result["price"])
 
     except Exception as e:
@@ -388,7 +388,7 @@ def execute_sell(upbit, symbol, order_amount):
         result = upbit.sell_market_order(symbol, order_amount)
         logging.info(f"Sell order successful: {result}")
 
-        # 판매 이력을 데이터베이스에 저장
+        # save sell history to database save
         save_trade_history(symbol, order_amount, "sell", result["price"])
 
     except Exception as e:
@@ -471,7 +471,7 @@ def load_env_variables():
     upbit_secret_key = ""
     instructions_path = "./instructions.md"
 
-    # # 현재 스크립트 파일의 디렉토리 경로 가져오기
+    # # get directory path of current script file
     # current_dir = os.path.dirname(os.path.abspath(__file__))
     # instructions_path = os.path.join(current_dir, "instructions.md")
 
@@ -545,14 +545,14 @@ def set_environment_variables():
     logging.info(f"upbit_secret_key: {st.session_state.upbit_secret_key}")
     logging.info(f"instructions_path: {st.session_state.instructions_path}")
 
-    # # 사이드바에 토스 QR 코드 추가
-    # st.sidebar.subheader("토스로 펀드 받기")
+    # # add Toss QR code to sidebar
+    # st.sidebar.subheader("Receive funds via Toss")
     # st.sidebar.image("toss_funding.jpeg", use_column_width=True)
 
-    # 사이드바에 kakao QR 코드 추가
-    st.sidebar.subheader("카카오페이로 펀드 받기")
+    # add Kakao QR code to sidebar
+    st.sidebar.subheader("Receive funds via KakaoPay")
     kakaopay_funding_link = "https://qr.kakaopay.com/Ej797GOPG1c205798"
-    st.sidebar.markdown(f"[[개발펀딩]]({kakaopay_funding_link})")
+    st.sidebar.markdown(f"[[Dev Funding]]({kakaopay_funding_link})")
     st.sidebar.image("kakao_funding.jpeg", use_column_width=True)
     
 
@@ -568,7 +568,7 @@ def select_symbols(recommended_symbol=None):
         order_amount = st.number_input(f"Enter order amount ({order_currency})", min_value=0.0, format="%.8f")
     else:
         market_info = get_market_info()
-        coin_name = st.text_input("Enter Cryptocurrency Name (e.g., 비트코인, 레이븐):")
+        coin_name = st.text_input("Enter Cryptocurrency Name (e.g., Bitcoin, Raven):")
         filtered_tickers = [ticker for name, ticker in market_info.items() if coin_name in name]
         selected_symbol = st.selectbox("Select Ticker:", filtered_tickers)
         order_currency = selected_symbol.split('-')[0]
@@ -590,26 +590,26 @@ def select_symbols(recommended_symbol=None):
     else:
         enable_auto_trading = False
 
-    # 스케줄 주기 선택
+    # select schedule interval
     schedule_interval = None
     schedule_value = None
     if enable_auto_trading:
-        #schedule_interval = st.selectbox("스케줄 주기", ("분", "시간", "일", "주", "월", "년"))
-        schedule_interval = st.selectbox("스케줄 주기", ("시간", "일", "주", "월", "년", "분"))
+        #schedule_interval = st.selectbox("Schedule Interval", ("minute", "hour", "day", "week", "month", "year"))
+        schedule_interval = st.selectbox("Schedule Interval", ("hour", "day", "week", "month", "year", "minute"))
 
-        # 주기 값 입력
-        if schedule_interval == "분":
-            schedule_value = st.number_input("분 간격", min_value=1, value=1, step=1)
-        elif schedule_interval == "시간":
-            schedule_value = st.number_input("시간 간격", min_value=1, value=1, step=1)
-        elif schedule_interval == "일":
-            schedule_value = st.number_input("일 간격", min_value=1, value=1, step=1)
-        elif schedule_interval == "주":
-            schedule_value = st.number_input("주 간격", min_value=1, value=1, step=1)
-        elif schedule_interval == "월":
-            schedule_value = st.number_input("월 간격", min_value=1, value=1, step=1)
-        elif schedule_interval == "년":
-            schedule_value = st.number_input("년 간격", min_value=1, value=1, step=1)
+        # interval value input
+        if schedule_interval == "minute":
+            schedule_value = st.number_input("Minute Interval", min_value=1, value=1, step=1)
+        elif schedule_interval == "hour":
+            schedule_value = st.number_input("Hour Interval", min_value=1, value=1, step=1)
+        elif schedule_interval == "day":
+            schedule_value = st.number_input("Day Interval", min_value=1, value=1, step=1)
+        elif schedule_interval == "week":
+            schedule_value = st.number_input("Week Interval", min_value=1, value=1, step=1)
+        elif schedule_interval == "month":
+            schedule_value = st.number_input("Month Interval", min_value=1, value=1, step=1)
+        elif schedule_interval == "year":
+            schedule_value = st.number_input("Year Interval", min_value=1, value=1, step=1)
 
     return selected_symbol, order_amount, enable_trading, enable_auto_trading, schedule_interval, schedule_value, start_date, end_date
 
@@ -709,7 +709,7 @@ def recommend_symbols_by_recent_performance(top_n=5, days=7):
 
     result = []
     for symbol, returns in top_symbols:
-        reason = f"최근 {days}일 간 {returns:.2f}%의 수익률을 기록하였습니다."
+        reason = f"recent {days}days of {returns:.2f}% profit rate recorded."
         result.append((symbol, reason))
 
     return result
@@ -747,7 +747,7 @@ def recommend_symbols(day_range=365):
 
         if ma7 > ma30 > ma90:
             if df['close'].iloc[-1] > df['upper'].iloc[-1]:
-                reason = "7일, 30일, 90일 이동평균선이 상승 배열을 이루고 있으며, 현재 가격이 볼린저밴드 상한선을 돌파했습니다."
+                reason = "7day, 30day, 90day moving averages forming bullish alignment and, current price is above Bollinger Band upper band breakout detected."
                 recommended_symbols.append((symbol, reason))
 
     recommended_symbols = list(set(recommended_symbols))[:5]
@@ -756,13 +756,13 @@ def recommend_symbols(day_range=365):
 
 def get_article_content(url):
     """
-    주어진 URL에서 기사 내용을 추출합니다.
+    Extract article content from given URL.
 
     Args:
-        url (str): 기사 URL
+        url (str): article URL
 
     Returns:
-        str: 기사 내용
+        str: article content
     """
     try:
         html = urlopen(url).read()
@@ -774,14 +774,14 @@ def get_article_content(url):
 
         return article_content
     except Exception as e:
-        logging.error(f"기사 내용을 가져오는 중 오류가 발생했습니다: {e}")
+        logging.error(f"error occurred while fetching article content: {e}")
         return ""
 
 def extract_summary(summary):
-  # HTML 태그 제거
+  # remove HTML tags
   summary = re.sub('<[^<]+?>', '', summary)
    
-  # 불필요한 내용 제거
+  # remove unnecessary content
   summary = re.sub(r'\s-\s.*$', '', summary)
   summary = re.sub(r'\s\s+', ' ', summary)
    
@@ -789,10 +789,10 @@ def extract_summary(summary):
 
 def get_coin_news(symbol, num_articles=5):
     try:
-        # Google News RSS 피드 URL
+        # Google News RSS feed URL
         rss_url = f"https://news.google.com/rss/search?q={symbol}+crypto&hl=en-US&gl=US&ceid=US:en"
 
-        # 피드 파싱
+        # parse feed
         feed = feedparser.parse(rss_url)
 
         news_text = ""
@@ -807,16 +807,16 @@ def get_coin_news(symbol, num_articles=5):
             news_text += f"\n"
             news_text += f"Title: {title}\n"
             news_text += f"\n"
-            news_text += f"Summary: {summary}\n\n"  # 요약 문장 내 줄바꿈 유지
+            news_text += f"Summary: {summary}\n\n"  # preserve line breaks in summary
             # news_text += f"Link: {link}\n"
-            news_text += "\n" # 추가: 기사 간 줄바꿈
+            news_text += "\n" # add: line break between articles
 
-        # 디버깅
+        # debugging
         logging.info(f"Scraped news text:\n{news_text}")
 
         return news_text
     except Exception as e:
-        logging.error(f"뉴스를 가져오는 중 오류가 발생했습니다: {e}")
+        logging.error(f"error occurred while fetching news: {e}")
         return ""
 
 def generate_report(symbol, news_text, analysis_result):
@@ -893,14 +893,14 @@ def generate_report(symbol, news_text, analysis_result):
 
 
         # news content
-        news_articles = news_text.split("\n\n")  # 기사별로 분리
+        news_articles = news_text.split("\n\n")  # split by article
         for article in news_articles:
-            if article.strip():  # 빈 문자열 제외
+            if article.strip():  # exclude empty strings
                 article_paragraph = Paragraph(article, styles["Normal"])
                 elements.append(article_paragraph)
-                elements.append(Spacer(1, 12))  # 기사 간 간격 추가
+                elements.append(Spacer(1, 12))  # add spacing between articles
         
-        elements.append(Spacer(1, 24))  # 뉴스와 분석 결과 사이 간격 추가
+        elements.append(Spacer(1, 24))  # add spacing between news and analysis result
 
         # Add GPT-4 analysis
         analysis_style = styles["Normal"]
@@ -952,10 +952,10 @@ def main(openai_key,
 
     st.title(f"AI Trader - {symbol}")
     
-    # 사용자 정의 CSS 추가
+    # add custom CSS
     st.markdown("""
         <style>
-            /* 기본 스타일 */
+            /* default styles */
             .sidebar .sidebar-content {
                 width: 300px;
             }
@@ -967,7 +967,7 @@ def main(openai_key,
                 padding-bottom: 2rem;
             }
             
-            /* 화면 너비가 600px 이하일 때 적용되는 스타일 */
+            /* styles applied when screen width <= 600px */
             @media screen and (max-width: 600px) {
                 .sidebar .sidebar-content {
                     width: 100%;
@@ -1001,7 +1001,7 @@ def main(openai_key,
         data_json = prepare_data(daily_data, hourly_data)
         current_status = get_current_status(upbit, symbol)
         
-        # MACD signals, technical indicators, LSTM predictions 추출
+        # MACD signals, technical indicators, LSTM predictions extract
         macd_signals = daily_data['MACD_Signal'].tolist()
         technical_indicators = {
             'SMA_10': daily_data['SMA_10'].tolist(),
@@ -1017,12 +1017,12 @@ def main(openai_key,
         st.markdown("---")
     
         
-        # 추가: LSTM 모델을 사용한 가격 예측 및 시각화
+        # add: LSTM model for price prediction and visualization
         st.subheader("Price Prediction (LSTM)")
         lstm_predictions = predict_and_visualize(hourly_data)
         st.markdown("---")
         
-        # GPT-4를 사용하여 데이터 분석 및 거래 결정
+        # GPT-4for data analysis and trade decision
         st.subheader("Data Analysis and Trading Decision with GPT-4")
 
         # analysis_result initialized
@@ -1083,7 +1083,7 @@ def main(openai_key,
             
             make_decision_and_execute(upbit, symbol, recommendation, order_amount)
 
-            # 트레이딩 이력 표시
+            # display trading history
             trade_history = get_trade_history()
             
             if trade_history:
@@ -1222,7 +1222,7 @@ if __name__ == "__main__":
         selected_symbol, order_amount, enable_trading, enable_auto_trading, schedule_interval, schedule_value, start_date, end_date = select_symbols()
 
         
-    # main() 에서 이동된 부분
+    # main() moved from
     instructions = get_instructions(instructions_path)
     openai = OpenAI(api_key=openai_key)
     upbit = pyupbit.Upbit(upbit_access_key, upbit_secret_key)
@@ -1241,18 +1241,18 @@ if __name__ == "__main__":
     logging.info(f"schedule_interval: {schedule_interval}")
     logging.info(f"schedule_value: {schedule_value}")
 
-    # 탭 생성
+    # tab create
     tabs = st.tabs(["Portfolio", "Trading"])
 
-    # 포트폴리오 탭
+    # portfolio tab
     with tabs[0]:
         # st.title("Portfolio")
 
-        # # 포트폴리오 데이터 가져오기
+        # # portfolio fetch data
         # if selected_symbol:
         #     portfolio_data = fetch_portfolio_data([selected_symbol])
 
-        #     # 대시보드 표시 
+        #     # display dashboard 
         #     display_dashboard(portfolio_data)
         # else:
         #     st.warning("No symbols selected. Please select at least one symbol to display the portfolio.")
@@ -1260,9 +1260,9 @@ if __name__ == "__main__":
 
         st.title("Portfolio")
         portfolio_data = fetch_portfolio_data(upbit)
-        display_dashboard(portfolio_data, recommended_symbols)  # 추천 종목 리스트 전달
+        display_dashboard(portfolio_data, recommended_symbols)  # Recommended Symbols list
 
-    # 거래 탭
+    # trading tab
     with tabs[1]:
 
         if selected_symbol:
@@ -1271,7 +1271,7 @@ if __name__ == "__main__":
 
             if start_trading_button:
                 if enable_auto_trading and schedule_interval and schedule_value:
-                    if schedule_interval == "분":
+                    if schedule_interval == "minute":
                         schedule.every(schedule_value).minutes.do(main, 
                                                                 openai_key=openai_key,
                                                                 upbit_access_key=upbit_access_key,
@@ -1283,7 +1283,7 @@ if __name__ == "__main__":
                                                                 enable_auto_trading=enable_auto_trading,
                                                                 start_date=start_date,
                                                                 end_date=end_date)
-                    elif schedule_interval == "시간":
+                    elif schedule_interval == "hour":
                         schedule.every(schedule_value).hours.do(main, 
                                                                 openai_key=openai_key,
                                                                 upbit_access_key=upbit_access_key,
@@ -1295,7 +1295,7 @@ if __name__ == "__main__":
                                                                 enable_auto_trading=enable_auto_trading,
                                                                 start_date=start_date,
                                                                 end_date=end_date)
-                    elif schedule_interval == "일":
+                    elif schedule_interval == "day":
                         schedule.every(schedule_value).days.do(main, 
                                                             openai_key=openai_key,
                                                             upbit_access_key=upbit_access_key,
@@ -1307,7 +1307,7 @@ if __name__ == "__main__":
                                                             enable_auto_trading=enable_auto_trading,
                                                             start_date=start_date,
                                                             end_date=end_date)
-                    elif schedule_interval == "주":
+                    elif schedule_interval == "week":
                         schedule.every(schedule_value).weeks.do(main, 
                                                                 openai_key=openai_key,
                                                                 upbit_access_key=upbit_access_key,
@@ -1319,7 +1319,7 @@ if __name__ == "__main__":
                                                                 enable_auto_trading=enable_auto_trading,
                                                                 start_date=start_date,
                                                                 end_date=end_date)
-                    elif schedule_interval == "월":
+                    elif schedule_interval == "month":
                         schedule.every(schedule_value).months.do(main, 
                                                                 openai_key=openai_key,
                                                                 upbit_access_key=upbit_access_key,
@@ -1331,7 +1331,7 @@ if __name__ == "__main__":
                                                                 enable_auto_trading=enable_auto_trading,
                                                                 start_date=start_date,
                                                                 end_date=end_date)
-                    elif schedule_interval == "년":
+                    elif schedule_interval == "year":
                         schedule.every(schedule_value).years.do(main, 
                                                                 openai_key=openai_key,
                                                                 upbit_access_key=upbit_access_key,

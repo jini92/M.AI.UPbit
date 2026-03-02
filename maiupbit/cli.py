@@ -38,7 +38,7 @@ def cmd_analyze(args):
         df['STOCHk'] = stoch_k
         df['STOCHd'] = stoch_d
 
-    # Mnemo 지식 컨텍스트 (graceful degradation)
+    # Mnemo knowledge context (graceful degradation)
     knowledge_context = ""
     try:
         from maiupbit.analysis.knowledge import KnowledgeProvider
@@ -108,7 +108,7 @@ def cmd_trade(args):
 
     if not args.confirm:
         price = exchange.get_current_price(args.symbol)
-        # 소수점 이하 코인 가격 대응 (BTT 등)
+        # handle sub-1 KRW coin prices (BTT etc)
         if price < 1:
             price_str = f"{price:.6f}"
         elif price < 100:
@@ -119,13 +119,13 @@ def cmd_trade(args):
         if args.action == "sell":
             est_krw = args.amount * price
             print(f"⚠️ SELL {args.amount:,.0f} {args.symbol} @ ~₩{price_str}")
-            print(f"   예상 수령액: ~₩{est_krw:,.2f}")
+            print(f"   Estimated receive amount: ~₩{est_krw:,.2f}")
         else:
             est_qty = args.amount / price if price > 0 else 0
             print(f"⚠️ BUY ₩{args.amount:,.0f} {args.symbol} @ ~₩{price_str}")
-            print(f"   예상 수량: ~{est_qty:,.0f}")
+            print(f"   Estimated quantity: ~{est_qty:,.0f}")
 
-        print("실행하려면 --confirm 플래그를 추가하세요.")
+        print("Add --confirm flag to execute.")
         sys.exit(0)
 
     if args.action == 'buy':
@@ -140,7 +140,7 @@ def cmd_trade(args):
 
 
 def cmd_recommend(args):
-    """종목 추천"""
+    """symbol recommend"""
     from maiupbit.exchange.upbit import UPbitExchange
     from maiupbit.analysis.technical import TechnicalAnalyzer
 
@@ -155,7 +155,7 @@ def cmd_recommend(args):
     if args.format == 'json':
         print(json.dumps(results, ensure_ascii=False, indent=2, default=str))
     else:
-        print(f"=== 추천 종목 (Top {args.top}) ===")
+        print(f"=== Recommended Symbols (Top {args.top}) ===")
         for i, r in enumerate(results, 1):
             print(f"  {i}. {r['symbol']}: {r['reason']}")
 
@@ -163,82 +163,82 @@ def cmd_recommend(args):
 def main():
     load_dotenv()
 
-    parser = argparse.ArgumentParser(prog='maiupbit', description='AI 디지털 자산 분석 엔진')
+    parser = argparse.ArgumentParser(prog='maiupbit', description='AI digital asset analysis engine')
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
     # analyze
-    p_analyze = subparsers.add_parser('analyze', help='코인 분석')
-    p_analyze.add_argument('symbol', help='종목 코드 (예: KRW-BTC)')
-    p_analyze.add_argument('--days', type=int, default=30, help='분석 기간 (일)')
+    p_analyze = subparsers.add_parser('analyze', help='coin analysis')
+    p_analyze.add_argument('symbol', help='symbol code (e.g.: KRW-BTC)')
+    p_analyze.add_argument('--days', type=int, default=30, help='analysis period (day)')
     p_analyze.add_argument('--format', choices=['json', 'text'], default='text')
     p_analyze.set_defaults(func=cmd_analyze)
 
     # portfolio
-    p_portfolio = subparsers.add_parser('portfolio', help='포트폴리오 조회')
+    p_portfolio = subparsers.add_parser('portfolio', help='portfolio query')
     p_portfolio.add_argument('--format', choices=['json', 'text'], default='text')
     p_portfolio.set_defaults(func=cmd_portfolio)
 
     # trade
-    p_trade = subparsers.add_parser('trade', help='매매 실행')
+    p_trade = subparsers.add_parser('trade', help='trade execution')
     p_trade.add_argument('action', choices=['buy', 'sell'])
-    p_trade.add_argument('symbol', help='종목 코드')
-    p_trade.add_argument('amount', type=float, help='수량')
-    p_trade.add_argument('--confirm', action='store_true', help='매매 확인')
+    p_trade.add_argument('symbol', help='symbol code')
+    p_trade.add_argument('amount', type=float, help='quantity')
+    p_trade.add_argument('--confirm', action='store_true', help='trading confirm')
     p_trade.add_argument('--format', choices=['json', 'text'], default='json')
     p_trade.set_defaults(func=cmd_trade)
 
     # recommend
-    p_recommend = subparsers.add_parser('recommend', help='종목 추천')
+    p_recommend = subparsers.add_parser('recommend', help='symbol recommend')
     p_recommend.add_argument('--method', choices=['trend', 'performance'], default='performance')
-    p_recommend.add_argument('--top', type=int, default=5, help='추천 개수')
-    p_recommend.add_argument('--days', type=int, default=7, help='분석 기간')
+    p_recommend.add_argument('--top', type=int, default=5, help='recommend count')
+    p_recommend.add_argument('--days', type=int, default=7, help='analysis period')
     p_recommend.add_argument('--format', choices=['json', 'text'], default='text')
     p_recommend.set_defaults(func=cmd_recommend)
 
     # quant
-    p_quant = subparsers.add_parser('quant', help='퀀트 전략')
-    quant_sub = p_quant.add_subparsers(dest='quant_command', help='퀀트 전략 명령어')
+    p_quant = subparsers.add_parser('quant', help='quantitative strategy')
+    quant_sub = p_quant.add_subparsers(dest='quant_command', help='quantitative strategy commands')
 
-    p_q_mom = quant_sub.add_parser('momentum', help='듀얼 모멘텀 랭킹')
-    p_q_mom.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_mom = quant_sub.add_parser('momentum', help='dual momentum ranking')
+    p_q_mom.add_argument('--symbols', help='symbol code (comma-separated)')
     p_q_mom.add_argument('--top', type=int, default=5)
     p_q_mom.add_argument('--days', type=int, default=400)
     p_q_mom.add_argument('--format', choices=['json', 'text'], default='text')
 
-    p_q_brk = quant_sub.add_parser('breakout', help='변동성 돌파')
-    p_q_brk.add_argument('symbol', help='종목 코드')
+    p_q_brk = quant_sub.add_parser('breakout', help='volatility breakout')
+    p_q_brk.add_argument('symbol', help='symbol code')
     p_q_brk.add_argument('--k', type=float, default=0.5)
     p_q_brk.add_argument('--days', type=int, default=60)
     p_q_brk.add_argument('--format', choices=['json', 'text'], default='text')
 
-    p_q_fac = quant_sub.add_parser('factor', help='다중팩터 랭킹')
-    p_q_fac.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_fac = quant_sub.add_parser('factor', help='multi-factor ranking')
+    p_q_fac.add_argument('--symbols', help='symbol code (comma-separated)')
     p_q_fac.add_argument('--top', type=int, default=5)
     p_q_fac.add_argument('--days', type=int, default=200)
     p_q_fac.add_argument('--format', choices=['json', 'text'], default='text')
 
-    p_q_alloc = quant_sub.add_parser('allocate', help='GTAA 자산배분')
-    p_q_alloc.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_alloc = quant_sub.add_parser('allocate', help='GTAA assetallocation')
+    p_q_alloc.add_argument('--symbols', help='symbol code (comma-separated)')
     p_q_alloc.add_argument('--days', type=int, default=400)
     p_q_alloc.add_argument('--format', choices=['json', 'text'], default='text')
 
-    p_q_season = quant_sub.add_parser('season', help='시즌 정보')
+    p_q_season = quant_sub.add_parser('season', help='season info')
     p_q_season.add_argument('--format', choices=['json', 'text'], default='text')
 
-    p_q_bt = quant_sub.add_parser('backtest', help='전략 백테스트')
+    p_q_bt = quant_sub.add_parser('backtest', help='strategy backtest')
     p_q_bt.add_argument('strategy', choices=['momentum', 'breakout', 'factor', 'allocate'])
-    p_q_bt.add_argument('--symbols', help='종목 코드 (콤마 구분)')
+    p_q_bt.add_argument('--symbols', help='symbol code (comma-separated)')
     p_q_bt.add_argument('--days', type=int, default=365)
     p_q_bt.add_argument('--format', choices=['json', 'text'], default='text')
 
     p_quant.set_defaults(func=cmd_quant)
 
     # train
-    p_train = subparsers.add_parser('train', help='모델 학습')
-    p_train.add_argument('symbol', nargs='?', default='KRW-BTC', help='종목 코드')
-    p_train.add_argument('--model', choices=['transformer', 'lstm'], default='transformer', help='모델 타입')
-    p_train.add_argument('--days', type=int, default=90, help='학습 데이터 기간 (일)')
-    p_train.add_argument('--epochs', type=int, default=50, help='학습 에포크')
+    p_train = subparsers.add_parser('train', help='model training')
+    p_train.add_argument('symbol', nargs='?', default='KRW-BTC', help='symbol code')
+    p_train.add_argument('--model', choices=['transformer', 'lstm'], default='transformer', help='model type')
+    p_train.add_argument('--days', type=int, default=90, help='training data period (day)')
+    p_train.add_argument('--epochs', type=int, default=50, help='training epochs')
     p_train.set_defaults(func=cmd_train)
 
     args = parser.parse_args()
@@ -250,7 +250,7 @@ def main():
 
 
 def cmd_quant(args):
-    """퀀트 전략 실행"""
+    """quantitative strategy execution"""
     import time
     from datetime import datetime
 
@@ -278,12 +278,12 @@ def cmd_quant(args):
         if args.format == 'json':
             print(json.dumps(info, ensure_ascii=False, indent=2, default=str))
         else:
-            print(f"=== 시즌 정보 ===")
-            print(f"  월: {info['month']}월 ({info['season']})")
-            print(f"  비중 배수: {info['multiplier']}")
-            print(f"  반감기 단계: {info['halving_phase']}")
+            print(f"=== season info ===")
+            print(f"  month: {info['month']}month ({info['season']})")
+            print(f"  weight multiplier: {info['multiplier']}")
+            print(f"  halving phase: {info['halving_phase']}")
             if info['next_halving']:
-                print(f"  다음 반감기: {info['next_halving']} (D-{info['days_to_next_halving']})")
+                print(f"  next halving: {info['next_halving']} (D-{info['days_to_next_halving']})")
         return
 
     from maiupbit.exchange.upbit import UPbitExchange
@@ -294,7 +294,7 @@ def cmd_quant(args):
         symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
         data = fetch_multi(exchange, symbols, args.days)
         if not data:
-            print(json.dumps({"error": "데이터 조회 실패"}))
+            print(json.dumps({"error": "data query failed"}))
             sys.exit(1)
         strategy = DualMomentumStrategy(DualMomentumConfig(top_n=args.top))
         rankings = strategy.rank_coins(data)
@@ -302,7 +302,7 @@ def cmd_quant(args):
         if args.format == 'json':
             print(json.dumps({"rankings": rankings, "allocations": allocations}, ensure_ascii=False, indent=2))
         else:
-            print(f"=== 듀얼 모멘텀 랭킹 (Top {args.top}) ===")
+            print(f"=== dual momentum ranking (Top {args.top}) ===")
             for r in rankings[:args.top]:
                 print(f"  {r['rank']}. {r['symbol']}: score={r['score']:.6f}, signal={r['avg_signal']:.2f}")
 
@@ -310,34 +310,34 @@ def cmd_quant(args):
         from maiupbit.strategies.volatility_breakout import VolatilityBreakoutStrategy, VolatilityBreakoutConfig
         data = exchange.get_ohlcv(args.symbol, "day", count=args.days)
         if data is None:
-            print(json.dumps({"error": f"{args.symbol} 데이터 조회 실패"}))
+            print(json.dumps({"error": f"{args.symbol} data query failed"}))
             sys.exit(1)
         config = VolatilityBreakoutConfig(k=args.k)
         strategy = VolatilityBreakoutStrategy(config)
         sig = strategy.signal(data)
-        sig_text = {1: "매수", -1: "매도", 0: "관망"}.get(sig, "관망")
+        sig_text = {1: "buy", -1: "sell", 0: "hold"}.get(sig, "hold")
         optimal = VolatilityBreakoutStrategy.find_optimal_k(data)
         if args.format == 'json':
             print(json.dumps({"symbol": args.symbol, "signal": sig, "signal_text": sig_text, "optimal_k": optimal}, ensure_ascii=False, indent=2, default=str))
         else:
-            print(f"=== {args.symbol} 변동성 돌파 ===")
-            print(f"  시그널: {sig_text} (k={args.k})")
+            print(f"=== {args.symbol} volatility breakout ===")
+            print(f"  signal: {sig_text} (k={args.k})")
             best_k = max(optimal, key=optimal.get) if optimal else args.k
-            print(f"  최적 k: {best_k}")
+            print(f"  optimal k: {best_k}")
 
     elif args.quant_command == 'factor':
         from maiupbit.strategies.multi_factor import MultiFactorStrategy, MultiFactorConfig
         symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
         data = fetch_multi(exchange, symbols, args.days)
         if not data:
-            print(json.dumps({"error": "데이터 조회 실패"}))
+            print(json.dumps({"error": "data query failed"}))
             sys.exit(1)
         strategy = MultiFactorStrategy(MultiFactorConfig(top_n=args.top))
         rankings = strategy.rank_coins(data)
         if args.format == 'json':
             print(json.dumps({"rankings": rankings}, ensure_ascii=False, indent=2))
         else:
-            print(f"=== 다중팩터 랭킹 (Top {args.top}) ===")
+            print(f"=== multi-factor ranking (Top {args.top}) ===")
             for r in rankings[:args.top]:
                 print(f"  {r['rank']}. {r['symbol']}: score={r['composite_score']:.4f}")
 
@@ -348,7 +348,7 @@ def cmd_quant(args):
         symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
         data = fetch_multi(exchange, symbols, args.days)
         if not data:
-            print(json.dumps({"error": "데이터 조회 실패"}))
+            print(json.dumps({"error": "data query failed"}))
             sys.exit(1)
         alloc = GTAAStrategy().allocate(data)
         alloc = SeasonalFilter().adjust_allocations(alloc, datetime.now())
@@ -357,10 +357,10 @@ def cmd_quant(args):
         if args.format == 'json':
             print(json.dumps({"allocations": alloc, "cash_ratio": cash}, ensure_ascii=False, indent=2))
         else:
-            print("=== GTAA 자산배분 ===")
+            print("=== GTAA assetallocation ===")
             for s, w in sorted(alloc.items(), key=lambda x: -x[1]):
                 print(f"  {s}: {w*100:.1f}%")
-            print(f"  현금: {cash*100:.1f}%")
+            print(f"  cash: {cash*100:.1f}%")
 
     elif args.quant_command == 'backtest':
         from maiupbit.backtest.engine import BacktestEngine
@@ -368,7 +368,7 @@ def cmd_quant(args):
         symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS[:5]
         data = fetch_multi(exchange, symbols, args.days)
         if not data:
-            print(json.dumps({"error": "데이터 조회 실패"}))
+            print(json.dumps({"error": "data query failed"}))
             sys.exit(1)
 
         if args.strategy == 'breakout':
@@ -393,15 +393,15 @@ def cmd_quant(args):
         if args.format == 'json':
             print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
         else:
-            print(f"=== {args.strategy} 백테스트 결과 ===")
-            print(f"  수익률: {result['total_return']:.2f}%")
-            print(f"  샤프비율: {result['sharpe_ratio']:.2f}")
+            print(f"=== {args.strategy} backtest result ===")
+            print(f"  profit rate: {result['total_return']:.2f}%")
+            print(f"  Sharpe ratio: {result['sharpe_ratio']:.2f}")
             print(f"  MDD: {result['max_drawdown']:.2f}%")
-            print(f"  최종자산: {result['final_equity']:,.0f}")
+            print(f"  final equity: {result['final_equity']:,.0f}")
 
 
 def cmd_train(args):
-    """모델 학습"""
+    """model training"""
     from maiupbit.exchange.upbit import UPbitExchange
 
     exchange = UPbitExchange()

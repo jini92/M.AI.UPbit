@@ -106,7 +106,7 @@ class TestSearch:
         mock_result.returncode = 0
 
         with patch("subprocess.run", return_value=mock_result):
-            results = provider.search("비트코인 투자")
+            results = provider.search("bitcoin investment")
 
         assert len(results) == 2
         assert results[0]["name"] == "Bitcoin Investment Strategy"
@@ -165,7 +165,7 @@ class TestSearchForCoin:
         with patch.object(provider, "search", return_value=SAMPLE_RESULTS) as mock:
             provider.search_for_coin("KRW-BTC")
             call_query = mock.call_args[0][0]
-            assert "비트코인" in call_query
+            assert "Bitcoin" in call_query
 
     def test_unknown_coin(self, provider):
         with patch.object(provider, "search", return_value=[]) as mock:
@@ -177,7 +177,7 @@ class TestSearchForCoin:
         with patch.object(provider, "search", return_value=[]) as mock:
             provider.search_for_coin("ETH")
             call_query = mock.call_args[0][0]
-            assert "이더리움" in call_query
+            assert "Ethereum" in call_query
 
 
 # ---------------------------------------------------------------------------
@@ -260,10 +260,10 @@ class TestCoinKeywords:
     """_COIN_KEYWORDS mapping tests."""
 
     def test_btc_has_korean(self):
-        assert "비트코인" in _COIN_KEYWORDS["BTC"]
+        assert "Bitcoin" in _COIN_KEYWORDS["BTC"]
 
     def test_eth_has_korean(self):
-        assert "이더리움" in _COIN_KEYWORDS["ETH"]
+        assert "Ethereum" in _COIN_KEYWORDS["ETH"]
 
     def test_all_coins_have_entries(self):
         for coin in ["BTC", "ETH", "XRP", "SOL", "DOGE"]:
