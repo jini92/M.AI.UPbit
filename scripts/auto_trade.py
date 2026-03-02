@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""자동매매 실행 스크립트 (크론용).
+"""?먮룞留ㅻℓ ?ㅽ뻾 ?ㅽ겕由쏀듃 (?щ줎??.
 
-매일 07:00 + 19:00 KST 실행.
-분석 → 매매 결정 → 실행 → 기록 → Obsidian 동기화.
+留ㅼ씪 07:00 + 19:00 KST ?ㅽ뻾.
+遺꾩꽍 ??留ㅻℓ 寃곗젙 ???ㅽ뻾 ??湲곕줉 ??Obsidian ?숆린??
 
 Usage:
-    python scripts/auto_trade.py [--symbol KRW-BTT] [--dry-run] [--provider ollama]
+    python scripts/auto_trade.py [--symbol KRW-BTC] [--dry-run] [--provider ollama]
 """
 
 import argparse
@@ -27,9 +27,9 @@ logger = logging.getLogger("auto_trade")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="M.AI.UPbit 자동매매")
-    parser.add_argument("--symbol", default="KRW-BTT", help="거래 심볼")
-    parser.add_argument("--dry-run", action="store_true", help="분석만 (매매 안 함)")
+    parser = argparse.ArgumentParser(description="M.AI.UPbit ?먮룞留ㅻℓ")
+    parser.add_argument("--symbol", default="KRW-BTC", help="嫄곕옒 ?щ낵")
+    parser.add_argument("--dry-run", action="store_true", help="遺꾩꽍留?(留ㅻℓ ????")
     parser.add_argument("--provider", default=None, help="LLM provider (openai/ollama)")
     args = parser.parse_args()
 
@@ -37,7 +37,7 @@ def main() -> None:
     secret_key = os.getenv("UPBIT_SECRET_KEY")
 
     if not access_key or not secret_key:
-        print(json.dumps({"error": "UPBIT_ACCESS_KEY/SECRET_KEY 필요"}))
+        print(json.dumps({"error": "UPBIT_ACCESS_KEY/SECRET_KEY ?꾩슂"}))
         sys.exit(1)
 
     # Exchange
@@ -54,9 +54,9 @@ def main() -> None:
         from maiupbit.analysis.llm import LLMAnalyzer
         provider = args.provider or os.getenv("LLM_PROVIDER", "ollama")
         llm = LLMAnalyzer(provider=provider)
-        logger.info("LLM 초기화: %s (%s)", provider, llm.model)
+        logger.info("LLM 珥덇린?? %s (%s)", provider, llm.model)
     except Exception as exc:
-        logger.warning("LLM 초기화 실패 (기술지표 폴백): %s", exc)
+        logger.warning("LLM 珥덇린???ㅽ뙣 (湲곗닠吏???대갚): %s", exc)
 
     # Knowledge (optional)
     knowledge = None
@@ -64,12 +64,12 @@ def main() -> None:
         from maiupbit.analysis.knowledge import KnowledgeProvider
         knowledge = KnowledgeProvider()
         if knowledge.is_available():
-            logger.info("Mnemo KnowledgeProvider 활성화")
+            logger.info("Mnemo KnowledgeProvider ?쒖꽦??)
         else:
             knowledge = None
-            logger.info("Mnemo 미설치 (지식 없이 진행)")
+            logger.info("Mnemo 誘몄꽕移?(吏???놁씠 吏꾪뻾)")
     except Exception as exc:
-        logger.debug("KnowledgeProvider 초기화 실패: %s", exc)
+        logger.debug("KnowledgeProvider 珥덇린???ㅽ뙣: %s", exc)
 
     # AutoTrader
     from maiupbit.trading.auto_trader import AutoTrader
@@ -80,11 +80,10 @@ def main() -> None:
         knowledge_provider=knowledge,
     )
 
-    # 실행
+    # ?ㅽ뻾
     result = trader.run(symbol=args.symbol, dry_run=args.dry_run)
 
-    # Obsidian 동기화
-    if result.get("trade_id"):
+    # Obsidian ?숆린??    if result.get("trade_id"):
         try:
             from maiupbit.integrations.obsidian import ObsidianSync
             sync = ObsidianSync()
@@ -93,11 +92,12 @@ def main() -> None:
             if latest:
                 sync.sync_trade(latest, journal)
         except Exception as exc:
-            logger.warning("Obsidian 동기화 실패: %s", exc)
+            logger.warning("Obsidian ?숆린???ㅽ뙣: %s", exc)
 
-    # JSON 출력 (MAIBOT 크론 파싱용)
+    # JSON 異쒕젰 (MAIBOT ?щ줎 ?뚯떛??
     print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
 
 
 if __name__ == "__main__":
     main()
+

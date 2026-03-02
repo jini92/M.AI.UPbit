@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
-"""maiupbit.trading.auto_trader — 자동매매 오케스트레이터.
+﻿# -*- coding: utf-8 -*-
+"""maiupbit.trading.auto_trader ???먮룞留ㅻℓ ?ㅼ??ㅽ듃?덉씠??
 
-분석 → 결정 → 실행 → 기록 전체 플로우를 단일 ``run()`` 호출로 수행.
+遺꾩꽍 ??寃곗젙 ???ㅽ뻾 ??湲곕줉 ?꾩껜 ?뚮줈?곕? ?⑥씪 ``run()`` ?몄텧濡??섑뻾.
 """
 
 from __future__ import annotations
@@ -29,15 +29,14 @@ _DEFAULT_CONFIG: dict = {
 
 
 class AutoTrader:
-    """자동매매 오케스트레이터.
+    """?먮룞留ㅻℓ ?ㅼ??ㅽ듃?덉씠??
 
-    시장 데이터 수집 → 퀀트 시그널 → Mnemo 지식 조회 →
-    LLM 종합 분석 → 매매 결정 → 실행 → 기록.
+    ?쒖옣 ?곗씠???섏쭛 ??????쒓렇????Mnemo 吏??議고쉶 ??    LLM 醫낇빀 遺꾩꽍 ??留ㅻℓ 寃곗젙 ???ㅽ뻾 ??湲곕줉.
 
     Attributes:
-        exchange: UPbit 거래소 인스턴스.
-        journal: 거래 기록 저널.
-        config: 운용 설정.
+        exchange: UPbit 嫄곕옒???몄뒪?댁뒪.
+        journal: 嫄곕옒 湲곕줉 ???
+        config: ?댁슜 ?ㅼ젙.
     """
 
     def __init__(
@@ -55,62 +54,57 @@ class AutoTrader:
         self.config = {**_DEFAULT_CONFIG, **(config or {})}
 
     # ------------------------------------------------------------------
-    # 메인 실행
+    # 硫붿씤 ?ㅽ뻾
     # ------------------------------------------------------------------
 
-    def run(self, symbol: str = "KRW-BTT", dry_run: bool = False) -> dict:
-        """전체 자동매매 플로우 실행.
+    def run(self, symbol: str = "KRW-BTC", dry_run: bool = False) -> dict:
+        """?꾩껜 ?먮룞留ㅻℓ ?뚮줈???ㅽ뻾.
 
         Args:
-            symbol: 거래 심볼.
-            dry_run: True면 분석만 하고 매매 실행 안 함.
+            symbol: 嫄곕옒 ?щ낵.
+            dry_run: True硫?遺꾩꽍留??섍퀬 留ㅻℓ ?ㅽ뻾 ????
 
         Returns:
-            실행 결과 dict (action, confidence, executed, trade_id 등).
+            ?ㅽ뻾 寃곌낵 dict (action, confidence, executed, trade_id ??.
         """
-        logger.info("=== AutoTrader 실행: %s (dry_run=%s) ===", symbol, dry_run)
+        logger.info("=== AutoTrader ?ㅽ뻾: %s (dry_run=%s) ===", symbol, dry_run)
 
-        # Step 1: 시장 데이터 + 기술지표
-        market = self._collect_market_data(symbol)
+        # Step 1: ?쒖옣 ?곗씠??+ 湲곗닠吏??        market = self._collect_market_data(symbol)
         if not market:
-            return {"action": "error", "reason": "시장 데이터 수집 실패"}
+            return {"action": "error", "reason": "?쒖옣 ?곗씠???섏쭛 ?ㅽ뙣"}
 
-        # Step 2: 퀀트 시그널
-        quant = self._collect_quant_signals(symbol)
+        # Step 2: ????쒓렇??        quant = self._collect_quant_signals(symbol)
 
-        # Step 3: Mnemo 지식
-        knowledge_ctx = self._collect_knowledge(symbol)
+        # Step 3: Mnemo 吏??        knowledge_ctx = self._collect_knowledge(symbol)
 
-        # Step 4: LLM 분석
+        # Step 4: LLM 遺꾩꽍
         llm_result = self._run_llm_analysis(symbol, market, quant, knowledge_ctx)
 
-        # Step 5: 매매 결정
+        # Step 5: 留ㅻℓ 寃곗젙
         decision = self._make_decision(symbol, market, quant, llm_result)
 
-        # Step 6: 실행 + 기록
+        # Step 6: ?ㅽ뻾 + 湲곕줉
         result = self._execute_and_record(
             symbol, decision, market, quant, llm_result, knowledge_ctx, dry_run
         )
 
-        logger.info("AutoTrader 완료: %s → %s (conf=%.2f)",
+        logger.info("AutoTrader ?꾨즺: %s ??%s (conf=%.2f)",
                      symbol, result.get("action"), result.get("confidence", 0))
         return result
 
     # ------------------------------------------------------------------
-    # Step 1: 시장 데이터
-    # ------------------------------------------------------------------
+    # Step 1: ?쒖옣 ?곗씠??    # ------------------------------------------------------------------
 
     def _collect_market_data(self, symbol: str) -> Optional[dict]:
-        """시장 데이터 + 기술지표 수집."""
+        """?쒖옣 ?곗씠??+ 湲곗닠吏???섏쭛."""
         try:
             price = self.exchange.get_current_price(symbol)
             if not price:
                 return None
 
-            # OHLCV DataFrame 가져오기
-            df = self.exchange.get_ohlcv(symbol, interval="day", count=60)
+            # OHLCV DataFrame 媛?몄삤湲?            df = self.exchange.get_ohlcv(symbol, interval="day", count=60)
             if df is None or df.empty:
-                logger.warning("OHLCV 데이터 없음, 가격만 사용")
+                logger.warning("OHLCV ?곗씠???놁쓬, 媛寃⑸쭔 ?ъ슜")
                 return {"current_price": price, "indicators": {},
                         "signals": {}, "score": 0.5, "recommendation": "hold"}
 
@@ -126,66 +120,64 @@ class AutoTrader:
                 "recommendation": analysis.get("recommendation", "hold"),
             }
         except Exception as exc:
-            logger.error("시장 데이터 수집 실패: %s", exc)
+            logger.error("?쒖옣 ?곗씠???섏쭛 ?ㅽ뙣: %s", exc)
             return None
 
     # ------------------------------------------------------------------
-    # Step 2: 퀀트 시그널
-    # ------------------------------------------------------------------
+    # Step 2: ????쒓렇??    # ------------------------------------------------------------------
 
     def _collect_quant_signals(self, symbol: str) -> dict:
-        """퀀트 전략 시그널 수집."""
+        """????꾨왂 ?쒓렇???섏쭛."""
         signals: dict = {}
         try:
             from maiupbit.strategies.seasonal import SeasonalStrategy
             season = SeasonalStrategy()
             signals["season"] = season.analyze()
         except Exception as exc:
-            logger.debug("시즌 분석 실패: %s", exc)
+            logger.debug("?쒖쫵 遺꾩꽍 ?ㅽ뙣: %s", exc)
 
         try:
             from maiupbit.strategies.volatility_breakout import VolatilityBreakoutStrategy
             vb = VolatilityBreakoutStrategy(self.exchange)
             signals["breakout"] = vb.analyze(symbol)
         except Exception as exc:
-            logger.debug("돌파 분석 실패: %s", exc)
+            logger.debug("?뚰뙆 遺꾩꽍 ?ㅽ뙣: %s", exc)
 
         try:
             from maiupbit.strategies.momentum import DualMomentumStrategy
             mom = DualMomentumStrategy(self.exchange)
             signals["momentum"] = mom.analyze(symbols=[symbol])
         except Exception as exc:
-            logger.debug("모멘텀 분석 실패: %s", exc)
+            logger.debug("紐⑤찘? 遺꾩꽍 ?ㅽ뙣: %s", exc)
 
         return signals
 
     # ------------------------------------------------------------------
-    # Step 3: Mnemo 지식
-    # ------------------------------------------------------------------
+    # Step 3: Mnemo 吏??    # ------------------------------------------------------------------
 
     def _collect_knowledge(self, symbol: str) -> str:
-        """Mnemo 지식그래프에서 관련 컨텍스트 수집."""
+        """Mnemo 吏?앷렇?섑봽?먯꽌 愿??而⑦뀓?ㅽ듃 ?섏쭛."""
         if not self.knowledge:
             return ""
         try:
             ctx = self.knowledge.enrich_llm_context(symbol)
             return ctx if ctx else ""
         except Exception as exc:
-            logger.debug("Mnemo 지식 수집 실패 (graceful skip): %s", exc)
+            logger.debug("Mnemo 吏???섏쭛 ?ㅽ뙣 (graceful skip): %s", exc)
             return ""
 
     # ------------------------------------------------------------------
-    # Step 4: LLM 분석
+    # Step 4: LLM 遺꾩꽍
     # ------------------------------------------------------------------
 
     def _run_llm_analysis(
         self, symbol: str, market: dict, quant: dict, knowledge_ctx: str
     ) -> dict:
-        """LLM 종합 분석."""
+        """LLM 醫낇빀 遺꾩꽍."""
         fallback = {
             "decision": market.get("recommendation", "hold"),
             "confidence": market.get("score", 0.5),
-            "reason": "기술지표 기반 판단 (LLM 미사용)",
+            "reason": "湲곗닠吏??湲곕컲 ?먮떒 (LLM 誘몄궗??",
         }
         if not self.llm:
             return fallback
@@ -195,7 +187,7 @@ class AutoTrader:
             indicators = market.get("indicators", {})
             signals = market.get("signals", {})
 
-            # LLMAnalyzer.analyze() 시그니처에 맞게 인자 구성
+            # LLMAnalyzer.analyze() ?쒓렇?덉쿂??留욊쾶 ?몄옄 援ъ꽦
             data_json = _json.dumps({
                 "symbol": symbol,
                 "current_price": market.get("current_price"),
@@ -226,18 +218,18 @@ class AutoTrader:
             )
             return result if isinstance(result, dict) else fallback
         except Exception as exc:
-            logger.error("LLM 분석 실패: %s", exc)
-            fallback["reason"] = f"LLM 실패, 기술지표 폴백: {exc}"
+            logger.error("LLM 遺꾩꽍 ?ㅽ뙣: %s", exc)
+            fallback["reason"] = f"LLM ?ㅽ뙣, 湲곗닠吏???대갚: {exc}"
             return fallback
 
     # ------------------------------------------------------------------
-    # Step 5: 매매 결정
+    # Step 5: 留ㅻℓ 寃곗젙
     # ------------------------------------------------------------------
 
     def _make_decision(
         self, symbol: str, market: dict, quant: dict, llm_result: dict
     ) -> dict:
-        """매매 결정 로직.
+        """留ㅻℓ 寃곗젙 濡쒖쭅.
 
         Returns:
             {action, confidence, volume, reason}
@@ -246,23 +238,22 @@ class AutoTrader:
         confidence = float(llm_result.get("confidence", 0.5))
         reason = llm_result.get("reason", "")
 
-        # Confidence 체크
+        # Confidence 泥댄겕
         if confidence < self.config["min_confidence"]:
             return {
                 "action": "hold",
                 "confidence": confidence,
                 "volume": 0,
-                "reason": f"Confidence {confidence:.2f} < {self.config['min_confidence']} 임계값",
+                "reason": f"Confidence {confidence:.2f} < {self.config['min_confidence']} ?꾧퀎媛?,
             }
 
-        # 포지션 사이징
-        volume = self._calculate_position_size(symbol, action)
+        # ?ъ????ъ씠吏?        volume = self._calculate_position_size(symbol, action)
         if volume <= 0:
             return {
                 "action": "hold",
                 "confidence": confidence,
                 "volume": 0,
-                "reason": f"포지션 사이즈 0 (최소주문 미달 또는 잔고 부족)",
+                "reason": f"?ъ????ъ씠利?0 (理쒖냼二쇰Ц 誘몃떖 ?먮뒗 ?붽퀬 遺議?",
             }
 
         return {
@@ -273,14 +264,14 @@ class AutoTrader:
         }
 
     def _calculate_position_size(self, symbol: str, action: str) -> float:
-        """포지션 사이징 (자산의 최대 10%, 최소주문 ₩5,000 고려)."""
+        """?ъ????ъ씠吏?(?먯궛??理쒕? 10%, 理쒖냼二쇰Ц ??,000 怨좊젮)."""
         try:
             price = self.exchange.get_current_price(symbol)
             if not price or price <= 0:
                 return 0.0
 
             if action == "buy":
-                # KRW 잔고 기반
+                # KRW ?붽퀬 湲곕컲
                 balances = self.exchange.get_balances()
                 krw = 0.0
                 for b in balances:
@@ -289,12 +280,12 @@ class AutoTrader:
                         break
                 max_krw = krw * self.config["max_position_ratio"]
                 if max_krw < self.config["min_order_krw"]:
-                    # 잔고 부족하면 최소주문금액 시도
+                    # ?붽퀬 遺議깊븯硫?理쒖냼二쇰Ц湲덉븸 ?쒕룄
                     max_krw = self.config["min_order_krw"] if krw >= self.config["min_order_krw"] else 0
-                return max_krw  # buy는 KRW 금액 반환
+                return max_krw  # buy??KRW 湲덉븸 諛섑솚
 
             elif action == "sell":
-                # 코인 잔고 기반
+                # 肄붿씤 ?붽퀬 湲곕컲
                 balances = self.exchange.get_balances()
                 coin_currency = symbol.replace("KRW-", "")
                 coin_balance = 0.0
@@ -305,19 +296,18 @@ class AutoTrader:
                 sell_volume = coin_balance * self.config["max_position_ratio"]
                 sell_krw = sell_volume * price
                 if sell_krw < self.config["min_order_krw"]:
-                    # 최소주문 미달 → 최소주문에 맞게 올림
+                    # 理쒖냼二쇰Ц 誘몃떖 ??理쒖냼二쇰Ц??留욊쾶 ?щ┝
                     sell_volume = self.config["min_order_krw"] / price
                     if sell_volume > coin_balance:
-                        return 0.0  # 잔고 부족
-                return sell_volume
+                        return 0.0  # ?붽퀬 遺議?                return sell_volume
 
         except Exception as exc:
-            logger.error("포지션 사이징 실패: %s", exc)
+            logger.error("?ъ????ъ씠吏??ㅽ뙣: %s", exc)
             return 0.0
         return 0.0
 
     # ------------------------------------------------------------------
-    # Step 6: 실행 + 기록
+    # Step 6: ?ㅽ뻾 + 湲곕줉
     # ------------------------------------------------------------------
 
     def _execute_and_record(
@@ -330,7 +320,7 @@ class AutoTrader:
         knowledge_ctx: str,
         dry_run: bool,
     ) -> dict:
-        """매매 실행 + TradeJournal 기록."""
+        """留ㅻℓ ?ㅽ뻾 + TradeJournal 湲곕줉."""
         action = decision["action"]
         confidence = decision["confidence"]
         volume = decision.get("volume", 0)
@@ -338,7 +328,7 @@ class AutoTrader:
         price = market.get("current_price", 0)
         indicators = market.get("indicators", {})
 
-        # 분석 근거 구성
+        # 遺꾩꽍 洹쇨굅 援ъ꽦
         analysis = {
             "rsi": indicators.get("rsi_14"),
             "macd_signal": market.get("signals", {}).get("macd_signal"),
@@ -372,12 +362,12 @@ class AutoTrader:
                 if "error" not in order_result:
                     executed = True
                 else:
-                    logger.error("주문 실패: %s", order_result)
+                    logger.error("二쇰Ц ?ㅽ뙣: %s", order_result)
             except Exception as exc:
-                logger.error("주문 실행 예외: %s", exc)
+                logger.error("二쇰Ц ?ㅽ뻾 ?덉쇅: %s", exc)
                 order_result = {"error": str(exc)}
 
-        # 저널 기록 (hold도 기록 — 데이터 축적)
+        # ???湲곕줉 (hold??湲곕줉 ???곗씠??異뺤쟻)
         trade = self.journal.record_trade(
             symbol=symbol,
             action=action,
@@ -402,3 +392,4 @@ class AutoTrader:
             "reason": reason,
             "order_result": order_result if executed else None,
         }
+
