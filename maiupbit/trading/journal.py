@@ -273,3 +273,46 @@ class TradeJournal:
             ])
 
         return "\n".join(lines) + "\n"
+
+    def to_obsidian_note(self, trade: dict) -> str:
+        """Convert a trade record to Obsidian markdown note format."""
+        ts = str(trade.get("timestamp", ""))[:19]
+        symbol = trade.get("symbol", "?")
+        action = trade.get("action", "?").upper()
+        price = trade.get("price", 0)
+        volume = trade.get("volume", 0)
+        total_krw = trade.get("total_krw", 0)
+        fee = trade.get("fee", 0)
+        reason = trade.get("analysis", {}).get("llm_reason", "")
+        confidence = trade.get("analysis", {}).get("llm_confidence", 0)
+        rsi = trade.get("analysis", {}).get("rsi")
+        macd = trade.get("analysis", {}).get("macd_signal", "")
+        executed = trade.get("executed", False)
+        dry_run = trade.get("dry_run", False)
+
+        tags = ["auto-trade", symbol.replace("KRW-", "").lower(), action.lower()]
+        frontmatter = "---\n"
+        frontmatter += f"title: \"[{action}] {symbol} @ {price:,.0f}\\n\"\n"
+        frontmatter += f"date: {ts[:10]}\n"
+        frontmatter += f"tags: [{', '.join(tags)}]\n"
+        frontmatter += f"symbol: {symbol}\n"
+        frontmatter += f"action: {action}\n"
+        frontmatter += f"executed: {executed}\n"
+        frontmatter += "---\n\n"
+
+        body = f"# [{action}] {symbol}\n\n"
+        body += f"- **시각**: {ts}\n"
+        body += f"- **가격**: ₩{price:,.0f}\n"
+        body += f"- **수량**: {volume}\n"
+        body += f"- **금액**: ₩{total_krw:,.0f}\n"
+        body += f"- **수수료**: ₩{fee:,.2f}\n"
+        body += f"- **실행**: {'✅' if executed else ('dry-run' if dry_run else '❌ 미실행')}\n\n"
+        body += f"## AI 판단\n"
+        body += f"- **신뢰도**: {confidence:.0%}\n"
+        body += f"- **근거**: {reason}\n\n"
+        body += f"## 기술 지표\n"
+        body += f"- **RSI**: {rsi}\n"
+        body += f"- **MACD**: {macd}\n"
+
+        return frontmatter + body
+

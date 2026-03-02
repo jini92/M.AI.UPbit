@@ -74,9 +74,21 @@ _DEFAULT_INSTRUCTIONS = _DEFAULT_INSTRUCTIONS.replace("Take profit price", "Take
 _DEFAULT_INSTRUCTIONS = _DEFAULT_INSTRUCTIONS.encode('ascii', 'ignore').decode('ascii')
 
 class LLMAnalyzer:
-    def __init__(self, api_key=None, provider="openai"):
-        self.api_key = api_key
-        self.provider = provider
+    def __init__(self, api_key=None, provider=None):
+        import os
+        from openai import OpenAI
+
+        self.provider = provider or os.getenv("LLM_PROVIDER", "openai")
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY", "")
+        self.timeout = 60
+
+        if self.provider == "ollama":
+            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+            self.model = os.getenv("OLLAMA_MODEL", "qwen2.5:14b")
+            self.client = OpenAI(api_key="ollama", base_url=base_url)
+        else:
+            self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+            self.client = OpenAI(api_key=self.api_key)
 
     def _get_default_instructions(self):
         return _DEFAULT_INSTRUCTIONS
