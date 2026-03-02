@@ -81,7 +81,20 @@ def main() -> None:
     )
 
     # ?ㅽ뻾
-    result = trader.run(symbol=args.symbol, dry_run=args.dry_run)
+    # 전체 실행 타임아웃 (기본 5분)
+    import concurrent.futures as _cf
+    import os as _os
+    RUN_TIMEOUT = float(_os.getenv("AUTO_TRADE_TIMEOUT", "300"))
+    try:
+        with _cf.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(trader.run, args.symbol, args.dry_run)
+            result = future.result(timeout=RUN_TIMEOUT)
+    except _cf.TimeoutError:
+        logger.error("auto_trade timeout (%ds): %s", RUN_TIMEOUT, args.symbol)
+        import json as _json
+        import sys
+        print(_json.dumps({"action": "error", "reason": f"timeout ({RUN_TIMEOUT}s)"}, ensure_ascii=False))
+        sys.exit(1)
 
     # Obsidian ?숆린??    if result.get("trade_id"):
         try:

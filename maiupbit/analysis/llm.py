@@ -109,15 +109,21 @@ class LLMAnalyzer:
         """
         self.provider: str = provider or os.getenv("LLM_PROVIDER", "openai")
 
+        self.timeout: float = float(os.getenv("LLM_TIMEOUT", "60"))
+
         if self.provider == "ollama":
             resolved_base_url = base_url or os.getenv("OLLAMA_BASE_URL", _DEFAULT_OLLAMA_BASE_URL)
             resolved_api_key = api_key or "ollama"
             self.model = model or os.getenv("OLLAMA_MODEL", _DEFAULT_OLLAMA_MODEL)
-            self.client = OpenAI(api_key=resolved_api_key, base_url=resolved_base_url)
+            self.client = OpenAI(
+                api_key=resolved_api_key,
+                base_url=resolved_base_url,
+                timeout=self.timeout,
+            )
         else:
             resolved_api_key = api_key or os.getenv("OPENAI_API_KEY")
             self.model = model or "gpt-4o"
-            kwargs: dict = {"api_key": resolved_api_key}
+            kwargs: dict = {"api_key": resolved_api_key, "timeout": self.timeout}
             if base_url:
                 kwargs["base_url"] = base_url
             self.client = OpenAI(**kwargs)
@@ -302,7 +308,7 @@ class LLMAnalyzer:
             # OpenAI-호환 API 에서도 response_format 이 정상 동작함.
             # 마크다운 코드 블록 폴백은 _parse_response() 에서 안전망으로 유지.
             kwargs["response_format"] = {"type": "json_object"}
-            response = self.client.chat.completions.create(**kwargs)
+            response = self.client.chat.completions.create(**kwargs, timeout=self.timeout)
         except Exception as exc:  # noqa: BLE001
             logger.error("LLM API 호출 실패 (provider=%s): %s", self.provider, exc)
             return self._default_result()

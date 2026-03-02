@@ -181,32 +181,30 @@ class AutoTrader:
         }
         if not self.llm:
             return fallback
-        try:
-            import json as _json
+        import concurrent.futures as _cf
+        import os as _os
+        LLM_STEP_TIMEOUT = float(_os.getenv("LLM_STEP_TIMEOUT", "90"))
 
+        def _do_llm_call() -> dict:
+            import json as _json
             indicators = market.get("indicators", {})
             signals = market.get("signals", {})
-
-            # LLMAnalyzer.analyze() ?쒓렇?덉쿂??留욊쾶 ?몄옄 援ъ꽦
             data_json = _json.dumps({
                 "symbol": symbol,
                 "current_price": market.get("current_price"),
                 "indicators": indicators,
                 "quant_signals": {k: str(v)[:200] for k, v in quant.items()},
             }, default=str)
-
             current_status = _json.dumps({
                 "symbol": symbol,
                 "price": market.get("current_price"),
                 "score": market.get("score"),
                 "recommendation": market.get("recommendation"),
             }, default=str)
-
             macd_signal = signals.get("macd_signal", "neutral")
             tech_indicators = {
                 k: v for k, v in indicators.items() if v is not None
             }
-
             result = self.llm.analyze(
                 data_json=data_json,
                 current_status=current_status,
@@ -217,9 +215,18 @@ class AutoTrader:
                 knowledge_context=knowledge_ctx,
             )
             return result if isinstance(result, dict) else fallback
+
+        try:
+            with _cf.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(_do_llm_call)
+                return future.result(timeout=LLM_STEP_TIMEOUT)
+        except _cf.TimeoutError:
+            logger.error("LLM timeout (%ds): %s", LLM_STEP_TIMEOUT, symbol)
+            fallback["reason"] = f"LLM timeout ({LLM_STEP_TIMEOUT}s), fallback to technicals"
+            return fallback
         except Exception as exc:
-            logger.error("LLM 遺꾩꽍 ?ㅽ뙣: %s", exc)
-            fallback["reason"] = f"LLM ?ㅽ뙣, 湲곗닠吏???대갚: {exc}"
+            logger.error("LLM error: %s", exc)
+            fallback["reason"] = f"LLM failed, fallback to technicals: {exc}"
             return fallback
 
     # ------------------------------------------------------------------
