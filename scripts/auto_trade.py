@@ -64,10 +64,10 @@ def main() -> None:
         from maiupbit.analysis.knowledge import KnowledgeProvider
         knowledge = KnowledgeProvider()
         if knowledge.is_available():
-            logger.info("Mnemo KnowledgeProvider ?쒖꽦??)
+            logger.info("Mnemo KnowledgeProvider initialized")
         else:
             knowledge = None
-            logger.info("Mnemo 誘몄꽕移?(吏???놁씠 吏꾪뻾)")
+            logger.info("Mnemo unavailable (data not found)")
     except Exception as exc:
         logger.debug("KnowledgeProvider 珥덇린???ㅽ뙣: %s", exc)
 
@@ -81,7 +81,7 @@ def main() -> None:
     )
 
     # ?ㅽ뻾
-    # 전체 실행 타임아웃 (기본 5분)
+    # Execute with overall timeout
     import concurrent.futures as _cf
     import os as _os
     RUN_TIMEOUT = float(_os.getenv("AUTO_TRADE_TIMEOUT", "300"))
@@ -91,12 +91,12 @@ def main() -> None:
             result = future.result(timeout=RUN_TIMEOUT)
     except _cf.TimeoutError:
         logger.error("auto_trade timeout (%ds): %s", RUN_TIMEOUT, args.symbol)
-        import json as _json
-        import sys
+        import json as _json, sys
         print(_json.dumps({"action": "error", "reason": f"timeout ({RUN_TIMEOUT}s)"}, ensure_ascii=False))
         sys.exit(1)
 
-    # Obsidian ?숆린??    if result.get("trade_id"):
+    # Obsidian sync
+    if result.get("trade_id"):
         try:
             from maiupbit.integrations.obsidian import ObsidianSync
             sync = ObsidianSync()

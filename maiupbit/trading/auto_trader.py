@@ -69,13 +69,16 @@ class AutoTrader:
         """
         logger.info("=== AutoTrader ?ㅽ뻾: %s (dry_run=%s) ===", symbol, dry_run)
 
-        # Step 1: ?쒖옣 ?곗씠??+ 湲곗닠吏??        market = self._collect_market_data(symbol)
+        # Step 1: collect market data + technicals
+        market = self._collect_market_data(symbol)
         if not market:
             return {"action": "error", "reason": "?쒖옣 ?곗씠???섏쭛 ?ㅽ뙣"}
 
-        # Step 2: ????쒓렇??        quant = self._collect_quant_signals(symbol)
+        # Step 2: collect quant signals
+        quant = self._collect_quant_signals(symbol)
 
-        # Step 3: Mnemo 吏??        knowledge_ctx = self._collect_knowledge(symbol)
+        # Step 3: collect Mnemo knowledge
+        knowledge_ctx = self._collect_knowledge(symbol)
 
         # Step 4: LLM 遺꾩꽍
         llm_result = self._run_llm_analysis(symbol, market, quant, knowledge_ctx)
@@ -102,7 +105,8 @@ class AutoTrader:
             if not price:
                 return None
 
-            # OHLCV DataFrame 媛?몄삤湲?            df = self.exchange.get_ohlcv(symbol, interval="day", count=60)
+            # OHLCV DataFrame fetch
+            df = self.exchange.get_ohlcv(symbol, interval="day", count=60)
             if df is None or df.empty:
                 logger.warning("OHLCV ?곗씠???놁쓬, 媛寃⑸쭔 ?ъ슜")
                 return {"current_price": price, "indicators": {},
@@ -181,30 +185,32 @@ class AutoTrader:
         }
         if not self.llm:
             return fallback
-        import concurrent.futures as _cf
-        import os as _os
-        LLM_STEP_TIMEOUT = float(_os.getenv("LLM_STEP_TIMEOUT", "90"))
-
-        def _do_llm_call() -> dict:
+        try:
             import json as _json
+
             indicators = market.get("indicators", {})
             signals = market.get("signals", {})
+
+            # LLMAnalyzer.analyze() ?쒓렇?덉쿂??留욊쾶 ?몄옄 援ъ꽦
             data_json = _json.dumps({
                 "symbol": symbol,
                 "current_price": market.get("current_price"),
                 "indicators": indicators,
                 "quant_signals": {k: str(v)[:200] for k, v in quant.items()},
             }, default=str)
+
             current_status = _json.dumps({
                 "symbol": symbol,
                 "price": market.get("current_price"),
                 "score": market.get("score"),
                 "recommendation": market.get("recommendation"),
             }, default=str)
+
             macd_signal = signals.get("macd_signal", "neutral")
             tech_indicators = {
                 k: v for k, v in indicators.items() if v is not None
             }
+
             result = self.llm.analyze(
                 data_json=data_json,
                 current_status=current_status,
@@ -215,18 +221,9 @@ class AutoTrader:
                 knowledge_context=knowledge_ctx,
             )
             return result if isinstance(result, dict) else fallback
-
-        try:
-            with _cf.ThreadPoolExecutor(max_workers=1) as pool:
-                future = pool.submit(_do_llm_call)
-                return future.result(timeout=LLM_STEP_TIMEOUT)
-        except _cf.TimeoutError:
-            logger.error("LLM timeout (%ds): %s", LLM_STEP_TIMEOUT, symbol)
-            fallback["reason"] = f"LLM timeout ({LLM_STEP_TIMEOUT}s), fallback to technicals"
-            return fallback
         except Exception as exc:
-            logger.error("LLM error: %s", exc)
-            fallback["reason"] = f"LLM failed, fallback to technicals: {exc}"
+            logger.error("LLM 遺꾩꽍 ?ㅽ뙣: %s", exc)
+            fallback["reason"] = f"LLM ?ㅽ뙣, 湲곗닠吏???대갚: {exc}"
             return fallback
 
     # ------------------------------------------------------------------
@@ -251,16 +248,17 @@ class AutoTrader:
                 "action": "hold",
                 "confidence": confidence,
                 "volume": 0,
-                "reason": f"Confidence {confidence:.2f} < {self.config['min_confidence']} ?꾧퀎媛?,
+                "reason": f"Confidence {confidence:.2f} < threshold {self.config['min_confidence']}",
             }
 
-        # ?ъ????ъ씠吏?        volume = self._calculate_position_size(symbol, action)
+        # Calculate position size
+        volume = self._calculate_position_size(symbol, action)
         if volume <= 0:
             return {
                 "action": "hold",
                 "confidence": confidence,
                 "volume": 0,
-                "reason": f"?ъ????ъ씠利?0 (理쒖냼二쇰Ц 誘몃떖 ?먮뒗 ?붽퀬 遺議?",
+                "reason": f"Position size 0 (below min order or insufficient balance)",
             }
 
         return {
