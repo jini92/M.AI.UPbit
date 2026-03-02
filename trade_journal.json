@@ -1,0 +1,312 @@
+[
+  {
+    "trade_id": "2026-02-25_09-20_KRW-BTT_hold_dbba18",
+    "timestamp": "2026-02-25T09:20:33.025278+09:00",
+    "date": "2026-02-25",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000477,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 42.10526315789472,
+      "macd_signal": "bullish",
+      "stoch_k": 2.4999999999999916,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": "buy",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 65,
+      "knowledge_summary": "[Knowledge Context from Mnemo SecondBrain]\n\n--- Knowledge #1 (source: memory, relevance: 7.0) ---\nTitle: business-intelligence\n# Business Intelligence 누적 기록\n\n## 2026-02-25\n\n### 주요 시장 데이터\n\n- 베트남 온라인 뷰티",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-02-25_09-21_KRW-BTT_hold_03ec5f",
+    "timestamp": "2026-02-25T09:21:39.679054+09:00",
+    "date": "2026-02-25",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000476,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 41.66666666666666,
+      "macd_signal": "bullish",
+      "stoch_k": 1.2500000000000295,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 65,
+      "knowledge_summary": "[Knowledge Context from Mnemo SecondBrain]\n\n--- Knowledge #1 (source: memory, relevance: 7.0) ---\nTitle: business-intelligence\n# Business Intelligence 누적 기록\n\n## 2026-02-25\n\n### 주요 시장 데이터\n\n- 베트남 온라인 뷰티",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-02-25_19-01_KRW-BTT_hold_0645f9",
+    "timestamp": "2026-02-25T19:01:09.983233+09:00",
+    "date": "2026-02-25",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000482,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 44.68085106382978,
+      "macd_signal": "bullish",
+      "stoch_k": 8.750000000000004,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-02-26_07-01_KRW-BTT_hold_01d525",
+    "timestamp": "2026-02-26T07:01:06.362444+09:00",
+    "date": "2026-02-26",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000495,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 51.40186915887849,
+      "macd_signal": "bullish",
+      "stoch_k": 24.999999999999982,
+      "bb_position": "inside",
+      "quant_score": 0.25,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-02-26_19-00_KRW-BTT_hold_5f4f8d",
+    "timestamp": "2026-02-26T19:00:44.127679+09:00",
+    "date": "2026-02-26",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000488,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 39.36170212765957,
+      "macd_signal": "bullish",
+      "stoch_k": 19.999999999999986,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-02-27_19-39_KRW-BTC_hold_643392",
+    "timestamp": "2026-02-27T19:39:28.144386+09:00",
+    "date": "2026-02-27",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 97049000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 40.17147966966493,
+      "macd_signal": "bullish",
+      "stoch_k": 38.83846153846154,
+      "bb_position": "inside",
+      "quant_score": 0.25,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-02-28_19-01_KRW-BTT_hold_35edd0",
+    "timestamp": "2026-02-28T19:01:08.990912+09:00",
+    "date": "2026-02-28",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000487,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 31.481481481481495,
+      "macd_signal": "bullish",
+      "stoch_k": 13.043478260869588,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-01_07-01_KRW-BTT_hold_a082ce",
+    "timestamp": "2026-03-01T07:01:03.178554+09:00",
+    "date": "2026-03-01",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.00049,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 32.380952380952365,
+      "macd_signal": "bullish",
+      "stoch_k": 16.304347826086936,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-01_19-01_KRW-BTT_hold_9f389b",
+    "timestamp": "2026-03-01T19:01:12.630536+09:00",
+    "date": "2026-03-01",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000491,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 36.95652173913042,
+      "macd_signal": "bullish",
+      "stoch_k": 17.391304347826093,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-02_07-01_KRW-BTT_hold_98e1e3",
+    "timestamp": "2026-03-02T07:01:05.802239+09:00",
+    "date": "2026-03-02",
+    "symbol": "KRW-BTT",
+    "action": "hold",
+    "volume": 0,
+    "price": 0.000493,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 38.0434782608695,
+      "macd_signal": "bullish",
+      "stoch_k": 19.56521739130429,
+      "bb_position": "inside",
+      "quant_score": 0.5,
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 < 0.6 임계값",
+      "knowledge_hits": 0,
+      "knowledge_summary": "",
+      "strategy_signals": {}
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  }
+]
