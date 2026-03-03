@@ -165,19 +165,27 @@ class AutoTrader:
         if not price or price <= 0:
             return 0.0
         try:
-            balances = self.exchange.get_balances()
+            portfolio = self.exchange.get_portfolio()
         except Exception as exc:
-            logger.warning("Failed to fetch balances: %s", exc)
+            logger.warning("Failed to fetch portfolio: %s", exc)
             return 0.0
 
         if action == "buy":
-            krw = sum(float(b.get("balance", 0)) for b in balances if b.get("currency") == "KRW")
+            krw_df = portfolio.get("KRW")
+            if krw_df is None or krw_df.empty:
+                return 0.0
+            krw_rows = krw_df[krw_df["symbol"] == "KRW"]
+            krw = float(krw_rows["quantity"].sum()) if not krw_rows.empty else 0.0
             max_krw = krw * self.config["max_position_ratio"]
             return max_krw if max_krw >= self.config["min_order_krw"] else 0.0
 
         if action == "sell":
             coin = symbol.replace("KRW-", "")
-            qty = sum(float(b.get("balance", 0)) for b in balances if b.get("currency") == coin)
+            krw_df = portfolio.get("KRW")
+            if krw_df is None or krw_df.empty:
+                return 0.0
+            coin_rows = krw_df[krw_df["symbol"] == symbol]
+            qty = float(coin_rows["quantity"].sum()) if not coin_rows.empty else 0.0
             sell_vol = qty * self.config["max_position_ratio"]
             return sell_vol if sell_vol * price >= self.config["min_order_krw"] else 0.0
 

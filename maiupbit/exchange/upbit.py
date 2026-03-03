@@ -1,4 +1,4 @@
-"""UPbit exchange integration module.
+﻿"""UPbit exchange integration module.
 
 Wraps pyupbit to implement the BaseExchange interface.
 Trade records are stored in a JSON file.
@@ -137,9 +137,11 @@ class UPbitExchange(BaseExchange):
                 symbol = "KRW"
             else:
                 try:
-                    current_price = pyupbit.get_current_price(f"{currency}-KRW")
-                    market = "KRW" if "KRW-" in currency else "BTC"
-                    symbol = f"{currency}-{market}"
+                    symbol = f"KRW-{currency}"
+                    current_price = pyupbit.get_current_price(symbol)
+                    if not current_price:
+                        continue
+                    market = "KRW"
                 except Exception as exc:
                     logger.error("Failed to retrieve current price for %s: %s", currency, exc)
                     continue
@@ -250,6 +252,44 @@ class UPbitExchange(BaseExchange):
         except Exception as exc:
             logger.error("Trade history load failed: %s", exc)
             return []
+
+    # ------------------------------------------------------------------
+    # Trading (abstract method implementations)
+    # ------------------------------------------------------------------
+
+    def buy_market(self, symbol: str, amount: float) -> dict:
+        """Execute a market buy order.
+
+        Args:
+            symbol: Trading symbol (e.g., "KRW-BTC").
+            amount: Purchase amount (in KRW).
+
+        Returns:
+            Dictionary containing the order result.
+        """
+        if not self._upbit:
+            raise RuntimeError("API keys required for trading")
+        result = self._upbit.buy_market_order(symbol, amount)
+        price = self.get_current_price(symbol)
+        self._save_trade(symbol, amount, "buy", price)
+        return result
+
+    def sell_market(self, symbol: str, amount: float) -> dict:
+        """Execute a market sell order.
+
+        Args:
+            symbol: Trading symbol (e.g., "KRW-BTC").
+            amount: Sell quantity.
+
+        Returns:
+            Dictionary containing the order result.
+        """
+        if not self._upbit:
+            raise RuntimeError("API keys required for trading")
+        result = self._upbit.sell_market_order(symbol, amount)
+        price = self.get_current_price(symbol)
+        self._save_trade(symbol, amount, "sell", price)
+        return result
 
     # ------------------------------------------------------------------
     # Internal helpers
