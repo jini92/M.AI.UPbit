@@ -142,12 +142,16 @@ class AutoTrader:
             return fallback
 
     def _make_trade_decision(self, symbol, market_data, quant_signals, llm_result) -> dict:
-        # LLMAnalyzer returns "recommendation", fallback to "decision" for compatibility
-        action = llm_result.get("recommendation", llm_result.get("decision", "hold"))
-        reason = llm_result.get("reason", "")
-        # Infer confidence: buy/sell gets 0.7, hold gets 0.5
-        raw_confidence = float(llm_result.get("confidence", 0.0))
-        confidence = raw_confidence if raw_confidence > 0 else (0.7 if action in ("buy", "sell") else 0.5)
+# LLMAnalyzer returns "recommendation", fallback to "decision" for compatibility
+action = llm_result.get("recommendation", llm_result.get("decision", "hold"))
+reason = llm_result.get("reason", "")
+# Use actual confidence from LLM; fallback only when completely missing
+raw_confidence = llm_result.get("confidence")
+if raw_confidence is not None:
+    confidence = float(raw_confidence)
+else:
+    # LLM did not provide confidence at all (legacy/error path)
+    confidence = 0.7 if action in ("buy", "sell") else 0.5
 
         if confidence < self.config["min_confidence"]:
             return {"action": "hold", "confidence": confidence, "volume": 0,

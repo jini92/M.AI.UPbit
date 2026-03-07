@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 maiupbit.analysis.llm
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -37,7 +37,7 @@ from openai import OpenAI
 logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------
-# Default analysis prompt (v2 — Ollama/OpenAI optimized common version)
+# Default analysis prompt (v2 ??Ollama/OpenAI optimized common version)
 # ------------------------------------------------------------------
 _DEFAULT_INSTRUCTIONS: str = """\
 You are an expert cryptocurrency investment analyst for the UPbit exchange (Korea).
@@ -62,7 +62,12 @@ You analyze market data, technical indicators, ML predictions, and news to produ
 - buy_price/sell_price should be realistic numbers based on the data, or null.
 
 ## JSON Schema
-{"decision":"buy|sell|hold","buy_price":number|null,"sell_price":number|null,"reason":"Key reasons in Korean (2-3 sentences)","technical_analysis":{"key_indicators":"Summary of key indicators","trend":"uptrend|downtrend|sideways"},"market_sentiment":"positive|negative|neutral|unknown","risk_management":{"position_sizing":"Investment weight suggestion (e.g., 5% of capital)","stop_loss":"Stop loss price","take_profit":"Take profit price"}}
+{"decision":"buy|sell|hold","confidence":0.0,"buy_price":number|null,"sell_price":number|null,"reason":"Key reasons in Korean (2-3 sentences)","technical_analysis":{"key_indicators":"Summary of key indicators","trend":"uptrend|downtrend|sideways"},"market_sentiment":"positive|negative|neutral|unknown","risk_management":{"position_sizing":"Investment weight suggestion (e.g., 5% of capital)","stop_loss":"Stop loss price","take_profit":"Take profit price"}}
+- 0.9+: Very strong signal (multiple confirming indicators, clear trend)
+- 0.7-0.89: Strong signal (most indicators agree)
+- 0.6-0.69: Moderate signal (some conflict, but directional bias clear)
+- 0.5-0.59: Weak signal (mixed indicators, lean toward hold)
+- 0.4-0.49: No clear signal, recommend hold
 """
 
 _DEFAULT_INSTRUCTIONS = _DEFAULT_INSTRUCTIONS.replace("Key reasons in Korean (2-3 sentences)", "Key reasons in English (2-3 sentences)")
@@ -112,6 +117,7 @@ class LLMAnalyzer:
             response_data = json.loads(raw_content)
             
             result["recommendation"] = response_data.get("decision", "hold")
+            result["confidence"] = float(response_data.get("confidence", 0.5))
             result["buy_price"] = response_data.get("buy_price")
             result["sell_price"] = response_data.get("sell_price")
             result["reason"] = response_data.get("reason", "")
@@ -204,7 +210,7 @@ class LLMAnalyzer:
         result = self._parse_response(raw_content)
 
         logger.info(
-            "LLMAnalyzer.analyze completed — provider=%s, model=%s, recommendation=%s",
+            "LLMAnalyzer.analyze completed ??provider=%s, model=%s, recommendation=%s",
             self.provider,
             self.model,
             result.get("recommendation"),
