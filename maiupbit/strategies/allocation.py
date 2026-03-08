@@ -20,9 +20,9 @@ from maiupbit.strategies.base import StrategyConfig
 class GTAAConfig(StrategyConfig):
     """GTAA Asset Allocation Strategy Configuration."""
 
-    momentum_periods: list[int] = field(default_factory=lambda: [28, 84, 168])
-    momentum_weights: list[float] = field(default_factory=lambda: [6, 3, 1])
-    sma_filter: int = 200
+    momentum_periods: list[int] = field(default_factory=lambda: [28, 84, 168, 365])
+    momentum_weights: list[float] = field(default_factory=lambda: [12, 4, 2, 1])
+    sma_filter: int = 120
     max_positions: int = 5
     rebalance_days: int = 7
 

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 maiupbit.analysis.technical
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,16 +63,15 @@ class TechnicalAnalyzer:
         last = df.iloc[-1]
 
         indicators = {
-            "sma_10": _safe_float(last.get("SMA_10")),
-            "ema_10": _safe_float(last.get("EMA_10")),
-            "rsi_14": _safe_float(last.get("RSI_14")),
-            "upper_band": _safe_float(last.get("Upper_Band")),
+            "sma_10": self._safe_float(last.get("SMA_10")),
+            "ema_10": self._safe_float(last.get("EMA_10")),
+            "rsi_14": self._safe_float(last.get("RSI_14")),
+            "upper_band": self._safe_float(last.get("Upper_Band")),
         }
 
         # Signal determination
         macd_sig = "neutral"
-        if indicators["macd"] is not None and indicators["macd_signal"] is not None:
-            macd_sig = "bullish" if indicators["macd"] > indicators["macd_signal"] else "bearish"
+        pass  # MACD not calculated yet
 
         rsi_sig = "neutral"
         if indicators["rsi_14"] is not None:
@@ -97,7 +96,7 @@ class TechnicalAnalyzer:
         recommendation = "buy" if score >= 0.3 else ("sell" if score <= -0.3 else "hold")
 
         logger.info(
-            "%s technical analysis complete — score=%.2f, recommendation=%s",
+            "%s technical analysis complete ??score=%.2f, recommendation=%s",
             symbol,
             score,
             recommendation,
@@ -160,7 +159,7 @@ class TechnicalAnalyzer:
                         recommended.append((symbol, reason))
 
             except Exception as exc:  # noqa: BLE001
-                logger.debug("recommend_by_trend — %s processing failed: %s", symbol, exc)
+                logger.debug("recommend_by_trend ??%s processing failed: %s", symbol, exc)
                 continue
 
         unique_recommended = list(dict.fromkeys(recommended))[:top_n]
@@ -197,7 +196,7 @@ class TechnicalAnalyzer:
                 performance.append((symbol, returns))
 
             except Exception as exc:  # noqa: BLE001
-                logger.debug("recommend_by_performance — %s processing failed: %s", symbol, exc)
+                logger.debug("recommend_by_performance ??%s processing failed: %s", symbol, exc)
                 continue
 
         performance.sort(key=lambda x: x[1], reverse=True)
@@ -210,6 +209,28 @@ class TechnicalAnalyzer:
 
         logger.info("recommend_by_performance: %d recommendations completed", len(result))
         return result
+    def _score_signal(self, last: pd.Series) -> float:
+        """Calculate a simple composite score from indicators."""
+        score = 0.0
+        rsi = self._safe_float(last.get("RSI_14"))
+        if rsi is not None:
+            if rsi < 30:
+                score += 0.5
+            elif rsi > 70:
+                score -= 0.5
+            else:
+                score += (50 - rsi) / 100
+
+        sma = self._safe_float(last.get("SMA_10"))
+        if sma is not None and sma > 0:
+            close = float(last["close"])
+            if close > sma:
+                score += 0.3
+            else:
+                score -= 0.3
+
+        return round(score, 2)
+
 
     def _get_market_info(self) -> Dict[str, str]:
         """Get market information."""

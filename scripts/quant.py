@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 DEFAULT_SYMBOLS = [
     "KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-ADA",
-    "KRW-DOGE", "KRW-AVAX", "KRW-DOT", "KRW-MATIC", "KRW-LINK",
+    "KRW-DOGE", "KRW-AVAX", "KRW-DOT", "KRW-LINK",
 ]
 
 
@@ -142,15 +142,19 @@ def cmd_allocate(args):
     risk_manager = RiskManager()
 
     allocations = gtaa.allocate(data)
-    rebalance_days = 7
-    final_allocations = seasonal.rebalance(allocations, rebalance_days=rebalance_days)
-    optimized_allocations = risk_manager.optimize(final_allocations)
+    season_info = seasonal.get_season_info()
+    adjusted_allocations = seasonal.adjust_allocations(allocations)
+    final_allocations = risk_manager.apply_equal_weight_constraint(adjusted_allocations)
 
     result = {
         "command": "allocate",
         "symbols": list(data.keys()),
-        "final_allocations": optimized_allocations,
-        "rebalances": len(final_allocations),
+        "raw_allocations": allocations,
+        "season_adjusted": adjusted_allocations,
+        "final_allocations": final_allocations,
+        "season": season_info["season"],
+        "halving_phase": season_info["halving_phase"],
+        "multiplier": season_info["multiplier"],
     }
     print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
 
@@ -222,18 +226,108 @@ def cmd_backtest(args):
 
 
 def backtest_single_strategy(strategy, data):
-    """Backtest single strategy."""
-    pass
+    """Backtest single-symbol strategy across multiple coins."""
+    import numpy as np
+    initial_capital = 1_000_000.0
+    all_returns = []
+
+    for symbol, df in data.items():
+        if len(df) < 30:
+            continue
+        capital = initial_capital
+        in_position = False
+        buy_price = 0.0
+        for j in range(30, len(df)):
+            window = df.iloc[:j + 1]
+            sig = strategy.signal(window)
+            price = df.iloc[j]["close"]
+            if sig == 1 and not in_position:
+                buy_price = price
+                in_position = True
+            elif sig == -1 and in_position:
+                capital *= price / buy_price
+                in_position = False
+        ret = (capital - initial_capital) / initial_capital * 100
+        all_returns.append(ret)
+
+    if not all_returns:
+        return {"total_return": 0, "sharpe_ratio": 0, "max_drawdown": 0}
+    avg_ret = round(np.mean(all_returns), 2)
+    sharpe = round(np.mean(all_returns) / max(np.std(all_returns), 0.01), 2)
+    mdd = round(min(all_returns), 2)
+    return {"total_return": avg_ret, "sharpe_ratio": sharpe, "max_drawdown": mdd}
 
 
 def backtest_factor_strategy(strategy, data):
-    """Backtest factor strategy."""
-    pass
+    """Backtest multi-factor ranking strategy."""
+    import numpy as np
+    rankings = strategy.rank_coins(data)
+    allocations = strategy.allocate(data)
+    if not allocations:
+        return {"total_return": 0, "sharpe_ratio": 0, "max_drawdown": 0}
+
+    # Simple: equal-weight return of selected coins over period
+    returns = []
+    for symbol, weight in allocations.items():
+        if symbol in data and len(data[symbol]) >= 30:
+            df = data[symbol]
+            ret = (df["close"].iloc[-1] / df["close"].iloc[-30] - 1) * 100 * weight
+            returns.append(ret)
+    total_ret = round(sum(returns), 2)
+    sharpe = round(total_ret / max(abs(total_ret), 0.01), 2) if returns else 0
+    mdd = round(min(returns), 2) if returns else 0
+    return {"total_return": total_ret, "sharpe_ratio": sharpe, "max_drawdown": mdd}
 
 
 def backtest_allocation_strategy(strategy, data):
-    """Backtest allocation strategy."""
-    pass
+    """Backtest GTAA allocation strategy with periodic rebalancing."""
+    import numpy as np
+    import pandas as pd
+    initial_capital = 1_000_000.0
+    capital = initial_capital
+    rebalance_interval = 7
+    num_rebalances = 0
+    equity_curve = [capital]
+    per_asset_return = {}
+
+    # Find common date range
+    min_len = min(len(df) for df in data.values())
+    if min_len < 60:
+        return {"total_return": 0, "sharpe_ratio": 0, "max_drawdown": 0,
+                "num_rebalances": 0, "final_equity": capital, "per_asset_return": {}}
+
+    current_alloc = {}
+    for day in range(60, min_len, rebalance_interval):
+        sliced = {s: df.iloc[:day] for s, df in data.items()}
+        new_alloc = strategy.allocate(sliced)
+        if new_alloc != current_alloc:
+            current_alloc = new_alloc
+            num_rebalances += 1
+
+        # Calculate period return
+        period_return = 0.0
+        end = min(day + rebalance_interval, min_len)
+        for sym, weight in current_alloc.items():
+            if sym in data and end <= len(data[sym]):
+                p_start = data[sym]["close"].iloc[day]
+                p_end = data[sym]["close"].iloc[end - 1]
+                ret = (p_end / p_start - 1) * weight
+                period_return += ret
+                per_asset_return[sym] = per_asset_return.get(sym, 0) + ret * 100
+        capital *= (1 + period_return)
+        equity_curve.append(capital)
+
+    total_ret = round((capital - initial_capital) / initial_capital * 100, 2)
+    eq = pd.Series(equity_curve)
+    peak = eq.cummax()
+    dd = ((eq - peak) / peak).min()
+    daily_rets = eq.pct_change().dropna()
+    sharpe = round(float(daily_rets.mean() / max(daily_rets.std(), 1e-6) * np.sqrt(52)), 2)
+    per_asset_return = {k: round(v, 2) for k, v in per_asset_return.items()}
+    return {"total_return": total_ret, "sharpe_ratio": sharpe,
+            "max_drawdown": round(float(dd) * 100, 2),
+            "num_rebalances": num_rebalances, "final_equity": round(capital, 0),
+            "per_asset_return": per_asset_return}
 
 
 def main():

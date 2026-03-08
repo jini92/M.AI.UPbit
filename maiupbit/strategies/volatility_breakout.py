@@ -7,7 +7,7 @@ Adapted Larry Williams volatility breakout to Kang Whan Guk method:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
@@ -24,6 +24,8 @@ class VolatilityBreakoutConfig(StrategyConfig):
     noise_threshold: float = 0.6
     ma_filter: int = 20
     risk_per_trade: float = 0.02
+    auto_k: bool = True
+    k_search_range: list[float] = field(default_factory=lambda: [round(0.1 * i, 1) for i in range(1, 11)])
 
 
 class VolatilityBreakoutStrategy:
@@ -51,11 +53,20 @@ class VolatilityBreakoutStrategy:
         if len(data) < 3:
             return 0
 
+        # Auto-optimize k from recent data if enabled
+        k = self.config.k
+        if self.config.auto_k and len(data) >= 30:
+            optimal = self.find_optimal_k(data.iloc[:-1], self.config.k_search_range)
+            if optimal:
+                best_k = max(optimal, key=optimal.get)
+                if optimal[best_k] > 0:
+                    k = best_k
+
         today = data.iloc[-1]
         yesterday = data.iloc[-2]
 
         prev_range = yesterday["high"] - yesterday["low"]
-        breakout_price = today["open"] + prev_range * self.config.k
+        breakout_price = today["open"] + prev_range * k
 
         # MA filter
         if self.config.ma_filter > 0 and len(data) >= self.config.ma_filter:

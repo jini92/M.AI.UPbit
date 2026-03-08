@@ -26,7 +26,7 @@ class MultiFactorStrategy:
 
     Factors:
     - Momentum: 28-day return rate
-    - Quality: Volume CV (coefficient of variation, lower is better)
+    - Quality: Volume growth rate (recent vs prior period)
     - Volatility: ATR/price (lower is better)
     - Performance: 7-day return rate
     """
@@ -60,10 +60,10 @@ class MultiFactorStrategy:
             # Momentum: 28-day return rate
             mom_28 = close.pct_change(28).iloc[-1] if len(df) >= 29 else np.nan
 
-            # Quality: Volume CV (lower is better → use reciprocal)
-            vol_20 = df["volume"].tail(20)
-            vol_cv = vol_20.std() / vol_20.mean() if vol_20.mean() > 0 else np.nan
-            quality = 1.0 / vol_cv if vol_cv and vol_cv > 0 else 0.0
+            # Quality: Volume growth rate (recent 10d vs prior 10d)
+            vol_recent = df["volume"].tail(10).mean()
+            vol_prior = df["volume"].iloc[-20:-10].mean() if len(df) >= 20 else vol_recent
+            quality = (vol_recent / vol_prior) if vol_prior > 0 else 1.0
 
             # Volatility: ATR/price (lower is better → use reciprocal)
             atr_val = atr(df["high"], df["low"], close, length=14).iloc[-1]
