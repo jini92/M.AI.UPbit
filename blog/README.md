@@ -1,0 +1,257 @@
+# Blog / Newsletter Operations Guide
+
+**Project**: AI Quant Letter (M.AI.UPbit)
+**Channel**: Substack — https://jinilee.substack.com
+**Last updated**: 2026-03-09
+
+---
+
+## Channel Structure
+
+AI Quant Letter operates as a **single English-language Substack channel**. All content is published in English to maximize international reach for the open-source `maiupbit` project.
+
+| Property | Value |
+|----------|-------|
+| Platform | Substack |
+| URL | https://jinilee.substack.com |
+| Language | English (single channel) |
+| Audience | Crypto / quant traders interested in Korean markets |
+| Tag | `crypto` |
+
+> Future channels (Korean Substack, Tistory, Medium) will be considered after reaching subscriber milestones and completing Stripe integration.
+
+---
+
+## Publication Schedule
+
+| Cadence | Day | Time | Method |
+|---------|-----|------|--------|
+| Weekly | Monday | 07:00 KST | Automated (n8n) — see note below |
+
+> **Current status**: Automation pipeline is planned but not yet deployed. Issues are currently published manually on Monday mornings. See [docs/I012-Newsletter-Automation-Plan.md](../docs/I012-Newsletter-Automation-Plan.md).
+
+---
+
+## Content Structure
+
+Every weekly issue follows this standard structure:
+
+### 1. Market Season Analysis
+- Halving cycle position (days since last halving)
+- Monthly seasonal multiplier (bullish / neutral / bearish)
+- Season interpretation and context
+
+### 2. Dual Momentum Rankings (TOP 5)
+- Antonacci's dual momentum adapted for UPbit markets
+- Absolute + relative momentum composite score
+- Weekly signal: BUY specific coins / HOLD CASH
+
+### 3. Multi-Factor Rankings (TOP 5)
+- Composite score: momentum + quality (liquidity) + volatility + performance
+- Notable outliers and cross-ranking comparisons
+
+### 4. Weekly Strategy Summary
+- Clear position guidance (BUY / HOLD / CASH)
+- Entry trigger conditions
+- Watch list for the week
+
+### 5. How This Works
+- Brief explanation of the `maiupbit` engine
+- Link to GitHub repo and PyPI
+- Code snippet readers can run themselves
+
+---
+
+## Manual Publication Procedure
+
+Use this procedure until the n8n automation is active.
+
+### Step 1: Generate Quant Data
+
+```bash
+cd C:\TEST\M.AI.UPbit
+
+# Generate all signals
+python scripts/quant.py momentum --top 5
+python scripts/quant.py factor --top 5
+python scripts/quant.py season
+```
+
+### Step 2: Create Draft File
+
+Create a new file in `blog/drafts/`:
+
+```
+blog/drafts/YYYY-MM-DD_Quant_Newsletter_N_EN.md
+```
+
+Copy the template from the bottom of this guide or use the previous issue's draft as a starting point.
+
+### Step 3: Publish to Substack
+
+1. Open https://jinilee.substack.com/publish/post/new
+2. Paste draft content into the Substack rich-text editor
+3. Set the title and subtitle
+4. Add tag: `crypto`
+5. Set audience: **Everyone** (free)
+6. Click **Publish now**
+7. Copy the published URL
+
+### Step 4: Archive
+
+Move the draft to `blog/published/` and rename:
+
+```
+blog/published/YYYY-MM-DD_Issue_N_EN.md
+```
+
+Update the publication log in this file (see below).
+
+---
+
+## Automated Publication Procedure
+
+> **Status**: Not yet active. Target: 2026-Q1.
+
+Once the n8n pipeline is deployed, publication is fully automated:
+
+1. Every Monday at 00:00 UTC, n8n triggers `scripts/ci_weekly_report.py`
+2. Script generates quant signals and formats them into a Substack post
+3. n8n sends an HTTP request to the Substack API to create and publish the post
+4. Discord DM notification sent to Jini confirming publication
+
+Monitor at: https://mai-n8n.app.n8n.cloud
+Pipeline design: [docs/I012-Newsletter-Automation-Plan.md](../docs/I012-Newsletter-Automation-Plan.md)
+
+---
+
+## File Structure
+
+```
+blog/
+├── README.md                                      # This file — operations guide
+├── drafts/                                        # Work-in-progress issues
+│   └── YYYY-MM-DD_Quant_Newsletter_N_EN.md
+└── published/                                     # Archived after Substack publication
+    └── YYYY-MM-DD_Issue_N_EN.md
+```
+
+### File Naming Convention
+
+| Stage | Pattern | Example |
+|-------|---------|---------|
+| Draft | `YYYY-MM-DD_Quant_Newsletter_N_EN.md` | `2026-03-09_Quant_Newsletter_1_EN.md` |
+| Published | `YYYY-MM-DD_Issue_N_EN.md` | `2026-03-09_Issue_1_EN.md` |
+
+---
+
+## Publication Log
+
+| Date | Issue | Title | URL | Draft File |
+|------|-------|-------|-----|------------|
+| 2026-03-09 | #1 | AI Quant Letter #1 — Weekly UPbit Crypto Signals | [Link](https://jinilee.substack.com/p/ai-quant-letter-1-weekly-upbit-crypto) | [2026-03-09_Quant_Newsletter_1_EN.md](drafts/2026-03-09_Quant_Newsletter_1_EN.md) |
+
+---
+
+## Draft Template
+
+Copy this template when creating a new issue:
+
+```markdown
+---
+title: "AI Quant Letter #N — Weekly UPbit Signals"
+date: YYYY-MM-DD
+issue: N
+tags: [quant, crypto, upbit, ai-trading, maiupbit, python]
+language: en
+substack_url: (fill after publishing)
+---
+
+# 🤖 AI Quant Letter #N
+**Weekly UPbit Crypto Signals — Powered by maiupbit**
+
+> Auto-generated by [maiupbit](https://pypi.org/project/maiupbit/), an open-source quant engine for Korean crypto exchanges.
+
+---
+
+## 📅 Market Season Analysis
+
+| Metric | Status |
+|--------|--------|
+| Monthly Season | 🟢/🟡/🔴 |
+| Halving Cycle | Day X post-halving |
+| Season Multiplier | X.Xx |
+| Next Halving | Month DD, YYYY (N days away) |
+
+**Interpretation**: ...
+
+---
+
+## 🏆 Dual Momentum Rankings (TOP 5)
+
+| Rank | Coin | Score | Signal |
+|------|------|-------|--------|
+| 🥇 1 | | | |
+| 🥈 2 | | | |
+| 🥉 3 | | | |
+| 4 | | | |
+| 5 | | | |
+
+> ⚠️ **This week's signal: BUY / HOLD CASH**
+
+---
+
+## 📊 Multi-Factor Rankings (TOP 5)
+
+| Rank | Coin | Score | Note |
+|------|------|-------|------|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+| 4 | | | |
+| 5 | | | |
+
+---
+
+## 🎯 Weekly Strategy Summary
+
+Position:
+Watch list:
+Entry trigger:
+Risk note:
+
+---
+
+## 🔧 How This Works
+
+This letter is auto-generated by [maiupbit](https://pypi.org/project/maiupbit/),
+a Python package I built for quant trading on Korean exchanges.
+
+**Open source (Apache 2.0)**: https://github.com/jini92/M.AI.UPbit
+
+    pip install maiupbit
+    maiupbit analyze KRW-BTC
+
+---
+
+*⚠️ This letter is for informational purposes only and does not constitute investment advice.*
+```
+
+---
+
+## Related Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [docs/D010-Substack-Newsletter-Channel-Setup.md](../docs/D010-Substack-Newsletter-Channel-Setup.md) | Substack channel configuration |
+| [docs/I010-First-Newsletter-Publication.md](../docs/I010-First-Newsletter-Publication.md) | Issue #1 publication record |
+| [docs/I011-Payment-Setup-Progress.md](../docs/I011-Payment-Setup-Progress.md) | Stripe / Wise payment integration |
+| [docs/I012-Newsletter-Automation-Plan.md](../docs/I012-Newsletter-Automation-Plan.md) | n8n automation pipeline |
+| [docs/content-strategy.md](../docs/content-strategy.md) | Content channel strategy |
+
+---
+
+## Subscribe
+
+- **Subscribe**: https://jinilee.substack.com
+- **Archive**: https://jinilee.substack.com/archive
