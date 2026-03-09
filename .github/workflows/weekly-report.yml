@@ -21,6 +21,12 @@ jobs:
         run: python scripts/generate_newsletter.py
       - name: Update README badges
         run: python scripts/ci_weekly_report.py > /tmp/report.json && python scripts/update_readme_badges.py /tmp/report.json
+      - name: Publish to Substack
+        env:
+          SUBSTACK_SID: ${{ secrets.SUBSTACK_SID }}
+          UPBIT_ACCESS_KEY: ${{ secrets.UPBIT_ACCESS_KEY }}
+          UPBIT_SECRET_KEY: ${{ secrets.UPBIT_SECRET_KEY }}
+        run: python scripts/publish_substack.py
       - name: Commit
         run: |
           git config user.email "action@github.com"
