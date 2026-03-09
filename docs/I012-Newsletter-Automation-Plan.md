@@ -2,7 +2,7 @@
 
 **Document type**: Implementation Record / Architecture Plan
 **Date**: 2026-03-09
-**Status**: 🔄 Planned (not yet deployed)
+**Status**: IMPLEMENTED (deployed 2026-03-09)
 **Author**: Jini Lee
 
 ---
@@ -251,3 +251,57 @@ jobs:
 - [I010-First-Newsletter-Publication.md](I010-First-Newsletter-Publication.md) — First issue (manual)
 - [I011-Payment-Setup-Progress.md](I011-Payment-Setup-Progress.md) — Payment integration
 - [../blog/README.md](../blog/README.md) — Operations guide
+
+---
+
+## 9. Implementation Record (2026-03-09)
+
+The GitHub Actions-based pipeline (not n8n) was implemented as the primary automation path.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `scripts/generate_newsletter_html.py` | Converts quant data dict to styled HTML newsletter |
+| `scripts/publish_newsletter.py` | End-to-end publishing pipeline (data → HTML → Substack → Discord) |
+
+### Workflow Modified
+
+`.github/workflows/weekly-report.yml` — Added `Publish newsletter to Substack` step before the commit step.
+
+### Actual Pipeline Flow
+
+```
+[Every Monday 07:00 KST / Sunday 22:00 UTC]
+GitHub Actions (weekly-report.yml)
+  |
+  +-- scripts/ci_weekly_report.py       -> JSON quant data (stdout)
+  |
+  +-- scripts/publish_newsletter.py
+        |
+        +-- _run_ci_report()            -> parse JSON from ci_weekly_report.py
+        +-- _generate_html()            -> generate_newsletter_html.py -> HTML body
+        +-- _publish_to_substack()      -> POST /api/v1/posts
+        +-- _notify_discord()           -> Discord webhook embed
+```
+
+### Required GitHub Secrets
+
+| Secret | Description |
+|--------|-------------|
+| `SUBSTACK_COOKIE` | substack.lli JWT cookie value |
+| `SUBSTACK_URL` | e.g. `https://jinilee.substack.com` |
+| `DISCORD_WEBHOOK` | Discord webhook URL (optional, for notifications) |
+
+### Newsletter Sections
+
+1. Market Season Analysis — current season, score, signal, halving info
+2. Dual Momentum TOP 5 — momentum score + buy/sell signal per coin
+3. Multi-Factor Ranking TOP 5 — combined factor ranking
+4. GTAA Asset Allocation — weight bar chart per asset
+5. Weekly Signal Summary — overall buy/sell/neutral signal
+
+### Issue Numbering
+
+`issue_number = len(blog/published/*) + 2`
+(Offset of 2 accounts for Issue #1 published manually.)

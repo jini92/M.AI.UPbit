@@ -27,6 +27,12 @@ jobs:
           UPBIT_ACCESS_KEY: ${{ secrets.UPBIT_ACCESS_KEY }}
           UPBIT_SECRET_KEY: ${{ secrets.UPBIT_SECRET_KEY }}
         run: python scripts/publish_substack.py
+      - name: Publish newsletter to Substack
+        env:
+          SUBSTACK_COOKIE: ${{ secrets.SUBSTACK_COOKIE }}
+          SUBSTACK_URL: ${{ secrets.SUBSTACK_URL }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python scripts/publish_newsletter.py
       - name: Commit
         run: |
           git config user.email "action@github.com"
