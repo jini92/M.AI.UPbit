@@ -1,40 +1,30 @@
-﻿name: Weekly Quant Report
+﻿name: Weekly Newsletter Generator
 
 on:
   schedule:
-    - cron: '0 22 * * 0'  # 매주 월요일 07:00 KST (일요일 22:00 UTC)
-  workflow_dispatch:       # 수동 실행 가능
+    - cron: '0 22 * * 0'   # 매주 월요일 07:00 KST
+  workflow_dispatch:
 
 jobs:
-  update-readme:
+  generate-newsletter:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Install dependencies
-        run: pip install maiupbit requests
-
-      - name: Generate weekly report
+      - run: pip install maiupbit
+      - name: Generate KR + EN newsletters
         env:
           UPBIT_ACCESS_KEY: ${{ secrets.UPBIT_ACCESS_KEY }}
           UPBIT_SECRET_KEY: ${{ secrets.UPBIT_SECRET_KEY }}
-        run: |
-          python scripts/ci_weekly_report.py > /tmp/weekly_report.json
-          cat /tmp/weekly_report.json
-
+        run: python scripts/generate_newsletter.py
       - name: Update README badges
+        run: python scripts/ci_weekly_report.py > /tmp/report.json && python scripts/update_readme_badges.py /tmp/report.json
+      - name: Commit
         run: |
-          python scripts/update_readme_badges.py /tmp/weekly_report.json
-
-      - name: Commit and push
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "maiupbit-bot"
-          git add README.md docs/weekly/
-          git diff --staged --quiet || git commit -m "chore: weekly quant report update $(date +%Y-%m-%d)"
+          git config user.email "action@github.com"
+          git config user.name "maiupbit-bot"
+          git add blog/drafts/ README.md
+          git diff --staged --quiet || git commit -m "chore: weekly newsletter $(date +%Y-%m-%d) [KR+EN]"
           git push
