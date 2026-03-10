@@ -12,6 +12,18 @@
 
 ---
 
+
+## 📊 Weekly Quant Signal (Auto-Updated)
+
+| 항목 | 현황 |
+|------|------|
+| 업데이트 | 2026-03-10 |
+| 매매 시그널 | ![signal](https://img.shields.io/badge/Signal-CASH-red) |
+| 시즌 | ![season](https://img.shields.io/badge/Season-bullish-brightgreen) |
+| 모멘텀 1위 | N/A |
+
+> 🤖 [maiupbit](https://pypi.org/project/maiupbit/) 엔진 자동 생성 · [뉴스레터 구독](#newsletter)
+
 ## Features
 
 | 기능 | 설명 |
