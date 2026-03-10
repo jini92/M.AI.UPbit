@@ -1,8 +1,8 @@
-﻿name: Weekly Newsletter Generator
+name: Weekly Newsletter Generator
 
 on:
   schedule:
-    - cron: '0 22 * * 0'   # 매주 월요일 07:00 KST
+    - cron: '0 22 * * 0'   # Every Monday 07:00 KST (22:00 UTC Sunday)
   workflow_dispatch:
 
 jobs:
@@ -10,33 +10,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: pip install -e . requests python-dotenv pyupbit ta
-      - name: Generate KR + EN newsletters
+
+      - name: Install dependencies
+        run: pip install -e . requests python-dotenv pyupbit ta
+
+      - name: Generate newsletter draft
         env:
           UPBIT_ACCESS_KEY: ${{ secrets.UPBIT_ACCESS_KEY }}
           UPBIT_SECRET_KEY: ${{ secrets.UPBIT_SECRET_KEY }}
         run: python scripts/generate_newsletter.py
+
       - name: Update README badges
-        run: python scripts/ci_weekly_report.py > /tmp/report.json && python scripts/update_readme_badges.py /tmp/report.json
-      - name: Publish to Substack
-        env:
-          SUBSTACK_SID: ${{ secrets.SUBSTACK_SID }}
-          UPBIT_ACCESS_KEY: ${{ secrets.UPBIT_ACCESS_KEY }}
-          UPBIT_SECRET_KEY: ${{ secrets.UPBIT_SECRET_KEY }}
-        run: python scripts/publish_substack.py
-      - name: Publish newsletter to Substack
-        env:
-          SUBSTACK_COOKIE: ${{ secrets.SUBSTACK_COOKIE }}
-          SUBSTACK_URL: ${{ secrets.SUBSTACK_URL }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        run: python scripts/publish_newsletter.py
-      - name: Commit
+        run: |
+          python scripts/ci_weekly_report.py > /tmp/report.json
+          python scripts/update_readme_badges.py /tmp/report.json
+
+      - name: Commit draft + badges
         run: |
           git config user.email "action@github.com"
           git config user.name "maiupbit-bot"
           git add blog/drafts/ README.md
-          git diff --staged --quiet || git commit -m "chore: weekly newsletter $(date +%Y-%m-%d) [KR+EN]"
+          git diff --staged --quiet || git commit -m "chore: weekly newsletter $(date +%Y-%m-%d)"
           git push
+
+      - name: Notify Discord DM
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: |
+          WEEK=$(date +%Y-%m-%d)
+          DRAFT_URL="https://github.com/jini92/M.AI.UPbit/tree/main/blog/drafts"
+          MESSAGE="📬 **AI Quant Letter 주간 초안 준비됨!** ($WEEK)\n\n✅ 퀀트 데이터 자동 생성 완료\n📄 초안 확인: $DRAFT_URL\n\n👉 **Substack에서 Publish 눌러주세요!**\nhttps://jinilee.substack.com/publish/posts"
+          curl -s -X POST "https://discord.com/api/v10/channels/1466624220632059934/messages" \
+            -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"$MESSAGE\"}"
