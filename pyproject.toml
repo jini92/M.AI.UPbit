@@ -26,7 +26,7 @@ classifiers = [
 
 dependencies = [
     "pandas>=2.0",
-    "pandas-ta>=0.3.14b1",
+    "ta>=0.10.2",
     "numpy>=1.24",
     "pyupbit>=0.2.33",
     "openai>=1.0",
