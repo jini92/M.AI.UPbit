@@ -4,6 +4,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/maiupbit.svg)](https://pypi.org/project/maiupbit/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/coverage-70%25%2B-brightgreen.svg)](tests/)
+[![Newsletter](https://img.shields.io/badge/📬%20AI%20Quant%20Letter-Subscribe-orange)](https://jinilee.substack.com)
 
 > **AI-powered cryptocurrency analysis engine for Korean exchanges**
 >
@@ -227,7 +228,8 @@ Every Monday: Dual Momentum rankings, Multi-Factor rankings, Seasonal filter ana
 - **GitHub**: https://github.com/jini92/M.AI.UPbit
 - **Issues**: https://github.com/jini92/M.AI.UPbit/issues
 - **PyPI**: https://pypi.org/project/maiupbit/
-- **Newsletter**: https://jinilee.substack.com
+- **Newsletter**: [AI Quant Letter](https://jinilee.substack.com) — Weekly UPbit quant signals
+- **Latest Issue**: [AI Quant Letter #1 — Weekly UPbit Crypto Signals](https://jinilee.substack.com/p/ai-quant-letter-1-weekly-upbit-crypto)
 - **UPbit Open API**: https://docs.upbit.com/
 
 ---
