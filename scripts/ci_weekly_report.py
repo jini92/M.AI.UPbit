@@ -2,15 +2,21 @@
 import json, sys, os
 sys.path.insert(0, os.getcwd())
 
+import pyupbit
 from maiupbit.strategies.momentum import DualMomentumStrategy
 from maiupbit.strategies.multi_factor import MultiFactorStrategy
 from maiupbit.strategies.seasonal import SeasonalFilter
-from maiupbit.exchange.upbit import UPbitExchange
-from maiupbit.utils.data import DataFetcher
 from datetime import datetime
 
 SYMBOLS = ["KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-DOT",
            "KRW-AVAX", "KRW-LINK", "KRW-ADA", "KRW-DOGE"]
+
+
+class DataFetcher:
+    """Simple pyupbit-based OHLCV fetcher."""
+    def fetch_ohlcv(self, symbol: str, count: int = 200):
+        return pyupbit.get_ohlcv(symbol, count=count)
+
 
 fetcher = DataFetcher()
 seasonal = SeasonalFilter()
