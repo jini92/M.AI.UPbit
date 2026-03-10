@@ -90,6 +90,7 @@ class LLMAnalyzer:
         if self.provider == "ollama":
             base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
             self.model = os.getenv("OLLAMA_MODEL", "qwen2.5:14b")
+            self.num_gpu = int(os.getenv("OLLAMA_GPU_LAYERS", "99"))
             self.client = OpenAI(api_key="ollama", base_url=base_url)
         else:
             self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -201,6 +202,9 @@ class LLMAnalyzer:
             }
             
             kwargs["response_format"] = {"type": "json_object"}
+            # Ollama: pass num_gpu option to limit GPU layers (avoids CUDA memory fragmentation)
+            if self.provider == "ollama":
+                kwargs["extra_body"] = {"options": {"num_gpu": getattr(self, "num_gpu", 99)}}
             response = self.client.chat.completions.create(**kwargs, timeout=self.timeout)
         except Exception as exc: 
             logger.error(f"LLM API call failed (provider={self.provider}): {exc}")
