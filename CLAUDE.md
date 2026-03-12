@@ -216,3 +216,25 @@ ollama pull exaone3.5:7.8b # 8GB GPU (한국어 특화)
 - [pyupbit GitHub](https://github.com/sharebook-kr/pyupbit)
 - [OpenAI API](https://platform.openai.com/docs)
 - [PRD v2.1](docs/PRD-v2.md)
+
+
+## ⚠️ Regression Guard
+
+Critical indicator parameters are locked by `tests/test_regression_guard.py`.
+Baseline values are documented in `benchmarks/baseline.json`.
+
+**Protected parameters:**
+| Parameter | Value | Source |
+|---|---|---|
+| RSI length | 14 | `maiupbit/indicators/momentum.py` |
+| Bollinger std_dev | 2.0 | `maiupbit/indicators/volatility.py` |
+| Bollinger length | 20 | `maiupbit/indicators/volatility.py` |
+| ATR length | 14 | `maiupbit/indicators/volatility.py` |
+| Momentum periods | [28, 84, 168, 365] | `maiupbit/indicators/momentum.py` |
+| Momentum weights | [12, 4, 2, 1] | `maiupbit/indicators/momentum.py` |
+
+**Before changing any protected parameter:**
+1. Run `pytest tests/test_regression_guard.py -v` to see what will break
+2. Update `benchmarks/baseline.json` with new values and rationale
+3. Update the guard test to match
+4. Document the change in commit message

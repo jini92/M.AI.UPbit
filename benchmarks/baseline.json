@@ -1,0 +1,37 @@
+{
+  "project": "M.AI.UPbit",
+  "version": "0.1.0",
+  "created": "2026-03-12",
+  "critical_settings": {
+    "rsi_length": {
+      "value": 14,
+      "source": "maiupbit/indicators/momentum.py::rsi()",
+      "rationale": "RSI 14 is the crypto industry standard. Changing breaks signal compatibility."
+    },
+    "bollinger_std_dev": {
+      "value": 2.0,
+      "source": "maiupbit/indicators/volatility.py::bollinger_bands()",
+      "rationale": "Bollinger Bands 2-sigma captures ~95% of price action."
+    },
+    "bollinger_length": {
+      "value": 20,
+      "source": "maiupbit/indicators/volatility.py::bollinger_bands()",
+      "rationale": "20-period is the standard SMA for Bollinger Bands."
+    },
+    "atr_length": {
+      "value": 14,
+      "source": "maiupbit/indicators/volatility.py::atr()",
+      "rationale": "ATR 14 is the Wilder standard period."
+    },
+    "momentum_periods": {
+      "value": [28, 84, 168, 365],
+      "source": "maiupbit/indicators/momentum.py::momentum_score()",
+      "rationale": "Kang weighted momentum uses these crypto-tuned periods."
+    },
+    "momentum_weights": {
+      "value": [12, 4, 2, 1],
+      "source": "maiupbit/indicators/momentum.py::momentum_score()",
+      "rationale": "Kang weighting scheme emphasizes short-term momentum."
+    }
+  }
+}
