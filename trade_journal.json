@@ -2447,5 +2447,92 @@
       "was_correct": null,
       "evaluated_at": null
     }
+  },
+  {
+    "trade_id": "2026-03-21_21-00_KRW-BTC_hold_060641",
+    "timestamp": "2026-03-21T21:00:54.321327+09:00",
+    "date": "2026-03-21",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 105790000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 53.54729333384811,
+      "macd_signal": "bullish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-22_09-00_KRW-BTC_hold_3c4435",
+    "timestamp": "2026-03-22T09:00:16.715733+09:00",
+    "date": "2026-03-22",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 103687000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 49.22386769257105,
+      "macd_signal": "bearish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-22_21-01_KRW-BTC_hold_3e7da4",
+    "timestamp": "2026-03-22T21:01:31.326172+09:00",
+    "date": "2026-03-22",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 102402000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 46.71935145724607,
+      "macd_signal": "bearish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
   }
 ]

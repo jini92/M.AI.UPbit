@@ -1,0 +1,154 @@
+<h1
+id="maijiniopenclaw-operating-notes-1-claude-code-discord-dm-coding-by-chat">MAIJINI@openclaw
+Operating Notes #1 — Claude Code × Discord DM: Coding by Chat</h1>
+<p><em>Building a crypto quant engine through Discord conversations — no
+IDE required.</em></p>
+<hr />
+<h2 id="why-this-exists">Why This Exists</h2>
+<p>I run 16 AI projects under the <a
+href="https://jinilee.substack.com">MAI Universe</a> umbrella. The
+bottleneck was never ideas — it was execution speed. I needed a way to
+write code, commit, and ship while I was away from my desk, on my phone,
+or simply thinking out loud.</p>
+<p>The answer: wire <strong>Claude Code</strong> (Anthropic’s coding
+CLI) into <strong>Discord DM</strong> via <a
+href="https://openclaw.ai">OpenClaw</a>, my AI orchestration gateway.
+Now I type a request in Discord, Claude Code writes the code, and the
+commit lands on GitHub — all through a chat message.</p>
+<p>This is the first operating note documenting what that workflow
+actually produced.</p>
+<h2 id="the-setup-claude-code-discord-dm">The Setup: Claude Code ×
+Discord DM</h2>
+<p><strong>OpenClaw</strong> is an open-source AI gateway that connects
+LLMs to messaging platforms. I run it on my Windows PC as a persistent
+gateway. It receives Discord DM messages, routes them to Claude Code,
+and returns results — including file edits, git commits, and terminal
+output.</p>
+<p>The key insight: <strong>coding is a conversation.</strong> When you
+can talk to your coding agent the same way you talk to a colleague on
+Discord, the friction between “thinking about code” and “shipping code”
+disappears.</p>
+<p>Here is what a typical session looks like:</p>
+<ol type="1">
+<li>I send a Discord DM: <em>“Add a <code>status</code> subcommand to
+the CLI that shows current portfolio state”</em></li>
+<li>Claude Code reads the codebase, writes the implementation, runs
+tests</li>
+<li>I get back a summary with the diff and test results</li>
+<li>I say <em>“looks good, commit and push”</em></li>
+<li>Done. The code is on GitHub.</li>
+</ol>
+<p>No IDE. No terminal. No context switching.</p>
+<h2 id="what-we-built-in-10-days-march-1020">What We Built in 10 Days
+(March 10–20)</h2>
+<h3 id="climaiupbit.py-a-full-quant-cli-375-loc">1.
+<code>cli/maiupbit.py</code> — A Full Quant CLI (375 LOC)</h3>
+<p>The biggest single deliverable. A Click-based CLI with 13
+subcommands:</p>
+<ul>
+<li><code>maiupbit quant</code> — run the full dual-momentum +
+multi-factor pipeline</li>
+<li><code>maiupbit newsletter</code> — generate the weekly AI Quant
+Letter</li>
+<li><code>maiupbit status</code> — portfolio state and P&amp;L</li>
+<li><code>maiupbit backtest</code> — historical strategy
+performance</li>
+<li><code>maiupbit journal</code> — daily trade decision log</li>
+</ul>
+<p>Every command outputs JSON by default, making it pipeline-friendly
+for n8n workflows and GitHub Actions.</p>
+<p>This entire CLI was written through Discord DM conversations with
+Claude Code. No file was opened in VS Code.</p>
+<h3 id="local-llm-optimization-qwen38b-gpu-layer-control">2. Local LLM
+Optimization: Qwen3:8b + GPU Layer Control</h3>
+<p>The quant pipeline uses a local LLM (Qwen3:8b via Ollama) for market
+analysis narrative. Problem: the 8B model was eating all GPU memory and
+causing CUDA fragmentation.</p>
+<p>Solution discovered through conversation:</p>
+<pre><code>OLLAMA_GPU_LAYERS=20</code></pre>
+<p>By limiting GPU layer offloading to 20 (out of ~32), we keep enough
+VRAM headroom for other tasks while maintaining acceptable inference
+speed. This single environment variable eliminated the OOM crashes that
+had been killing overnight runs.</p>
+<h3 id="newsletter-automation-pipeline">3. Newsletter Automation
+Pipeline</h3>
+<p>The AI Quant Letter now has a fully documented automation
+architecture:</p>
+<ul>
+<li><strong>D010</strong> — Newsletter content generation pipeline
+(quant data → narrative → HTML)</li>
+<li><strong>D011</strong> — Distribution pipeline (n8n webhook →
+Substack API → social media)</li>
+<li><strong>GitHub Actions</strong> — Weekly cron trigger for the full
+pipeline</li>
+</ul>
+<p>The goal: zero-touch weekly newsletter publication. Run the quant
+model, generate the letter, publish to Substack, post to social — all
+automated.</p>
+<h3 id="regression-guard">4. Regression Guard</h3>
+<p>Quant systems are fragile. Change one threshold and your backtest
+looks amazing but your live performance collapses.</p>
+<p>We implemented a regression guard that protects critical
+parameters:</p>
+<ul>
+<li>Momentum lookback periods</li>
+<li>Scoring weights</li>
+<li>Risk thresholds</li>
+<li>Position sizing multipliers</li>
+</ul>
+<p>Every parameter change now requires explicit justification and a
+before/after comparison. The guard runs as part of the test suite.</p>
+<h3 id="trade-journal">5. Trade Journal</h3>
+<p>A daily log of BTC hold/sell decisions with reasoning:</p>
+<pre><code>2026-03-18 | HOLD | BTC momentum: -0.061, below threshold
+2026-03-19 | HOLD | No positive momentum in top 5
+2026-03-20 | HOLD | 3rd consecutive week, all scores negative</code></pre>
+<p>Simple, but it creates accountability. When the model eventually
+signals a buy, we will have a complete record of every day it chose to
+wait.</p>
+<h3 id="ai-quant-letter-3">6. AI Quant Letter #3</h3>
+<p>The third issue of our weekly crypto quant newsletter:</p>
+<ul>
+<li><strong>Signal:</strong> Hold cash (3rd consecutive week)</li>
+<li><strong>Top coin:</strong> ETH at -0.057 (least negative)</li>
+<li><strong>Divergence:</strong> Multi-factor model is more optimistic
+(ETH 0.554) vs pure momentum (all negative)</li>
+<li><strong>Interpretation:</strong> Consolidation phase — stopped
+falling, not yet rising</li>
+</ul>
+<p>Read it: <a href="https://jinilee.substack.com">AI Quant Letter
+#3</a></p>
+<h2 id="what-i-learned">What I Learned</h2>
+<p><strong>1. Chat-driven development is real.</strong> Not as a gimmick
+— as a practical workflow. The key is having an agent that understands
+your codebase context, not just generates snippets.</p>
+<p><strong>2. The bottleneck moved.</strong> It used to be “find time to
+sit at the IDE.” Now it is “think clearly about what to build.” The
+execution layer is nearly instant.</p>
+<p><strong>3. Local LLMs need operational tuning.</strong> Running
+Qwen3:8b on a consumer GPU is viable, but you need to manage VRAM like a
+shared resource. <code>OLLAMA_GPU_LAYERS</code> is the single most
+impactful config for stability.</p>
+<p><strong>4. Quant discipline requires infrastructure.</strong> It is
+easy to build a signal generator. It is hard to build the scaffolding
+that prevents you from breaking it — regression guards, trade journals,
+automated newsletters.</p>
+<h2 id="what-is-next">What is Next</h2>
+<ul>
+<li><strong>Zero-touch newsletter:</strong> Complete the n8n + GitHub
+Actions pipeline so the weekly letter publishes without human
+intervention</li>
+<li><strong>Live trading integration:</strong> Connect the signal output
+to UPbit API for paper trading</li>
+<li><strong>Multi-model ensemble:</strong> Add a second local LLM (Llama
+3) to cross-validate Qwen3 analysis</li>
+<li><strong>Voice interface:</strong> Route voice commands through
+OpenClaw to trigger quant runs</li>
+</ul>
+<hr />
+<p><em>This is the first issue of MAIJINI@openclaw Operating Notes, part
+of the <a href="https://jinilee.substack.com">MAI Universe Letter</a>.
+Follow along as I build an AI-first development workflow — one Discord
+message at a time.</em></p>
+<p><em>The quant engine is open source: <a
+href="https://github.com/jini92/M.AI.UPbit">github.com/jini92/M.AI.UPbit</a></em></p>
