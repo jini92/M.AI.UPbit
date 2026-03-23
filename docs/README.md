@@ -1,30 +1,72 @@
-# M.AI.UPbit Documentation
+﻿# M.AI.UPbit Documentation
 
-문서 명명 규칙: **A**(분석) / **D**(설계) / **I**(구현) / **T**(테스트) + 순번
+Naming convention: **A** (Analysis) / **D** (Design) / **I** (Implementation) / **O** (Operation) / **T** (Test) + sequence number.
 
 ---
 
-## 문서 목록
+## Document Index
 
-| 번호 | 제목 | 유형 | 상태 | 최종 수정 |
-|---|---|---|---|---|
-| **A-001** | [POC 분석 — app.py Streamlit 모놀리스](A-001-POC-Analysis.md) | 분석 | ✅ 완료 | 2026-02-25 |
-| **D-001** | [PRD v2.1 — OpenClaw 에이전트 트레이딩](PRD-v2.md) | 설계 | ✅ Phase 8 완료 | 2026-02-25 |
-| **I-001** | [구현 현황 — maiupbit v0.1.0](I-001-Implementation-Status.md) | 구현 | ✅ Phase 8 완료 | 2026-02-25 |
-| **T-001** | [테스트 리포트 — 82% coverage](T-001-Test-Report.md) | 테스트 | ✅ 목표 초과 | 2026-02-25 |
+### Analysis
 
-## 요약 대시보드
+| ID | Title | Status | Last Updated |
+|---|---|---|---|
+| **A-001** | [POC Analysis — app.py Streamlit Monolith](A-001-POC-Analysis.md) | ✅ Complete | 2026-02-25 |
+| **A-002** | [Market Data Accumulation Gap Analysis](A-002-Market-Data-Accumulation-Analysis.md) | ✅ Complete | 2026-03-23 |
 
-```
+### Design
+
+| ID | Title | Status | Last Updated |
+|---|---|---|---|
+| **D-001** | [PRD v2.1](PRD-v2.md) | ✅ Phase 9 planning updated | 2026-03-23 |
+| **D-002** | [Live Trading Flywheel](D-002-LiveTrading-Flywheel.md) | 🟡 Draft + addendum | 2026-03-23 |
+| **D-003** | [Market Data Accumulation Architecture](D-003-Market-Data-Accumulation-Architecture.md) | ✅ Implemented | 2026-03-23 |
+| **D010** | [Substack Newsletter Channel](D010-Substack-Newsletter-Channel.md) | ✅ Complete | 2026-03-09 |
+| **D010-Setup** | [Substack Newsletter Channel Setup](D010-Substack-Newsletter-Channel-Setup.md) | ✅ Complete | 2026-03-09 |
+| **D011** | [Newsletter Automation Plan](D011-Newsletter-Automation-Plan.md) | ✅ Complete | 2026-03-09 |
+
+### Implementation / Progress
+
+| ID | Title | Status | Last Updated |
+|---|---|---|---|
+| **I-001** | [Implementation Status — maiupbit v0.1.0](I-001-Implementation-Status.md) | ✅ Phase 8 complete | 2026-02-25 |
+| **I-002** | [Market Data Persistence Implementation](I-002-Market-Data-Persistence-Implementation.md) | ✅ Complete | 2026-03-23 |
+| **I010** | [First Newsletter Publication](I010-First-Newsletter-Publication.md) | ✅ Complete | 2026-03-09 |
+| **I011** | [Payment Setup Progress](I011-Payment-Setup-Progress.md) | 🟡 In progress | 2026-03-09 |
+| **I012** | [Newsletter Automation Plan](I012-Newsletter-Automation-Plan.md) | ✅ Complete | 2026-03-09 |
+| **I013** | [Security Incident — API Key Exposure](I013-Security-Incident-API-Key-Exposure.md) | ✅ Documented | 2026-03-09 |
+
+### Operation
+
+| ID | Title | Status | Last Updated |
+|---|---|---|---|
+| **O-001** | [Operation Plan](O-001-Operation-Plan.md) | ✅ Active | 2026-02-25 |
+| — | [Content Strategy](content-strategy.md) | ✅ Active | 2026-03-09 |
+
+### Test
+
+| ID | Title | Status | Last Updated |
+|---|---|---|---|
+| **T-001** | [Test Report — 82% Coverage](T-001-Test-Report.md) | ✅ Above target | 2026-02-25 |
+| **T-002** | [Market Data Persistence Validation](T-002-Market-Data-Persistence-Validation.md) | ✅ Pass (scoped) | 2026-03-23 |
+
+---
+
+## Current Focus
+
+```text
 maiupbit v0.1.0  |  PyPI ✅  |  Apache-2.0
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Phase: 8 (Ollama 통합) 완료
-파일: 55+ Python files  |  LOC: 1,720 stmts (maiupbit/)
-테스트: 200 collected, 197 passed, 3 skipped
-커버리지: 82% (목표 70% ✅)
-LLM: OpenAI GPT-4o + Ollama (qwen2.5:14b 기본)
-PyPI: https://pypi.org/project/maiupbit/0.1.0/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Market data persistence: COMPLETE (6 phases)
+117 scoped tests passing | 65 new tests added
+Next: operational backfill + PyPI v0.2.0
 ```
+
+### Market data persistence initiative (reading order)
+
+1. `A-002-Market-Data-Accumulation-Analysis.md` — gap analysis
+2. `D-003-Market-Data-Accumulation-Architecture.md` — target architecture
+3. `I-002-Market-Data-Persistence-Implementation.md` — implementation record
+4. `T-002-Market-Data-Persistence-Validation.md` — validation report
 
 ---
 

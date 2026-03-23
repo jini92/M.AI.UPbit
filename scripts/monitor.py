@@ -5,13 +5,14 @@ from dotenv import load_dotenv
 load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from maiupbit.exchange.upbit import UPbitExchange
 from maiupbit.indicators import trend, momentum, volatility
 
 
 def monitor(symbols: list[str] = None, threshold: float = 5.0) -> dict:
     """Monitoring of coins of interest. Alerts if the change exceeds threshold%"""
-    exchange = UPbitExchange()
+    from maiupbit.services import create_exchange
+
+    exchange = create_exchange()
 
     if not symbols:
         symbols = ['KRW-BTC', 'KRW-ETH', 'KRW-XRP', 'KRW-SOL', 'KRW-DOGE']

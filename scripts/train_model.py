@@ -4,9 +4,6 @@ import sys, os, json
 from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from maiupbit.exchange.upbit import UPbitExchange
-
-
 def train(symbol: str = 'KRW-BTC', days: int = 90, model_type: str = 'transformer'):
     """Model retraining
 
@@ -15,7 +12,9 @@ def train(symbol: str = 'KRW-BTC', days: int = 90, model_type: str = 'transforme
         days: Training data period in days
         model_type: 'lstm' or 'transformer'
     """
-    exchange = UPbitExchange()
+    from maiupbit.services import create_exchange
+
+    exchange = create_exchange()
     hourly = exchange.get_ohlcv(symbol, 'minute60', count=days * 24)
 
     if hourly is None or len(hourly) == 0:

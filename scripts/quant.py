@@ -37,10 +37,10 @@ def _fetch_multi_ohlcv(exchange, symbols: list[str], days: int) -> dict:
 
 def cmd_momentum(args):
     """Dual momentum ranking."""
-    from maiupbit.exchange.upbit import UPbitExchange
+    from maiupbit.services import create_exchange
     from maiupbit.strategies.momentum import DualMomentumStrategy, DualMomentumConfig
 
-    exchange = UPbitExchange()
+    exchange = create_exchange()
     symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
     data = _fetch_multi_ohlcv(exchange, symbols, args.days)
 
@@ -63,13 +63,13 @@ def cmd_momentum(args):
 
 def cmd_breakout(args):
     """Volatility breakout signal."""
-    from maiupbit.exchange.upbit import UPbitExchange
+    from maiupbit.services import create_exchange
     from maiupbit.strategies.volatility_breakout import (
         VolatilityBreakoutStrategy,
         VolatilityBreakoutConfig,
     )
 
-    exchange = UPbitExchange()
+    exchange = create_exchange()
     data = exchange.get_ohlcv(args.symbol, "day", count=args.days)
 
     if data is None or len(data) == 0:
@@ -98,10 +98,10 @@ def cmd_breakout(args):
 
 def cmd_factor(args):
     """Multi-factor ranking."""
-    from maiupbit.exchange.upbit import UPbitExchange
+    from maiupbit.services import create_exchange
     from maiupbit.strategies.multi_factor import MultiFactorStrategy, MultiFactorConfig
 
-    exchange = UPbitExchange()
+    exchange = create_exchange()
     symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
     data = _fetch_multi_ohlcv(exchange, symbols, args.days)
 
@@ -124,12 +124,12 @@ def cmd_factor(args):
 
 def cmd_allocate(args):
     """GTAA asset allocation."""
-    from maiupbit.exchange.upbit import UPbitExchange
+    from maiupbit.services import create_exchange
     from maiupbit.strategies.allocation import GTAAStrategy
     from maiupbit.strategies.seasonal import SeasonalFilter
     from maiupbit.strategies.risk import RiskManager
 
-    exchange = UPbitExchange()
+    exchange = create_exchange()
     symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
     data = _fetch_multi_ohlcv(exchange, symbols, args.days)
 
@@ -175,13 +175,13 @@ def cmd_season(args):
 
 def cmd_backtest(args):
     """Strategy backtesting."""
-    from maiupbit.exchange.upbit import UPbitExchange
+    from maiupbit.services import create_exchange
     from maiupbit.strategies.momentum import DualMomentumStrategy
     from maiupbit.strategies.volatility_breakout import VolatilityBreakoutStrategy
     from maiupbit.strategies.multi_factor import MultiFactorStrategy
     from maiupbit.strategies.allocation import GTAAStrategy
 
-    exchange = UPbitExchange()
+    exchange = create_exchange()
     symbols = args.symbols.split(",") if args.symbols else DEFAULT_SYMBOLS
     data = _fetch_multi_ohlcv(exchange, symbols, args.days)
 

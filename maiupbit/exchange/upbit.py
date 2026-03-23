@@ -36,6 +36,7 @@ class UPbitExchange(BaseExchange):
         access_key: str | None = None,
         secret_key: str | None = None,
         trade_history_path: str = "trade_history.json",
+        market_data_service=None,
     ) -> None:
         """Initialize UPbitExchange.
 
@@ -43,11 +44,13 @@ class UPbitExchange(BaseExchange):
             access_key: UPbit API Access Key (required for trading).
             secret_key: UPbit API Secret Key (required for trading).
             trade_history_path: Path to the trade history JSON file (default "trade_history.json").
+            market_data_service: Optional MarketDataService for local-first OHLCV reads.
         """
         self.access_key = access_key
         self.secret_key = secret_key
         self.trade_history_path = trade_history_path
         self._upbit = pyupbit.Upbit(access_key, secret_key) if access_key and secret_key else None
+        self._market_data_service = market_data_service
 
     # ------------------------------------------------------------------
     # BaseExchange implementation
@@ -62,6 +65,10 @@ class UPbitExchange(BaseExchange):
     ) -> pd.DataFrame:
         """Retrieve OHLCV data.
 
+        When a MarketDataService is configured, uses local-first reads
+        (checks SQLite, fetches only missing data from Upbit).
+        Otherwise falls back to direct pyupbit calls.
+
         Args:
             symbol: Trading symbol (e.g., "KRW-BTC").
             interval: Time interval (e.g., "day", "minute60").
@@ -71,6 +78,17 @@ class UPbitExchange(BaseExchange):
         Returns:
             OHLCV DataFrame. Returns an empty DataFrame on error.
         """
+        if self._market_data_service is not None:
+            try:
+                return self._market_data_service.get_ohlcv(
+                    symbol, interval=interval, count=count, to=to,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "MarketDataService failed for %s, falling back to live: %s",
+                    symbol, exc,
+                )
+
         try:
             df = pyupbit.get_ohlcv(symbol, interval=interval, count=count, to=to)
             return df if df is not None else pd.DataFrame()
@@ -189,7 +207,12 @@ class UPbitExchange(BaseExchange):
         start_date=None,
         end_date=None,
     ):
-        """Retrieve daily/hourly OHLCV data.
+        """Retrieve daily/hourly OHLCV data directly from pyupbit.
+
+        This method intentionally bypasses the MarketDataService because it
+        returns a ``(daily_df, hourly_df)`` tuple — a shape incompatible with
+        the single-DataFrame service path.  Callers needing local-first reads
+        should use ``get_ohlcv()`` instead.
 
         Args:
             symbol: Trading symbol (e.g., "KRW-BTC").

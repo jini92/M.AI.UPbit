@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from maiupbit.exchange.upbit import UPbitExchange
 from maiupbit.analysis.technical import TechnicalAnalyzer
 
 
@@ -26,9 +25,11 @@ def _get_knowledge_context(symbols: list[str]) -> str:
 
 def daily_report(symbols: list[str] = None) -> dict:
     """Generate daily analysis report"""
-    exchange = UPbitExchange(
+    from maiupbit.services import create_exchange
+
+    exchange = create_exchange(
         access_key=os.getenv('UPBIT_ACCESS_KEY'),
-        secret_key=os.getenv('UPBIT_SECRET_KEY')
+        secret_key=os.getenv('UPBIT_SECRET_KEY'),
     )
     analyzer = TechnicalAnalyzer(exchange)
 
@@ -49,6 +50,12 @@ def daily_report(symbols: list[str] = None) -> dict:
         except Exception:
             pass
 
+    # Retrieve the store for snapshot persistence (if available)
+    store = None
+    service = getattr(exchange, '_market_data_service', None)
+    if service:
+        store = getattr(service, '_store', None)
+
     # Analysis for each coin
     for symbol in symbols:
         try:
@@ -58,6 +65,18 @@ def daily_report(symbols: list[str] = None) -> dict:
                 analysis['symbol'] = symbol
                 analysis['current_price'] = exchange.get_current_price(symbol)
                 report['analysis'].append(analysis)
+
+                # Persist analysis snapshot for provenance
+                if store:
+                    try:
+                        store.save_snapshot(
+                            symbol=symbol,
+                            kind='daily_report',
+                            market_data={'current_price': analysis.get('current_price')},
+                            indicators=analysis,
+                        )
+                    except Exception:
+                        pass
         except Exception:
             continue
 

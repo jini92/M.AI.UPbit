@@ -2,7 +2,7 @@
 
 > **문서 번호**: D-001
 > **작성일**: 2026-02-25
-> **상태**: ✅ Phase 8 완료 (Ollama 통합)
+> **상태**: ✅ Phase 8 완료 (Ollama 통합) / Phase 9 계획 보강 (market data persistence)
 > **이전 버전**: POC (Streamlit 단일 파일)
 
 ---
@@ -249,7 +249,7 @@ M.AI.UPbit/
 | **ML** | PyTorch (LSTM + Transformer) | 사전 학습 + 추론 분리 |
 | **LLM** | OpenAI GPT-4o + Ollama (qwen2.5:14b 기본) | 듀얼 백엔드, 무료 로컬 분석 |
 | **거래소** | pyupbit + ccxt | UPbit 메인 + 확장 가능 |
-| **데이터** | SQLite + JSON | 단일 사용자, 심플 |
+| **데이터** | SQLite (canonical market data, planned) + JSON (trade logs) | local-first, 단일 사용자, 점진적 마이그레이션 |
 | **알림** | OpenClaw 채널 (Discord/Telegram) | 기존 인프라 활용 |
 | **패키지** | Poetry + PyPI | OSS 배포 |
 | **테스트** | pytest + coverage 70%+ | 품질 보증 |
@@ -414,6 +414,8 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 
 ### Phase 9: 실전 운영 + PyPI v0.2.0 (예정)
 
+- [ ] Market data persistence foundation (SQLite canonical store + export layer)
+- [ ] Quant/report/auto-trade read path integration via local-first candle access
 - [ ] 퀀트 전략 실전 백테스트 검증 (BTC/ETH 1년)
 - [ ] Transformer 모델 실제 학습 (BTC 90일 데이터)
 - [ ] HEARTBEAT 주간 모델 재학습 크론 추가
@@ -464,5 +466,5 @@ ClawHub 스킬 마켓플레이스에서 개별 판매
 
 ---
 
-_Last updated: 2026-02-25 — Phase 8 완료 (Ollama 통합)_
+_Last updated: 2026-03-23 — Phase 9 planning updated (market data persistence)_
 _Author: MAIBOT (MAI Universe)_

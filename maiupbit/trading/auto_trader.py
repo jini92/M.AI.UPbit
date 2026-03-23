@@ -63,11 +63,10 @@ class AutoTrader:
 
         indicators, signals = {}, {}
         try:
-            import pyupbit
             from maiupbit.indicators.trend import sma, ema
             from maiupbit.indicators.momentum import rsi
             from maiupbit.indicators.volatility import bollinger_bands
-            df = pyupbit.get_ohlcv(symbol, count=200)
+            df = self.exchange.get_ohlcv(symbol, interval="day", count=200)
             if df is not None and not df.empty:
                 close = df["close"]
                 df["sma_20"] = sma(close, 20)
@@ -241,8 +240,19 @@ class AutoTrader:
             order_result=order_result if executed else None,
         )
 
+        # Persist analysis snapshot for decision provenance
+        snapshot_id = self._save_analysis_snapshot(
+            symbol=symbol,
+            trade_id=trade_record["trade_id"],
+            market_data=market_data,
+            quant_signals=quant_signals,
+            llm_result=llm_result,
+            knowledge_context=knowledge_context,
+        )
+
         return {
             "trade_id": trade_record["trade_id"],
+            "snapshot_id": snapshot_id,
             "action": action, "confidence": confidence,
             "volume": volume, "price": market_data.get("current_price", 0),
             "total_krw": total_krw, "fee": fee,
@@ -250,3 +260,45 @@ class AutoTrader:
             "reason": reason,
             "order_result": order_result if executed else None,
         }
+
+    def _save_analysis_snapshot(
+        self,
+        symbol: str,
+        trade_id: str,
+        market_data: dict,
+        quant_signals: dict,
+        llm_result: dict,
+        knowledge_context: str,
+    ) -> Optional[str]:
+        """Persist the full analysis context to the canonical store.
+
+        Returns:
+            The snapshot_id if persisted, None if no store is available.
+        """
+        store = self._get_store()
+        if store is None:
+            return None
+
+        try:
+            return store.save_snapshot(
+                symbol=symbol,
+                kind="auto_trade",
+                trade_id=trade_id,
+                market_data=market_data,
+                indicators=market_data.get("indicators"),
+                quant_signals=quant_signals,
+                llm_result=llm_result,
+                knowledge_summary=knowledge_context[:2000] if knowledge_context else None,
+                provider=llm_result.get("provider") if isinstance(llm_result, dict) else None,
+                model=llm_result.get("model") if isinstance(llm_result, dict) else None,
+            )
+        except Exception as exc:
+            logger.warning("Failed to save analysis snapshot: %s", exc)
+            return None
+
+    def _get_store(self):
+        """Retrieve the SQLiteStore from the exchange's MarketDataService, if available."""
+        service = getattr(self.exchange, "_market_data_service", None)
+        if service is None:
+            return None
+        return getattr(service, "_store", None)

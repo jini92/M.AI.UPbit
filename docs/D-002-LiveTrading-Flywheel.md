@@ -8,6 +8,17 @@
 
 ---
 
+## Addendum (2026-03-23)
+
+This flywheel remains valid, but the architecture now explicitly distinguishes between:
+
+- **market data accumulation** (canonical candle store), and
+- **trade record accumulation** (`trade_journal.json`, performance tracking, Obsidian/Mnemo sync).
+
+The detailed storage architecture is now specified in `D-003-Market-Data-Accumulation-Architecture.md`.
+
+---
+
 ## 1. 핵심 컨셉: 데이터 → 지식 → 수익 선순환
 
 ```

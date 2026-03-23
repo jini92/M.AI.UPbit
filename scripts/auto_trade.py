@@ -40,9 +40,9 @@ def main() -> None:
         print(json.dumps({"error": "UPBIT_ACCESS_KEY/SECRET_KEY missing"}))
         sys.exit(1)
 
-    # Exchange
-    from maiupbit.exchange.upbit import UPbitExchange
-    exchange = UPbitExchange(access_key=access_key, secret_key=secret_key)
+    # Exchange — use store-backed factory for local-first reads + snapshot persistence
+    from maiupbit.services import create_exchange
+    exchange = create_exchange(access_key=access_key, secret_key=secret_key)
 
     # Journal
     from maiupbit.trading.journal import TradeJournal
