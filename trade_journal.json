@@ -2534,5 +2534,2160 @@
       "was_correct": null,
       "evaluated_at": null
     }
+  },
+  {
+    "trade_id": "2026-03-23_09-00_KRW-BTC_hold_43d4df",
+    "timestamp": "2026-03-23T09:00:19.578628+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 101980000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 46.11187176946278,
+      "macd_signal": "bearish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-56_KRW-BTC_hold_a3cfcf",
+    "timestamp": "2026-03-23T10:56:11.494358+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-56_KRW-BTC_hold_c3e8eb",
+    "timestamp": "2026-03-23T10:56:11.511314+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-56_KRW-BTC_hold_173522",
+    "timestamp": "2026-03-23T10:56:11.534010+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-56_KRW-BTC_hold_80089b",
+    "timestamp": "2026-03-23T10:56:11.546241+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-56_KRW-BTC_hold_38f594",
+    "timestamp": "2026-03-23T10:56:11.565850+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-59_KRW-BTC_hold_ea5aed",
+    "timestamp": "2026-03-23T10:59:25.126862+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-59_KRW-BTC_hold_7f04c8",
+    "timestamp": "2026-03-23T10:59:25.150710+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-59_KRW-BTC_hold_a37673",
+    "timestamp": "2026-03-23T10:59:25.175565+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-59_KRW-BTC_hold_39e63c",
+    "timestamp": "2026-03-23T10:59:25.185845+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_10-59_KRW-BTC_hold_5dcfd7",
+    "timestamp": "2026-03-23T10:59:25.203964+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-00_KRW-BTC_hold_bf9e02",
+    "timestamp": "2026-03-23T11:00:08.428012+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-00_KRW-BTC_hold_6f4dc6",
+    "timestamp": "2026-03-23T11:00:08.452705+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-00_KRW-BTC_hold_430d89",
+    "timestamp": "2026-03-23T11:00:08.478274+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-00_KRW-BTC_hold_249578",
+    "timestamp": "2026-03-23T11:00:08.491977+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-00_KRW-BTC_hold_9794e8",
+    "timestamp": "2026-03-23T11:00:08.511869+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-01_KRW-BTC_hold_c34be8",
+    "timestamp": "2026-03-23T11:01:06.802301+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-01_KRW-BTC_hold_c261f7",
+    "timestamp": "2026-03-23T11:01:06.828722+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-01_KRW-BTC_hold_e570a5",
+    "timestamp": "2026-03-23T11:01:06.854816+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-01_KRW-BTC_hold_e1ca3f",
+    "timestamp": "2026-03-23T11:01:06.866453+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-01_KRW-BTC_hold_2816b5",
+    "timestamp": "2026-03-23T11:01:06.885566+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-17_KRW-BTC_hold_03b951",
+    "timestamp": "2026-03-23T11:17:27.976675+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-17_KRW-BTC_hold_edea1e",
+    "timestamp": "2026-03-23T11:17:28.001764+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-17_KRW-BTC_hold_e419d5",
+    "timestamp": "2026-03-23T11:17:28.027385+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-17_KRW-BTC_hold_c9ea2f",
+    "timestamp": "2026-03-23T11:17:28.045193+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_11-17_KRW-BTC_hold_004c6c",
+    "timestamp": "2026-03-23T11:17:28.067343+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-09_KRW-BTC_hold_720930",
+    "timestamp": "2026-03-23T12:09:43.442872+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-09_KRW-BTC_hold_9e5dd6",
+    "timestamp": "2026-03-23T12:09:43.495272+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-09_KRW-BTC_hold_076257",
+    "timestamp": "2026-03-23T12:09:43.559445+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-09_KRW-BTC_hold_91cb10",
+    "timestamp": "2026-03-23T12:09:43.579726+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-09_KRW-BTC_hold_810a54",
+    "timestamp": "2026-03-23T12:09:43.623164+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_db8a0c",
+    "timestamp": "2026-03-23T12:31:01.247563+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_628d1c",
+    "timestamp": "2026-03-23T12:31:01.273565+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_198d85",
+    "timestamp": "2026-03-23T12:31:01.297432+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_45511e",
+    "timestamp": "2026-03-23T12:31:01.311051+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_d00672",
+    "timestamp": "2026-03-23T12:31:01.332595+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_cd51bc",
+    "timestamp": "2026-03-23T12:31:09.430758+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_15a0de",
+    "timestamp": "2026-03-23T12:31:09.456397+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_5c9ddf",
+    "timestamp": "2026-03-23T12:31:09.480149+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_1e2fcc",
+    "timestamp": "2026-03-23T12:31:09.492610+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_12-31_KRW-BTC_hold_b018f1",
+    "timestamp": "2026-03-23T12:31:09.514804+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_7f1c9e",
+    "timestamp": "2026-03-23T13:22:44.163957+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_41e02f",
+    "timestamp": "2026-03-23T13:22:44.190810+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_594263",
+    "timestamp": "2026-03-23T13:22:44.215865+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_1a8b6e",
+    "timestamp": "2026-03-23T13:22:44.230077+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_fc9612",
+    "timestamp": "2026-03-23T13:22:44.250689+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_07a7f5",
+    "timestamp": "2026-03-23T13:22:51.332513+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_4370ff",
+    "timestamp": "2026-03-23T13:22:51.357901+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_4a9fb8",
+    "timestamp": "2026-03-23T13:22:51.380718+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_99df67",
+    "timestamp": "2026-03-23T13:22:51.392124+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_9e8737",
+    "timestamp": "2026-03-23T13:22:51.413786+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_75b05f",
+    "timestamp": "2026-03-23T13:22:53.591608+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_b96bbc",
+    "timestamp": "2026-03-23T13:22:53.617338+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_b043df",
+    "timestamp": "2026-03-23T13:22:53.640784+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_59c5d3",
+    "timestamp": "2026-03-23T13:22:53.654540+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-22_KRW-BTC_hold_250543",
+    "timestamp": "2026-03-23T13:22:53.675663+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-23_KRW-BTC_hold_445d5b",
+    "timestamp": "2026-03-23T13:23:04.746394+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-23_KRW-BTC_hold_56ef12",
+    "timestamp": "2026-03-23T13:23:04.772969+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-23_KRW-BTC_hold_c2e62f",
+    "timestamp": "2026-03-23T13:23:04.803952+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-23_KRW-BTC_hold_2d92a1",
+    "timestamp": "2026-03-23T13:23:04.819177+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_13-23_KRW-BTC_hold_8f2f5c",
+    "timestamp": "2026-03-23T13:23:04.843400+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_21-00_KRW-BTC_hold_82d958",
+    "timestamp": "2026-03-23T21:00:47.146017+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 104707000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 51.584572212164744,
+      "macd_signal": "bullish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_23-02_KRW-BTC_hold_0952ff",
+    "timestamp": "2026-03-23T23:02:38.850612+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_23-02_KRW-BTC_hold_08d72c",
+    "timestamp": "2026-03-23T23:02:38.869415+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_23-02_KRW-BTC_hold_99fede",
+    "timestamp": "2026-03-23T23:02:38.894164+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_23-02_KRW-BTC_hold_8f8722",
+    "timestamp": "2026-03-23T23:02:38.907850+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-23_23-02_KRW-BTC_hold_98577f",
+    "timestamp": "2026-03-23T23:02:38.929735+09:00",
+    "date": "2026-03-23",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 50000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": null,
+      "macd_signal": "neutral",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": "hold",
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": ""
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-24_07-21_KRW-BTC_hold_ddba1e",
+    "timestamp": "2026-03-24T07:21:16.523175+09:00",
+    "date": "2026-03-24",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 104833000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 51.81118452209024,
+      "macd_signal": "bullish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": [
+        {
+          "name": "maiupbit",
+          "score": 7.0,
+          "entity_type": "memory",
+          "snippet": "# M.AI.UPbit — AI 디지털 자산 분석\n\n## 기본 정보\n\n- **GitHub:** https://github.com/jini92/M.AI.UPbit\n- **로컬:** `C:\\TEST\\M.AI.UPbit`\n- **언어:** Python 3.10+\n- **Obsidian:** `01.PROJECT/16.M.AI.UPbit`\n- **상태:** 🟢 진",
+          "path": "C:\\MAIBOT\\memory\\maiupbit.md",
+          "source": "memory"
+        },
+        {
+          "name": "marketplace-strategy",
+          "score": 4.0,
+          "entity_type": "memory",
+          "snippet": "﻿# MAI Universe 마켓플레이스 전략\n\n_Created: 2026-02-25_\n\n## 전체 마켓플레이스 (23개)\n\n| 카테고리      | 마켓플레이스                               | 대상 프로젝트 수 |\n| ------------- | ------------------------------------------ | --",
+          "path": "C:\\MAIBOT\\memory\\marketplace-strategy.md",
+          "source": "memory"
+        },
+        {
+          "name": "obsidian-marketplace-lessons",
+          "score": 3.5,
+          "entity_type": "memory",
+          "snippet": "# Obsidian Community Plugin Marketplace 등록 — Lessons Learned\n\n_PR #10404 (Mnemo SecondBrain) 경험 기반. 2026-02-21_\n\n## 타임라인\n\n### PR #10404 (실패 → 닫음)\n\n| 시도  | 에러                                           ",
+          "path": "C:\\MAIBOT\\memory\\obsidian-marketplace-lessons.md",
+          "source": "memory"
+        },
+        {
+          "name": "2026-03-09",
+          "score": 3.0,
+          "entity_type": "memory",
+          "snippet": "# 2026-03-09 세션 기록\n\n---\n\n## MAIBOTALKS App Store 거부 (3차) — 2026-03-09\n\n### 거부 사유\n\n- **Guideline 2.1(a) — Performance: App Completeness**\n- 증상: **온보딩 화면 \"다음\" 버튼 unresponsive**\n- 심사 환경: iPhone 17 Pro Ma",
+          "path": "C:\\MAIBOT\\memory\\2026-03-09.md",
+          "source": "memory"
+        },
+        {
+          "name": "2026-03-21",
+          "score": 3.0,
+          "entity_type": "memory",
+          "snippet": "project: MAIBOT\n\n## 2026-03-21 durable notes\n\n- 지니님 requested that the OpenClaw model environment be unified on `openai-codex/gpt-5.4` for main/default, subagents, and compaction. This was applied in ",
+          "path": "C:\\MAIBOT\\memory\\2026-03-21.md",
+          "source": "memory"
+        },
+        {
+          "key": "Instructions-가상화폐 자동 분석 솔루션",
+          "name": "Instructions-가상화폐 자동 분석 솔루션",
+          "score": -7.3009,
+          "entity_type": "source",
+          "snippet": "# Bitcoin Investment Automation Instruction\n\n  \n\n## Role\n\nYou serve as the KRW-BTC Bitcoin Investment Analysis Engine, tasked with issuing hourly investment recommendations for the KRW-BTC (Korean Won",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\Instructions-가상화폐 자동 분석 솔루션.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-08_21-01_KRW-BTC_hold_e42a84",
+          "name": "2026-03-08_21-01_KRW-BTC_hold_e42a84",
+          "score": -7.9243,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-08T21:01:32\n- **가격**: ₩99,858,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n## ",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-08_21-01_KRW-BTC_hold_e42a84.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-08_07-02_KRW-BTC_hold_0f5525",
+          "name": "2026-03-08_07-02_KRW-BTC_hold_0f5525",
+          "score": -7.9489,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-08T07:02:39\n- **가격**: ₩99,795,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n## ",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-08_07-02_KRW-BTC_hold_0f5525.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-07_21-00_KRW-BTC_hold_356de2",
+          "name": "2026-03-07_21-00_KRW-BTC_hold_356de2",
+          "score": -8.0143,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-07T21:00:58\n- **가격**: ₩100,500,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n##",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-07_21-00_KRW-BTC_hold_356de2.md",
+          "source": "vault"
+        }
+      ]
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
+  },
+  {
+    "trade_id": "2026-03-24_21-04_KRW-BTC_hold_7b2760",
+    "timestamp": "2026-03-24T21:04:18.113669+09:00",
+    "date": "2026-03-24",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 106046000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 53.98946260127148,
+      "macd_signal": "bullish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": [
+        {
+          "name": "maiupbit",
+          "score": 7.0,
+          "entity_type": "memory",
+          "snippet": "# M.AI.UPbit — AI 디지털 자산 분석\n\n## 기본 정보\n\n- **GitHub:** https://github.com/jini92/M.AI.UPbit\n- **로컬:** `C:\\TEST\\M.AI.UPbit`\n- **언어:** Python 3.10+\n- **Obsidian:** `01.PROJECT/16.M.AI.UPbit`\n- **상태:** 🟢 진",
+          "path": "C:\\MAIBOT\\memory\\maiupbit.md",
+          "source": "memory"
+        },
+        {
+          "name": "marketplace-strategy",
+          "score": 4.0,
+          "entity_type": "memory",
+          "snippet": "﻿# MAI Universe 마켓플레이스 전략\n\n_Created: 2026-02-25_\n\n## 전체 마켓플레이스 (23개)\n\n| 카테고리      | 마켓플레이스                               | 대상 프로젝트 수 |\n| ------------- | ------------------------------------------ | --",
+          "path": "C:\\MAIBOT\\memory\\marketplace-strategy.md",
+          "source": "memory"
+        },
+        {
+          "name": "obsidian-marketplace-lessons",
+          "score": 3.5,
+          "entity_type": "memory",
+          "snippet": "# Obsidian Community Plugin Marketplace 등록 — Lessons Learned\n\n_PR #10404 (Mnemo SecondBrain) 경험 기반. 2026-02-21_\n\n## 타임라인\n\n### PR #10404 (실패 → 닫음)\n\n| 시도  | 에러                                           ",
+          "path": "C:\\MAIBOT\\memory\\obsidian-marketplace-lessons.md",
+          "source": "memory"
+        },
+        {
+          "name": "2026-03-09",
+          "score": 3.0,
+          "entity_type": "memory",
+          "snippet": "# 2026-03-09 세션 기록\n\n---\n\n## MAIBOTALKS App Store 거부 (3차) — 2026-03-09\n\n### 거부 사유\n\n- **Guideline 2.1(a) — Performance: App Completeness**\n- 증상: **온보딩 화면 \"다음\" 버튼 unresponsive**\n- 심사 환경: iPhone 17 Pro Ma",
+          "path": "C:\\MAIBOT\\memory\\2026-03-09.md",
+          "source": "memory"
+        },
+        {
+          "name": "2026-03-21",
+          "score": 3.0,
+          "entity_type": "memory",
+          "snippet": "project: MAIBOT\n\n## 2026-03-21 durable notes\n\n- 지니님 requested that the OpenClaw model environment be unified on `openai-codex/gpt-5.4` for main/default, subagents, and compaction. This was applied in ",
+          "path": "C:\\MAIBOT\\memory\\2026-03-21.md",
+          "source": "memory"
+        },
+        {
+          "key": "Instructions-가상화폐 자동 분석 솔루션",
+          "name": "Instructions-가상화폐 자동 분석 솔루션",
+          "score": -7.3009,
+          "entity_type": "source",
+          "snippet": "# Bitcoin Investment Automation Instruction\n\n  \n\n## Role\n\nYou serve as the KRW-BTC Bitcoin Investment Analysis Engine, tasked with issuing hourly investment recommendations for the KRW-BTC (Korean Won",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\Instructions-가상화폐 자동 분석 솔루션.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-08_21-01_KRW-BTC_hold_e42a84",
+          "name": "2026-03-08_21-01_KRW-BTC_hold_e42a84",
+          "score": -7.9243,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-08T21:01:32\n- **가격**: ₩99,858,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n## ",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-08_21-01_KRW-BTC_hold_e42a84.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-08_07-02_KRW-BTC_hold_0f5525",
+          "name": "2026-03-08_07-02_KRW-BTC_hold_0f5525",
+          "score": -7.9489,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-08T07:02:39\n- **가격**: ₩99,795,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n## ",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-08_07-02_KRW-BTC_hold_0f5525.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-07_21-00_KRW-BTC_hold_356de2",
+          "name": "2026-03-07_21-00_KRW-BTC_hold_356de2",
+          "score": -8.0143,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-07T21:00:58\n- **가격**: ₩100,500,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n##",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-07_21-00_KRW-BTC_hold_356de2.md",
+          "source": "vault"
+        }
+      ]
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
   }
 ]
