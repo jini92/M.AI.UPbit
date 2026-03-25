@@ -1,0 +1,65 @@
+﻿{
+  "date": "2026-03-25",
+  "portfolio": {
+    "KRW": "Empty DataFrame\nColumns: []\nIndex: []",
+    "BTC": "Empty DataFrame\nColumns: []\nIndex: []",
+    "USDT": "Empty DataFrame\nColumns: []\nIndex: []"
+  },
+  "analysis": [
+    {
+      "indicators": {
+        "sma_10": 105657400.0,
+        "ema_10": 104476638.14840508,
+        "rsi_14": 53.788720501311055,
+        "upper_band": 110455512.360337
+      },
+      "signals": {
+        "macd_signal": "neutral",
+        "rsi_signal": "neutral",
+        "bb_signal": "inside"
+      },
+      "score": -0.34,
+      "recommendation": "sell",
+      "symbol": "KRW-BTC",
+      "current_price": 105448000.0
+    },
+    {
+      "indicators": {
+        "sma_10": 3234700.0,
+        "ema_10": 3171574.309586717,
+        "rsi_14": 59.2557251908397,
+        "upper_band": 3492275.908880318
+      },
+      "signals": {
+        "macd_signal": "neutral",
+        "rsi_signal": "neutral",
+        "bb_signal": "inside"
+      },
+      "score": -0.39,
+      "recommendation": "sell",
+      "symbol": "KRW-ETH",
+      "current_price": 3223000.0
+    },
+    {
+      "indicators": {
+        "sma_10": 2153.6,
+        "ema_10": 2117.882528287324,
+        "rsi_14": 55.102040816326536,
+        "upper_band": 2276.556341335881
+      },
+      "signals": {
+        "macd_signal": "neutral",
+        "rsi_signal": "neutral",
+        "bb_signal": "inside"
+      },
+      "score": -0.35,
+      "recommendation": "sell",
+      "symbol": "KRW-XRP",
+      "current_price": 2112.0
+    }
+  ],
+  "recommendations": [],
+  "knowledge_enriched": true,
+  "knowledge_source": "Mnemo (MAISECONDBRAIN)",
+  "knowledge_context": "[Knowledge Context from Mnemo SecondBrain]\n\n--- Knowledge #1 (source: memory, relevance: 4.0) ---\nTitle: maiupbit\n# M.AI.UPbit ??AI ?붿????먯궛 遺꾩꽍\n\n## 湲곕낯 ?뺣낫\n\n- **GitHub:** https://github.com/jini92/M.AI.UPbit\n- **濡쒖뺄:** `C:\\TEST\\M.AI.UPbit`\n- **?몄뼱:** Python 3.10+\n- **Obsidian:** `01.PROJECT/16.M.AI.UPbit`\n- **?곹깭:** ?윟 吏?n\n\n--- Knowledge #2 (source: memory, relevance: 4.0) ---\nTitle: marketplace-strategy\n癤? MAI Universe 留덉폆?뚮젅?댁뒪 ?꾨왂\n\n_Created: 2026-02-25_\n\n## ?꾩껜 留덉폆?뚮젅?댁뒪 (23媛?\n\n| 移댄뀒怨좊━      | 留덉폆?뚮젅?댁뒪           "
+}
