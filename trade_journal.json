@@ -5219,5 +5219,111 @@
       "was_correct": null,
       "evaluated_at": null
     }
+  },
+  {
+    "trade_id": "2026-03-29_09-18_KRW-BTC_hold_14040b",
+    "timestamp": "2026-03-29T09:18:42.196218+09:00",
+    "date": "2026-03-29",
+    "symbol": "KRW-BTC",
+    "action": "hold",
+    "volume": 0,
+    "price": 100910000.0,
+    "total_krw": 0.0,
+    "fee": 0.0,
+    "analysis": {
+      "rsi": 43.91820105253246,
+      "macd_signal": "bearish",
+      "rsi_signal": "neutral",
+      "quant_signals": {},
+      "llm_decision": null,
+      "llm_confidence": 0.5,
+      "llm_reason": "Confidence 0.50 below threshold.",
+      "knowledge_hits": 0,
+      "knowledge_summary": [
+        {
+          "name": "maiupbit",
+          "score": 7.0,
+          "entity_type": "memory",
+          "snippet": "# M.AI.UPbit — AI 디지털 자산 분석\n\n## 기본 정보\n\n- **GitHub:** https://github.com/jini92/M.AI.UPbit\n- **로컬:** `C:\\TEST\\M.AI.UPbit`\n- **언어:** Python 3.10+\n- **Obsidian:** `01.PROJECT/16.M.AI.UPbit`\n- **상태:** 🟢 진",
+          "path": "C:\\MAIBOT\\memory\\maiupbit.md",
+          "source": "memory"
+        },
+        {
+          "name": "marketplace-strategy",
+          "score": 4.0,
+          "entity_type": "memory",
+          "snippet": "﻿# MAI Universe 마켓플레이스 전략\n\n_Created: 2026-02-25_\n\n## 전체 마켓플레이스 (23개)\n\n| 카테고리      | 마켓플레이스                               | 대상 프로젝트 수 |\n| ------------- | ------------------------------------------ | --",
+          "path": "C:\\MAIBOT\\memory\\marketplace-strategy.md",
+          "source": "memory"
+        },
+        {
+          "name": "obsidian-marketplace-lessons",
+          "score": 3.5,
+          "entity_type": "memory",
+          "snippet": "# Obsidian Community Plugin Marketplace 등록 — Lessons Learned\n\n_PR #10404 (Mnemo SecondBrain) 경험 기반. 2026-02-21_\n\n## 타임라인\n\n### PR #10404 (실패 → 닫음)\n\n| 시도  | 에러                                           ",
+          "path": "C:\\MAIBOT\\memory\\obsidian-marketplace-lessons.md",
+          "source": "memory"
+        },
+        {
+          "name": "2026-03-09",
+          "score": 3.0,
+          "entity_type": "memory",
+          "snippet": "# 2026-03-09 세션 기록\n\n---\n\n## MAIBOTALKS App Store 거부 (3차) — 2026-03-09\n\n### 거부 사유\n\n- **Guideline 2.1(a) — Performance: App Completeness**\n- 증상: **온보딩 화면 \"다음\" 버튼 unresponsive**\n- 심사 환경: iPhone 17 Pro Ma",
+          "path": "C:\\MAIBOT\\memory\\2026-03-09.md",
+          "source": "memory"
+        },
+        {
+          "name": "2026-03-21",
+          "score": 3.0,
+          "entity_type": "memory",
+          "snippet": "project: MAIBOT\n\n## 2026-03-21 durable notes\n\n- 지니님 requested that the OpenClaw model environment be unified on `openai-codex/gpt-5.4` for main/default, subagents, and compaction. This was applied in ",
+          "path": "C:\\MAIBOT\\memory\\2026-03-21.md",
+          "source": "memory"
+        },
+        {
+          "key": "Instructions-가상화폐 자동 분석 솔루션",
+          "name": "Instructions-가상화폐 자동 분석 솔루션",
+          "score": -7.3009,
+          "entity_type": "source",
+          "snippet": "# Bitcoin Investment Automation Instruction\n\n  \n\n## Role\n\nYou serve as the KRW-BTC Bitcoin Investment Analysis Engine, tasked with issuing hourly investment recommendations for the KRW-BTC (Korean Won",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\Instructions-가상화폐 자동 분석 솔루션.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-08_21-01_KRW-BTC_hold_e42a84",
+          "name": "2026-03-08_21-01_KRW-BTC_hold_e42a84",
+          "score": -7.9243,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-08T21:01:32\n- **가격**: ₩99,858,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n## ",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-08_21-01_KRW-BTC_hold_e42a84.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-08_07-02_KRW-BTC_hold_0f5525",
+          "name": "2026-03-08_07-02_KRW-BTC_hold_0f5525",
+          "score": -7.9489,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-08T07:02:39\n- **가격**: ₩99,795,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n## ",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-08_07-02_KRW-BTC_hold_0f5525.md",
+          "source": "vault"
+        },
+        {
+          "key": "01.PROJECT/16.M.AI.UPbit/trades/2026-03-07_21-00_KRW-BTC_hold_356de2",
+          "name": "2026-03-07_21-00_KRW-BTC_hold_356de2",
+          "score": -8.0143,
+          "entity_type": "event",
+          "snippet": "# [HOLD] KRW-BTC\n\n- **시각**: 2026-03-07T21:00:58\n- **가격**: ₩100,500,000\n- **수량**: 0\n- **금액**: ₩0\n- **수수료**: ₩0.00\n- **실행**: ❌ 미실행\n\n## AI 판단\n- **신뢰도**: 50%\n- **근거**: Confidence 0.50 below threshold.\n\n##",
+          "path": "C:\\Users\\jini9\\OneDrive\\Documents\\JINI_SYNC\\01.PROJECT\\16.M.AI.UPbit\\trades\\2026-03-07_21-00_KRW-BTC_hold_356de2.md",
+          "source": "vault"
+        }
+      ]
+    },
+    "order_result": {},
+    "outcome": {
+      "price_after_24h": null,
+      "pnl_percent": null,
+      "was_correct": null,
+      "evaluated_at": null
+    }
   }
 ]
